@@ -275,6 +275,13 @@ Following the **AI Vibe Coder Protocol v3.0**, this project maintains:
   - Code quality metrics
   - Technical debt tracking
 
+- **[BACKEND_PLAN.md](./BACKEND_PLAN.md)** - Backend Implementation Plan
+  - Database schema design
+  - API endpoints specification
+  - Technology stack recommendations
+  - Migration strategy
+  - Security and deployment architecture
+
 ---
 
 ## 🗺️ Roadmap
@@ -300,7 +307,14 @@ Following the **AI Vibe Coder Protocol v3.0**, this project maintains:
 - ⏳ Performance Metrics Integration (Amazon Advertising API)
 - ⏳ AI-Powered Bid Suggestions
 
-See [PLAN.md](./PLAN.md) for detailed task breakdown.
+**Sprint 7: Backend Infrastructure & Database** (Planning Phase)
+- ✅ Backend Architecture Planning & Documentation
+- ⏳ Backend MVP Implementation (Supabase + PostgreSQL)
+- ⏳ Core API Development (RESTful endpoints)
+- ⏳ Frontend Integration with Backend
+- ⏳ Data Migration & Production Launch
+
+See [PLAN.md](./PLAN.md) for detailed task breakdown and [BACKEND_PLAN.md](./BACKEND_PLAN.md) for complete backend architecture.
 
 ---
 
