@@ -264,6 +264,12 @@ npm run build
 
 # Preview production build
 npm run preview
+
+# Run tests
+npm test                  # Run tests in watch mode
+npm run test:run          # Run tests once (CI/CD)
+npm run test:ui           # Open interactive test UI
+npm run test:coverage     # Generate coverage report
 ```
 
 ### Development Workflow
@@ -281,6 +287,22 @@ Following the **AI Vibe Coder Protocol v3.0**, this project maintains:
 - **State Management**: Centralized in App.tsx, passed via props
 - **Error Handling**: Graceful degradation with user feedback
 - **API Integration**: Abstracted service layer for Gemini API
+
+### Testing
+
+The application includes a comprehensive test suite with 73 tests covering utilities, services, and components. See [TEST_README.md](./TEST_README.md) for detailed test documentation.
+
+**Test Coverage:**
+- Utilities: 93.54% (storage, sorting)
+- Services: 91.54% (geminiService)
+- Components: 100% (LoadingSpinner, ErrorMessage, WelcomeMessage)
+
+**Quick Start:**
+```bash
+npm test              # Run tests in watch mode
+npm run test:run      # Run tests once
+npm run test:coverage # Generate coverage report
+```
 
 ---
 
