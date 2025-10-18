@@ -60,6 +60,12 @@
      ```
      VITE_GEMINI_API_KEY=your_api_key_here
      ```
+   - (Optional) Configure Supabase for cloud storage:
+     ```
+     VITE_SUPABASE_URL=https://your-project.supabase.co
+     VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+     ```
+   - See [Database Setup Guide](supabase/README.md) for detailed instructions
 
 4. **Start the development server**
    ```bash
@@ -169,27 +175,46 @@ Generate Amazon-compatible CSV files for bulk upload:
 - **Language**: TypeScript 5.8.2
 - **Build Tool**: Vite 6.2.0
 - **AI Service**: Google Gemini API (@google/genai 1.25.0)
-- **Styling**: CSS (index.css)
-- **State Management**: React Hooks + localStorage
+- **Styling**: Tailwind CSS 4.1.14
+- **Database**: Supabase (PostgreSQL) - Optional
+- **Authentication**: Supabase Auth - Optional
+- **State Management**: React Hooks + localStorage/Supabase
 
 ### Project Structure
 
 ```
-├── App.tsx                  # Main application component
-├── BrandCreationModal.tsx   # Brand creation UI
-├── index.tsx               # Application entry point
-├── types.ts                # TypeScript type definitions
-├── index.css               # Global styles
-├── vite.config.ts          # Vite configuration
-├── tsconfig.json           # TypeScript configuration
-├── package.json            # Dependencies and scripts
-├── PRO.md                  # Product Requirements Document
-├── PLAN.md                 # Development Roadmap
-├── PROTOCOL.md             # Development Protocol
-├── BUILD_LOG.md            # Technical Log
-├── CHANGELOG.md            # Version History
-├── METRICS.md              # Project Metrics
-└── README.md               # This file
+├── App.tsx                     # Main application component
+├── BrandCreationModal.tsx      # Brand creation UI
+├── index.tsx                   # Application entry point
+├── types.ts                    # TypeScript type definitions
+├── index.css                   # Global styles
+├── components/                 # React components
+│   ├── Dashboard.tsx
+│   ├── ViewSwitcher.tsx
+│   └── LoadingSpinner.tsx
+├── services/                   # Backend services
+│   ├── geminiService.ts        # AI service integration
+│   ├── supabaseClient.ts       # Database client
+│   ├── databaseService.ts      # Database API
+│   ├── database.types.ts       # Database types
+│   └── testConnection.ts       # Connection test utility
+├── utils/                      # Utility functions
+│   ├── storage.ts              # localStorage utilities
+│   └── sorting.ts              # Sorting utilities
+├── supabase/                   # Database infrastructure
+│   ├── migrations/             # SQL migration files
+│   └── README.md               # Database setup guide
+├── vite.config.ts              # Vite configuration
+├── tsconfig.json               # TypeScript configuration
+├── package.json                # Dependencies and scripts
+├── PRO.md                      # Product Requirements Document
+├── PLAN.md                     # Development Roadmap
+├── PROTOCOL.md                 # Development Protocol
+├── BUILD_LOG.md                # Technical Log
+├── CHANGELOG.md                # Version History
+├── METRICS.md                  # Project Metrics
+├── BACKEND_PLAN.md             # Backend Architecture
+└── README.md                   # This file
 ```
 
 ### Key Components
@@ -200,8 +225,26 @@ Generate Amazon-compatible CSV files for bulk upload:
 
 ### Data Persistence
 
-All application data is persisted in browser `localStorage`:
+The application supports two storage modes:
+
+**1. Local Storage (Default)**
+- Data stored in browser `localStorage`
+- No authentication required
+- Data isolated to single browser
+
+**2. Cloud Database (Optional - Supabase)**
+- Persistent cloud storage with PostgreSQL
+- Multi-device synchronization
+- User authentication and authorization
+- Data backup and recovery
+- Secure with row-level security
+- See [Database Setup Guide](supabase/README.md) for configuration
+
+Both modes store:
 - Brand configurations
+- Keyword banks
+- Campaign structures
+- Search history
 - Keyword banks
 - Campaign structures
 - Search history
