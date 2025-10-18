@@ -1,0 +1,5 @@
+{
+  "name": "Amazon PPC Keyword Genius",
+  "description": "An AI-powered web tool for Amazon PPC keyword research and analysis. Enter a seed keyword to generate a comprehensive list of related keywords with estimated search volume, competition levels, and relevance scores to optimize your advertising campaigns.",
+  "requestFramePermissions": []
+}

@@ -1,0 +1,1 @@
+full contents of amazon-ppc-keyword-genius_extracted/vite.config.ts

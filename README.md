@@ -1,1 +1,1 @@
-# Amazon-PPC-Keyword-Research-and-Analysis-
+full contents of amazon-ppc-keyword-genius_extracted/README.md
