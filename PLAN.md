@@ -1,6 +1,6 @@
 # Implementation Plan (PLAN.md)
 
-**Version 1.3**
+**Version 1.4**
 **Last Updated**: 2025-10-18
 
 ---
@@ -65,6 +65,18 @@ This document outlines the development roadmap for **Amazon PPC Keyword Genius**
 
 ---
 
+## Sprint 7: Backend Infrastructure & Database (Planning Phase)
+
+| ID | Title | Status | Requirement & Details |
+|---|---|---|---|
+| `[TASK-25]` | Backend Architecture Planning & Documentation | Done | **Requirement**: Infrastructure Enhancement<br>**Details**: Create comprehensive backend implementation plan (BACKEND_PLAN.md) documenting database schema, API endpoints, technology stack recommendations, migration strategy from localStorage to backend, security considerations, deployment architecture, and implementation timeline. This establishes the foundation for transitioning from browser-based localStorage to a scalable cloud backend. |
+| `[TASK-26]` | Backend MVP Implementation | To Do | **Requirement**: Infrastructure Enhancement<br>**Dependencies**: `[TASK-25]`<br>**Details**: Implement Phase 1 of backend plan - Set up Supabase project, create database schema with PostgreSQL, implement row-level security policies, set up authentication (email/password), create basic API structure for brands and keywords, implement user registration/login, and deploy to staging environment. |
+| `[TASK-27]` | Core API Development | To Do | **Requirement**: Infrastructure Enhancement<br>**Dependencies**: `[TASK-26]`<br>**Details**: Implement Phase 2 of backend plan - Build complete CRUD APIs for brands, keywords, campaigns, ad groups, search history, and keyword clusters. Implement proper error handling, validation, pagination, and write comprehensive API integration tests. |
+| `[TASK-28]` | Frontend Integration with Backend | To Do | **Requirement**: Infrastructure Enhancement<br>**Dependencies**: `[TASK-27]`<br>**Details**: Implement Phase 3 of backend plan - Create API client service layer in frontend, replace localStorage calls with API calls, implement authentication UI flow, add loading states and error handling, implement data migration tool UI, add offline detection with request queuing, and conduct beta testing with select users. |
+| `[TASK-29]` | Data Migration & Production Launch | To Do | **Requirement**: Infrastructure Enhancement<br>**Dependencies**: `[TASK-28]`<br>**Details**: Implement Phase 4 of backend plan - Run parallel localStorage + backend mode for validation, monitor and fix production issues, implement caching strategy for performance, conduct security audit, perform complete data migration for all users, and execute public launch. |
+
+---
+
 ## Sprint 6: Documentation & Quality (Complete)
 
 | ID | Title | Status | Requirement & Details |
@@ -81,11 +93,12 @@ This document outlines the development roadmap for **Amazon PPC Keyword Genius**
 All core documentation is now complete and synchronized:
 
 - ✅ **PRO.md** - Product Requirements Document (v1.2)
-- ✅ **PLAN.md** - Implementation Plan (v1.3) - This file
+- ✅ **PLAN.md** - Implementation Plan (v1.4) - This file
 - ✅ **PROTOCOL.md** - AI Vibe Coder Protocol (v3.0)
 - ✅ **BUILD_LOG.md** - Technical log with complete history
 - ✅ **CHANGELOG.md** - User-facing version history
-- ✅ **METRICS.md** - Project health dashboard (newly created)
-- ✅ **README.md** - Comprehensive project documentation (newly created)
+- ✅ **METRICS.md** - Project health dashboard
+- ✅ **README.md** - Comprehensive project documentation
+- ✅ **BACKEND_PLAN.md** - Backend implementation architecture and roadmap (newly created)
 
 **Last Documentation Review**: 2025-10-18
