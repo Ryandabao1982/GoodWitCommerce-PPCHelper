@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type ViewType = 'research' | 'bank' | 'planner' | 'settings';
+export type ViewType = 'research' | 'bank' | 'planner' | 'brand' | 'settings';
 
 interface ViewSwitcherProps {
   currentView: ViewType;
@@ -12,6 +12,7 @@ export const ViewSwitcher: React.FC<ViewSwitcherProps> = ({ currentView, onViewC
     { id: 'research', label: 'Dashboard', icon: '📊' },
     { id: 'bank', label: 'Keyword Bank', icon: '🏦' },
     { id: 'planner', label: 'Campaign Planner', icon: '📋' },
+    { id: 'brand', label: 'Brand Tab', icon: '🎯' },
     { id: 'settings', label: 'Settings', icon: '⚙️' },
   ];
 

@@ -68,6 +68,83 @@ export interface ApiSettings {
   supabaseAnonKey: string;
 }
 
+// Portfolio types for Brand Tab
+export type PortfolioType = 'Launch' | 'Optimize' | 'Scale' | 'Maintain';
+
+export interface Portfolio {
+  id: string;
+  name: PortfolioType;
+  budget: number;
+  campaigns: string[]; // Campaign IDs
+}
+
+// Lifecycle stages for keywords
+export type LifecycleStage = 'Discovery' | 'Test' | 'Performance' | 'SKAG' | 'Archived';
+
+// RAG status
+export type RAGStatus = 'Red' | 'Amber' | 'Green';
+
+export interface RAGBadge {
+  status: RAGStatus;
+  drivers: string[];
+}
+
+// KPI Metrics
+export interface KPIMetrics {
+  spend: number;
+  sales: number;
+  acos: number;
+  roas: number;
+  ctr: number;
+  cvr: number;
+  tacos: number;
+}
+
+// Rollout phases
+export type RolloutPhase = 1 | 2 | 3 | 4 | 5;
+
+export interface RolloutTask {
+  phase: RolloutPhase;
+  description: string;
+  completed: boolean;
+}
+
+// Coverage map
+export interface CoverageCell {
+  campaignType: string;
+  asin: string;
+  hasCoverage: boolean;
+  hasOverlap: boolean;
+}
+
+// Keyword health data
+export interface KeywordHealth {
+  keyword: string;
+  oppScore: number;
+  intent: string;
+  category: string;
+  lifecycle: LifecycleStage;
+  acos: number;
+  cvr: number;
+  cpc: number;
+  cpcMax: number;
+  spend: number;
+  sales: number;
+  rag: RAGStatus;
+}
+
+// Brand Tab settings
+export interface BrandTabSettings {
+  clicksToPromote: number;
+  clicksToNegate: number;
+  ctrPauseThreshold: number;
+  cvrFactorMedian: number;
+  wastedSpendRedThreshold: number;
+  isCompetitiveCategory: boolean;
+  // price?: number; // Removed: not exposed in modal
+  // targetAcos?: number; // Removed: not exposed in modal
+}
+
 // Brand/Session state
 export interface BrandState {
   keywordResults: KeywordData[];
@@ -75,4 +152,10 @@ export interface BrandState {
   advancedSearchSettings: AdvancedSearchSettings;
   keywordClusters?: Record<string, string[]> | null;
   campaigns: Campaign[];
+  portfolios?: Portfolio[];
+  brandTabSettings?: BrandTabSettings;
+  kpiMetrics?: KPIMetrics;
+  ragBadge?: RAGBadge;
+  keywordHealthData?: KeywordHealth[];
+  rolloutTasks?: RolloutTask[];
 }
