@@ -18,8 +18,7 @@ export interface AmazonBulkUploadRow {
  * Export campaigns in Amazon Sponsored Products bulk upload format
  */
 export function exportCampaignsToAmazonBulk(
-  campaigns: Campaign[],
-  brandName: string
+  campaigns: Campaign[]
 ): string {
   const headers = [
     'Campaign Name',
