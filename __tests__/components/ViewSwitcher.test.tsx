@@ -14,12 +14,15 @@ describe('ViewSwitcher', () => {
     it('should render all view buttons', () => {
       render(<ViewSwitcher currentView="research" onViewChange={mockOnViewChange} />);
       
-      expect(screen.getByText(/Dashboard/i)).toBeInTheDocument();
-      expect(screen.getByText(/Keyword Bank/i)).toBeInTheDocument();
-      expect(screen.getByText(/Campaign Planner/i)).toBeInTheDocument();
-      expect(screen.getByText(/Brand Tab/i)).toBeInTheDocument();
-      expect(screen.getByText(/SOP Library/i)).toBeInTheDocument();
-      expect(screen.getByText(/Settings/i)).toBeInTheDocument();
+      // Check for buttons by their role, not text (since text appears multiple times due to responsive design)
+      const buttons = screen.getAllByRole('button');
+      expect(buttons).toHaveLength(6);
+      expect(buttons[0]).toHaveTextContent('Dashboard');
+      expect(buttons[1]).toHaveTextContent('Keyword Bank');
+      expect(buttons[2]).toHaveTextContent('Campaign Planner');
+      expect(buttons[3]).toHaveTextContent('Brand Tab');
+      expect(buttons[4]).toHaveTextContent('SOP Library');
+      expect(buttons[5]).toHaveTextContent('Settings');
     });
 
     it('should display all view icons', () => {
@@ -36,16 +39,16 @@ describe('ViewSwitcher', () => {
     it('should highlight the current view button', () => {
       render(<ViewSwitcher currentView="research" onViewChange={mockOnViewChange} />);
       
-      const researchButton = screen.getByRole('button', { name: /Dashboard/i });
-      expect(researchButton).toHaveClass('bg-blue-600', 'text-white');
+      const buttons = screen.getAllByRole('button');
+      expect(buttons[0]).toHaveClass('bg-blue-600', 'text-white');
     });
 
     it('should not highlight non-current view buttons', () => {
       render(<ViewSwitcher currentView="research" onViewChange={mockOnViewChange} />);
       
-      const bankButton = screen.getByRole('button', { name: /Keyword Bank/i });
-      expect(bankButton).not.toHaveClass('bg-blue-600');
-      expect(bankButton).toHaveClass('bg-gray-100');
+      const buttons = screen.getAllByRole('button');
+      expect(buttons[1]).not.toHaveClass('bg-blue-600');
+      expect(buttons[1]).toHaveClass('bg-gray-100');
     });
   });
 
@@ -53,8 +56,8 @@ describe('ViewSwitcher', () => {
     it('should call onViewChange with correct view when Dashboard is clicked', () => {
       render(<ViewSwitcher currentView="bank" onViewChange={mockOnViewChange} />);
       
-      const dashboardButton = screen.getByRole('button', { name: /Dashboard/i });
-      fireEvent.click(dashboardButton);
+      const buttons = screen.getAllByRole('button');
+      fireEvent.click(buttons[0]); // Dashboard is first button
       
       expect(mockOnViewChange).toHaveBeenCalledWith('research');
     });
@@ -62,8 +65,8 @@ describe('ViewSwitcher', () => {
     it('should call onViewChange with correct view when Keyword Bank is clicked', () => {
       render(<ViewSwitcher currentView="research" onViewChange={mockOnViewChange} />);
       
-      const bankButton = screen.getByRole('button', { name: /Keyword Bank/i });
-      fireEvent.click(bankButton);
+      const buttons = screen.getAllByRole('button');
+      fireEvent.click(buttons[1]); // Keyword Bank is second button
       
       expect(mockOnViewChange).toHaveBeenCalledWith('bank');
     });
@@ -71,8 +74,8 @@ describe('ViewSwitcher', () => {
     it('should call onViewChange with correct view when Campaign Planner is clicked', () => {
       render(<ViewSwitcher currentView="research" onViewChange={mockOnViewChange} />);
       
-      const plannerButton = screen.getByRole('button', { name: /Campaign Planner/i });
-      fireEvent.click(plannerButton);
+      const buttons = screen.getAllByRole('button');
+      fireEvent.click(buttons[2]); // Campaign Planner is third button
       
       expect(mockOnViewChange).toHaveBeenCalledWith('planner');
     });
@@ -80,8 +83,8 @@ describe('ViewSwitcher', () => {
     it('should call onViewChange with correct view when Settings is clicked', () => {
       render(<ViewSwitcher currentView="research" onViewChange={mockOnViewChange} />);
       
-      const settingsButton = screen.getByRole('button', { name: /Settings/i });
-      fireEvent.click(settingsButton);
+      const buttons = screen.getAllByRole('button');
+      fireEvent.click(buttons[5]); // Settings is sixth button
       
       expect(mockOnViewChange).toHaveBeenCalledWith('settings');
     });
