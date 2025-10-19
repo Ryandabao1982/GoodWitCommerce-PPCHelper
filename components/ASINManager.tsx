@@ -168,6 +168,8 @@ export const ASINManager: React.FC<ASINManagerProps> = ({
                   {onViewASINDetail && (
                     <Tooltip content="Manage Keywords & Campaigns">
                       <button
+                        type="button"
+                        aria-label={`Manage ASIN ${asin.asin}`}
                         onClick={() => onViewASINDetail(asin.id)}
                         className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
                       >
@@ -177,6 +179,10 @@ export const ASINManager: React.FC<ASINManagerProps> = ({
                   )}
                   <Tooltip content="Link/Unlink Campaigns">
                     <button
+                      type="button"
+                      aria-label={`Link/unlink campaigns for ASIN ${asin.asin}`}
+                      aria-expanded={isExpanded}
+                      aria-controls={`campaign-links-${asin.id}`}
                       onClick={() => setExpandedASINId(isExpanded ? null : asin.id)}
                       className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
                     >
@@ -187,6 +193,9 @@ export const ASINManager: React.FC<ASINManagerProps> = ({
                   </Tooltip>
                   <Tooltip content="Toggle Active Status">
                     <button
+                      type="button"
+                      aria-label={`Mark ASIN ${asin.asin} as ${asin.isActive ? 'inactive' : 'active'}`}
+                      aria-pressed={asin.isActive}
                       onClick={() => onUpdateASIN(asin.id, { isActive: !asin.isActive })}
                       className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
                     >
@@ -195,6 +204,8 @@ export const ASINManager: React.FC<ASINManagerProps> = ({
                   </Tooltip>
                   <Tooltip content="Delete ASIN">
                     <button
+                      type="button"
+                      aria-label={`Delete ASIN ${asin.asin}`}
                       onClick={() => {
                         if (window.confirm(`Delete ASIN ${asin.asin}?`)) {
                           onDeleteASIN(asin.id);
