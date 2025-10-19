@@ -6,7 +6,7 @@ import { LoadingSpinner } from './components/LoadingSpinner';
 import { ErrorMessage } from './components/ErrorMessage';
 import { fetchKeywords, fetchKeywordClusters, reinitializeGeminiService, analyzeKeywordsBatch } from './services/geminiService';
 import { reinitializeSupabaseClient } from './services/supabaseClient';
-import { BrandState, KeywordData, AdvancedSearchSettings, Campaign, ApiSettings } from './types';
+import { BrandState, KeywordData, AdvancedSearchSettings, Campaign, ApiSettings, SOP } from './types';
 import { ScrollToTopButton } from './components/ScrollToTopButton';
 import { RelatedKeywords } from './components/RelatedKeywords';
 import { SessionManager } from './components/SessionManager';
@@ -31,6 +31,17 @@ import { EnhancedViewSwitcher } from './components/EnhancedViewSwitcher';
 import { Breadcrumb } from './components/Breadcrumb';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { loadFromLocalStorage, saveToLocalStorage } from './utils/storage';
+import { SOPLibrary } from './components/SOPLibrary';
+import { 
+  getSOPsForBrand, 
+  addSOP, 
+  updateSOP, 
+  deleteSOP, 
+  toggleSOPFavorite, 
+  incrementSOPViewCount,
+  trackSOPView 
+} from './utils/sopStorage';
+import { aiSearchSOPs, getAIRecommendedSOPs } from './services/sopService';
 
 const App: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
@@ -594,6 +605,43 @@ const App: React.FC = () => {
               onApiSettingsChange={handleApiSettingsChange}
               onSaveSettings={handleSaveApiSettings}
               onResetSettings={handleResetApiSettings}
+            />
+          ) : currentView === 'sop' && activeBrand ? (
+            <SOPLibrary
+              sops={getSOPsForBrand(activeBrand)}
+              onAddSOP={(sopData) => {
+                addSOP(activeBrand, sopData);
+                // Force re-render by updating state
+                setActiveBrand(activeBrand);
+              }}
+              onUpdateSOP={(id, updates) => {
+                updateSOP(activeBrand, id, updates);
+                setActiveBrand(activeBrand);
+              }}
+              onDeleteSOP={(id) => {
+                deleteSOP(activeBrand, id);
+                setActiveBrand(activeBrand);
+              }}
+              onToggleFavorite={(id) => {
+                toggleSOPFavorite(activeBrand, id);
+                setActiveBrand(activeBrand);
+              }}
+              onSOPView={(id) => {
+                incrementSOPViewCount(activeBrand, id);
+                trackSOPView(activeBrand, id);
+              }}
+              onAISearch={async (query) => {
+                const sops = getSOPsForBrand(activeBrand);
+                return await aiSearchSOPs(query, sops);
+              }}
+              onAIRecommend={async () => {
+                const sops = getSOPsForBrand(activeBrand);
+                return await getAIRecommendedSOPs(sops, {
+                  recentSearches: activeBrandState?.searchedKeywords.slice(-5),
+                  currentView,
+                  activeBrand,
+                });
+              }}
             />
           ) : currentView === 'brand' && activeBrand && activeBrandState ? (
             <BrandTab

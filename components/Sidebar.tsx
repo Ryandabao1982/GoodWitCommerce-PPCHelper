@@ -35,6 +35,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'bank' as ViewType, label: 'Keyword Bank', icon: '🏦' },
     { id: 'planner' as ViewType, label: 'Campaign Planner', icon: '📋' },
     { id: 'brand' as ViewType, label: 'Brand Tab', icon: '🎯' },
+    { id: 'sop' as ViewType, label: 'SOP Library', icon: '📚' },
     { id: 'settings' as ViewType, label: 'Settings', icon: '⚙️' },
   ];
 

@@ -29,7 +29,8 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
     { id: 'bank' as ViewType, label: 'Keyword Bank', icon: '🏦', shortcut: '⌘2' },
     { id: 'planner' as ViewType, label: 'Campaign Planner', icon: '📋', shortcut: '⌘3' },
     { id: 'brand' as ViewType, label: 'Brand Analytics', icon: '🎯', shortcut: '⌘4' },
-    { id: 'settings' as ViewType, label: 'Settings', icon: '⚙️', shortcut: '⌘5' },
+    { id: 'sop' as ViewType, label: 'SOP Library', icon: '📚', shortcut: '⌘5' },
+    { id: 'settings' as ViewType, label: 'Settings', icon: '⚙️', shortcut: '⌘6' },
   ];
 
   return (

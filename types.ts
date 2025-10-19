@@ -158,6 +158,8 @@ export interface BrandState {
   ragBadge?: RAGBadge;
   keywordHealthData?: KeywordHealth[];
   rolloutTasks?: RolloutTask[];
+  sops?: SOP[];
+  sopStats?: SOPStats;
 }
 
 // Lifecycle Management Types
@@ -352,4 +354,40 @@ export interface ParsedKeywordData {
   cvr?: number;
   source: ImportSource;
   metadata?: Record<string, any>;
+}
+
+// SOP Library Types
+export type SOPCategory = 
+  | 'Campaign Management'
+  | 'Keyword Research'
+  | 'Brand Setup'
+  | 'Performance Analysis'
+  | 'Optimization'
+  | 'Reporting'
+  | 'General';
+
+export interface SOP {
+  id: string;
+  title: string;
+  content: string;
+  category: SOPCategory;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+  createdBy?: string;
+  isFavorite?: boolean;
+  viewCount?: number;
+}
+
+export interface SOPSearchResult {
+  sop: SOP;
+  relevanceScore: number;
+  matchedContent?: string;
+}
+
+export interface SOPStats {
+  totalSOPs: number;
+  categoryCounts: Record<SOPCategory, number>;
+  recentlyViewed: string[]; // SOP IDs
+  mostViewed: string[]; // SOP IDs
 }

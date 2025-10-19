@@ -41,6 +41,12 @@ export const EnhancedViewSwitcher: React.FC<EnhancedViewSwitcherProps> = ({
       description: 'Performance Insights',
     },
     {
+      id: 'sop',
+      label: 'SOP Library',
+      icon: '📚',
+      description: 'Knowledge Base',
+    },
+    {
       id: 'settings',
       label: 'Settings',
       icon: '⚙️',
