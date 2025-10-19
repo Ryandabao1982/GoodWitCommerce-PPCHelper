@@ -501,7 +501,7 @@ const App: React.FC = () => {
                 currentView={currentView}
                 activeBrand={activeBrand}
                 onViewChange={setCurrentView}
-                onBrandClick={() => {/* Could open brand switcher */}}
+                onBrandClick={() => setIsSidebarOpen(true)}
               />
             </div>
           )}
