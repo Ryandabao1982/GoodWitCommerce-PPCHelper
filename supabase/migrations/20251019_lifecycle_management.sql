@@ -148,9 +148,15 @@ CREATE TABLE IF NOT EXISTS public.cannibalization_alerts (
   detected_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   resolved_at TIMESTAMP WITH TIME ZONE,
   
-  CONSTRAINT unique_cannibalization_pair UNIQUE(keyword_1_id, keyword_2_id)
+  
 );
 
+-- Enforce uniqueness of keyword pairs regardless of order
+CREATE UNIQUE INDEX unique_cannibalization_pair_normalized
+  ON public.cannibalization_alerts (
+    LEAST(keyword_1_id, keyword_2_id),
+    GREATEST(keyword_1_id, keyword_2_id)
+  );
 CREATE INDEX idx_cannibalization_alerts_brand_id ON public.cannibalization_alerts(brand_id);
 CREATE INDEX idx_cannibalization_alerts_keyword_1_id ON public.cannibalization_alerts(keyword_1_id);
 CREATE INDEX idx_cannibalization_alerts_keyword_2_id ON public.cannibalization_alerts(keyword_2_id);
