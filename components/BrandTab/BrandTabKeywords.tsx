@@ -12,10 +12,11 @@ export const BrandTabKeywords: React.FC<BrandTabKeywordsProps> = ({ brandState, 
 
   // Generate mock keyword health data from brand state
   const keywordHealthData: KeywordHealth[] = useMemo(() => {
+    // Use price and targetAcos from settings if available, otherwise fallback to defaults
+    const price = settings.price ?? 29.99;
+    const targetAcos = settings.targetAcos ?? 25;
     return brandState.keywordResults.map((kw, idx) => {
       // Mock calculations
-      const price = 29.99;
-      const targetAcos = 25;
       const cvr = 2 + Math.random() * 3;
       const cpcMax = (price * (targetAcos / 100) * (cvr / 100));
       const cpc = cpcMax * (0.5 + Math.random() * 0.8);
