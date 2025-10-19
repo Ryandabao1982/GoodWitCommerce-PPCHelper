@@ -7,6 +7,8 @@ import { BrandTabKeywords } from './BrandTabKeywords';
 import { BrandTabCampaigns } from './BrandTabCampaigns';
 import { BrandTabSettings as BrandTabSettingsModal } from './BrandTabSettings';
 import { ASINManager } from '../ASINManager';
+import { ASINDetailView } from '../ASINDetailView';
+import { fetchKeywords } from '../../services/geminiService';
 
 export type BrandTabView = 'overview' | 'keywords' | 'campaigns' | 'asins';
 
@@ -22,6 +24,8 @@ export const BrandTab: React.FC<BrandTabProps> = ({ brandState, activeBrand, onU
   const [marketplace, setMarketplace] = useState<string>('US');
   const [dateRange, setDateRange] = useState<string>('Last 30 days');
   const [showSettings, setShowSettings] = useState(false);
+  const [selectedASINId, setSelectedASINId] = useState<string | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
 
   // Initialize default data if not present
   const portfolios = brandState.portfolios || [
@@ -110,6 +114,47 @@ export const BrandTab: React.FC<BrandTabProps> = ({ brandState, activeBrand, onU
           : m
       ).filter(m => m.campaignIds.length > 0),
     });
+  };
+
+  const handleViewASINDetail = (asinId: string) => {
+    setSelectedASINId(asinId);
+  };
+
+  const handleSearchForASIN = async (asin: ASIN) => {
+    const searchSettings = asin.advancedSearchSettings;
+    if (!searchSettings?.advancedKeywords.trim()) {
+      alert('Please enter at least one seed keyword.');
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const [newKeywords, related] = await fetchKeywords(
+        searchSettings.advancedKeywords,
+        searchSettings.isWebAnalysisEnabled || false,
+        searchSettings.brandName || asin.title
+      );
+
+      const existingKeywords = asin.keywordResults || [];
+      const uniqueNewKeywords = new Map(existingKeywords.map(kw => [kw.keyword.toLowerCase(), kw]));
+      newKeywords.forEach(kw => {
+        if (!uniqueNewKeywords.has(kw.keyword.toLowerCase())) {
+          uniqueNewKeywords.set(kw.keyword.toLowerCase(), kw);
+        }
+      });
+
+      const newSearchedKeywords = new Set(asin.searchedKeywords || []);
+      searchSettings.advancedKeywords.split(/, |\n/).map(k => k.trim()).filter(Boolean).forEach(k => newSearchedKeywords.add(k));
+
+      handleUpdateASIN(asin.id, {
+        keywordResults: Array.from(uniqueNewKeywords.values()),
+        searchedKeywords: Array.from(newSearchedKeywords).slice(-10),
+      });
+    } catch (err: any) {
+      alert(err.message || 'An error occurred during keyword search.');
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   // Keyboard shortcuts
@@ -226,6 +271,7 @@ export const BrandTab: React.FC<BrandTabProps> = ({ brandState, activeBrand, onU
                 onUpdateASIN={handleUpdateASIN}
                 onLinkASINToCampaign={handleLinkASINToCampaign}
                 onUnlinkASINFromCampaign={handleUnlinkASINFromCampaign}
+                onViewASINDetail={handleViewASINDetail}
               />
             )}
           </div>
@@ -238,6 +284,17 @@ export const BrandTab: React.FC<BrandTabProps> = ({ brandState, activeBrand, onU
           settings={settings}
           onSave={handleSettingsUpdate}
           onClose={() => setShowSettings(false)}
+        />
+      )}
+
+      {/* ASIN Detail View Modal */}
+      {selectedASINId && (
+        <ASINDetailView
+          asin={asins.find(a => a.id === selectedASINId)!}
+          onUpdateASIN={(updates) => handleUpdateASIN(selectedASINId, updates)}
+          onClose={() => setSelectedASINId(null)}
+          onSearch={handleSearchForASIN}
+          isSearching={isSearching}
         />
       )}
     </div>

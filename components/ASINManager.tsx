@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ASIN, Campaign, ASINToCampaignMap } from '../types';
+import { ASIN, Campaign, ASINToCampaignMap, KeywordData } from '../types';
 import { Tooltip, InfoTooltip } from './Tooltip';
 import { EmptyStateCard } from './EmptyState';
 
@@ -12,6 +12,7 @@ interface ASINManagerProps {
   onUpdateASIN: (asinId: string, updates: Partial<ASIN>) => void;
   onLinkASINToCampaign: (asinId: string, campaignId: string) => void;
   onUnlinkASINFromCampaign: (asinId: string, campaignId: string) => void;
+  onViewASINDetail?: (asinId: string) => void;
 }
 
 export const ASINManager: React.FC<ASINManagerProps> = ({
@@ -23,6 +24,7 @@ export const ASINManager: React.FC<ASINManagerProps> = ({
   onUpdateASIN,
   onLinkASINToCampaign,
   onUnlinkASINFromCampaign,
+  onViewASINDetail,
 }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newASIN, setNewASIN] = useState('');
@@ -45,6 +47,16 @@ export const ASINManager: React.FC<ASINManagerProps> = ({
       price: newPrice ? parseFloat(newPrice) : undefined,
       isActive: true,
       createdAt: new Date().toISOString(),
+      keywordResults: [],
+      searchedKeywords: [],
+      campaigns: [],
+      advancedSearchSettings: {
+        advancedKeywords: '',
+        minVolume: '',
+        maxVolume: '',
+        isWebAnalysisEnabled: false,
+        brandName: newTitle.trim(),
+      },
     };
 
     onAddASIN(asin);
@@ -140,11 +152,29 @@ export const ASINManager: React.FC<ASINManagerProps> = ({
                     {asin.sku && <span>SKU: {asin.sku}</span>}
                     {asin.price && <span>Price: ${asin.price.toFixed(2)}</span>}
                   </div>
-                  <div className="mt-2 text-sm text-gray-500 dark:text-gray-500">
-                    Linked to {linkedCampaigns.length} campaign{linkedCampaigns.length !== 1 ? 's' : ''}
+                  <div className="mt-2 flex flex-wrap gap-3 text-sm">
+                    <span className="text-blue-600 dark:text-blue-400">
+                      🔑 {asin.keywordResults?.length || 0} keywords
+                    </span>
+                    <span className="text-green-600 dark:text-green-400">
+                      📊 {asin.campaigns?.length || 0} campaigns
+                    </span>
+                    <span className="text-gray-500 dark:text-gray-500">
+                      🔗 {linkedCampaigns.length} linked
+                    </span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 ml-4">
+                  {onViewASINDetail && (
+                    <Tooltip content="Manage Keywords & Campaigns">
+                      <button
+                        onClick={() => onViewASINDetail(asin.id)}
+                        className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                      >
+                        📝
+                      </button>
+                    </Tooltip>
+                  )}
                   <Tooltip content="Link/Unlink Campaigns">
                     <button
                       onClick={() => setExpandedASINId(isExpanded ? null : asin.id)}

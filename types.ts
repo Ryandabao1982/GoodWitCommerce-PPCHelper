@@ -155,6 +155,11 @@ export interface ASIN {
   price?: number;
   isActive: boolean;
   createdAt: string;
+  // Each ASIN has its own keyword bank and campaign plans
+  keywordResults?: KeywordData[];
+  searchedKeywords?: string[];
+  campaigns?: Campaign[];
+  advancedSearchSettings?: AdvancedSearchSettings;
 }
 
 export interface ASINToCampaignMap {
