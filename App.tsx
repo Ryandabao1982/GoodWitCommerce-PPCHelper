@@ -4,8 +4,9 @@ import { Sidebar } from './components/Sidebar';
 import { KeywordInput } from './components/KeywordInput';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { ErrorMessage } from './components/ErrorMessage';
-import { fetchKeywords, fetchKeywordClusters } from './services/geminiService';
-import { BrandState, KeywordData, AdvancedSearchSettings, Campaign } from './types';
+import { fetchKeywords, fetchKeywordClusters, reinitializeGeminiService } from './services/geminiService';
+import { reinitializeSupabaseClient } from './services/supabaseClient';
+import { BrandState, KeywordData, AdvancedSearchSettings, Campaign, ApiSettings } from './types';
 import { ScrollToTopButton } from './components/ScrollToTopButton';
 import { RelatedKeywords } from './components/RelatedKeywords';
 import { SessionManager } from './components/SessionManager';
@@ -19,6 +20,7 @@ import { CampaignManager } from './components/CampaignManager';
 import { parseSearchVolume } from './utils/sorting';
 import { KeywordBank } from './components/KeywordBank';
 import { WelcomeMessage } from './components/WelcomeMessage';
+import { Settings } from './components/Settings';
 import { loadFromLocalStorage, saveToLocalStorage } from './utils/storage';
 
 const App: React.FC = () => {
@@ -46,6 +48,13 @@ const App: React.FC = () => {
   const [isScrollButtonVisible, setIsScrollButtonVisible] = useState(false);
 
   const [selectedKeywords, setSelectedKeywords] = useState<Set<string>>(new Set());
+
+  // API Settings state
+  const [apiSettings, setApiSettings] = useState<ApiSettings>(() => ({
+    geminiApiKey: loadFromLocalStorage<string>('ppcGeniusApiSettings.geminiApiKey', ''),
+    supabaseUrl: loadFromLocalStorage<string>('ppcGeniusApiSettings.supabaseUrl', ''),
+    supabaseAnonKey: loadFromLocalStorage<string>('ppcGeniusApiSettings.supabaseAnonKey', ''),
+  }));
   
   // Load from localStorage on initial render
   useEffect(() => {
@@ -349,6 +358,35 @@ const App: React.FC = () => {
     handleSearch(keyword);
     setIsSidebarOpen(false);
   };
+
+  // API Settings handlers
+  const handleApiSettingsChange = (settings: Partial<ApiSettings>) => {
+    setApiSettings(prev => ({ ...prev, ...settings }));
+  };
+
+  const handleSaveApiSettings = () => {
+    saveToLocalStorage('ppcGeniusApiSettings.geminiApiKey', apiSettings.geminiApiKey);
+    saveToLocalStorage('ppcGeniusApiSettings.supabaseUrl', apiSettings.supabaseUrl);
+    saveToLocalStorage('ppcGeniusApiSettings.supabaseAnonKey', apiSettings.supabaseAnonKey);
+    // Reinitialize services with new settings
+    reinitializeGeminiService();
+    reinitializeSupabaseClient();
+  };
+
+  const handleResetApiSettings = () => {
+    const defaultSettings: ApiSettings = {
+      geminiApiKey: import.meta.env.VITE_GEMINI_API_KEY || '',
+      supabaseUrl: import.meta.env.VITE_SUPABASE_URL || '',
+      supabaseAnonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+    };
+    setApiSettings(defaultSettings);
+    saveToLocalStorage('ppcGeniusApiSettings.geminiApiKey', defaultSettings.geminiApiKey);
+    saveToLocalStorage('ppcGeniusApiSettings.supabaseUrl', defaultSettings.supabaseUrl);
+    saveToLocalStorage('ppcGeniusApiSettings.supabaseAnonKey', defaultSettings.supabaseAnonKey);
+    // Reinitialize services with default settings
+    reinitializeGeminiService();
+    reinitializeSupabaseClient();
+  };
   
   const allBrandKeywords = activeBrandState?.keywordResults || [];
 
@@ -376,40 +414,56 @@ const App: React.FC = () => {
           onToggleDarkMode={handleToggleDarkMode}
         />
         <main className="container mx-auto p-4 md:p-6 lg:p-8 flex-1">
-          {!isLoading && allBrandKeywords.length === 0 && (
-            <div className="mb-8">
-              <WelcomeMessage
-                activeBrand={activeBrand}
-                onCreateBrandClick={() => setIsBrandModalOpen(true)}
-              />
+          {/* Show ViewSwitcher at the top when there are keywords or in settings view */}
+          {(allBrandKeywords.length > 0 || currentView === 'settings') && !activeBrandState?.keywordClusters && (
+            <div className="mb-6">
+              <ViewSwitcher currentView={currentView} onViewChange={setCurrentView} />
             </div>
           )}
 
-          <KeywordInput
-            seedKeyword={activeBrandState?.advancedSearchSettings.advancedKeywords || ''}
-            setSeedKeyword={(value) => handleAdvancedSettingsChange({ advancedKeywords: value })}
-            onSearch={handleSearch}
-            isLoading={isLoading}
-            isBrandActive={!!activeBrand}
-            isAdvancedSearchOpen={activeBrandState?.advancedSearchSettings.isWebAnalysisEnabled ?? false}
-            onToggleAdvancedSearch={() => handleAdvancedSettingsChange({ isWebAnalysisEnabled: !(activeBrandState?.advancedSearchSettings.isWebAnalysisEnabled ?? false) })}
-            advancedKeywords={activeBrandState?.advancedSearchSettings.advancedKeywords || ''}
-            setAdvancedKeywords={(value) => handleAdvancedSettingsChange({ advancedKeywords: value })}
-            minVolume={activeBrandState?.advancedSearchSettings.minVolume || ''}
-            setMinVolume={(value) => handleAdvancedSettingsChange({ minVolume: value })}
-            maxVolume={activeBrandState?.advancedSearchSettings.maxVolume || ''}
-            setMaxVolume={(value) => handleAdvancedSettingsChange({ maxVolume: value })}
-            isWebAnalysisEnabled={activeBrandState?.advancedSearchSettings.isWebAnalysisEnabled ?? false}
-            setIsWebAnalysisEnabled={(value) => handleAdvancedSettingsChange({ isWebAnalysisEnabled: value })}
-            brandName={activeBrandState?.advancedSearchSettings.brandName || ''}
-            setBrandName={(value) => handleAdvancedSettingsChange({ brandName: value })}
-          />
-          
-          {error && <div className="mt-6"><ErrorMessage message={error} /></div>}
+          {currentView === 'settings' ? (
+            <Settings
+              apiSettings={apiSettings}
+              onApiSettingsChange={handleApiSettingsChange}
+              onSaveSettings={handleSaveApiSettings}
+              onResetSettings={handleResetApiSettings}
+            />
+          ) : (
+            <>
+              {!isLoading && allBrandKeywords.length === 0 && (
+                <div className="mb-8">
+                  <WelcomeMessage
+                    activeBrand={activeBrand}
+                    onCreateBrandClick={() => setIsBrandModalOpen(true)}
+                  />
+                </div>
+              )}
 
-          {isLoading && <div className="mt-6"><LoadingSpinner /></div>}
+              <KeywordInput
+                seedKeyword={activeBrandState?.advancedSearchSettings.advancedKeywords || ''}
+                setSeedKeyword={(value) => handleAdvancedSettingsChange({ advancedKeywords: value })}
+                onSearch={handleSearch}
+                isLoading={isLoading}
+                isBrandActive={!!activeBrand}
+                isAdvancedSearchOpen={activeBrandState?.advancedSearchSettings.isWebAnalysisEnabled ?? false}
+                onToggleAdvancedSearch={() => handleAdvancedSettingsChange({ isWebAnalysisEnabled: !(activeBrandState?.advancedSearchSettings.isWebAnalysisEnabled ?? false) })}
+                advancedKeywords={activeBrandState?.advancedSearchSettings.advancedKeywords || ''}
+                setAdvancedKeywords={(value) => handleAdvancedSettingsChange({ advancedKeywords: value })}
+                minVolume={activeBrandState?.advancedSearchSettings.minVolume || ''}
+                setMinVolume={(value) => handleAdvancedSettingsChange({ minVolume: value })}
+                maxVolume={activeBrandState?.advancedSearchSettings.maxVolume || ''}
+                setMaxVolume={(value) => handleAdvancedSettingsChange({ maxVolume: value })}
+                isWebAnalysisEnabled={activeBrandState?.advancedSearchSettings.isWebAnalysisEnabled ?? false}
+                setIsWebAnalysisEnabled={(value) => handleAdvancedSettingsChange({ isWebAnalysisEnabled: value })}
+                brandName={activeBrandState?.advancedSearchSettings.brandName || ''}
+                setBrandName={(value) => handleAdvancedSettingsChange({ brandName: value })}
+              />
+              
+              {error && <div className="mt-6"><ErrorMessage message={error} /></div>}
 
-          {!isLoading && allBrandKeywords.length > 0 && (
+              {isLoading && <div className="mt-6"><LoadingSpinner /></div>}
+
+              {!isLoading && allBrandKeywords.length > 0 && (
             <>
               {relatedKeywords.length > 0 && (
                 <RelatedKeywords keywords={relatedKeywords} onKeywordSelect={handleHistoryItemClick} />
@@ -427,10 +481,6 @@ const App: React.FC = () => {
                 <KeywordClusters clusters={activeBrandState.keywordClusters} onClear={() => activeBrand && updateBrandState(activeBrand, { keywordClusters: null })} />
               ) : (
                 <>
-                  <div className="my-6">
-                    <ViewSwitcher currentView={currentView} onViewChange={setCurrentView} />
-                  </div>
-                  
                   {currentView === 'research' && (
                      <Dashboard
                         data={allBrandKeywords}
@@ -487,6 +537,8 @@ const App: React.FC = () => {
                 </>
               )}
             </>
+          )}
+        </>
           )}
         </main>
         <Footer />

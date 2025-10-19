@@ -1,13 +1,33 @@
 import { GoogleGenAI } from '@google/genai';
 import { KeywordData, KeywordDeepDiveData } from '../types';
+import { loadFromLocalStorage } from '../utils/storage';
 
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
+const getApiKey = (): string => {
+  // First, try to get from localStorage (user settings)
+  const savedApiKey = loadFromLocalStorage<string | null>('ppcGeniusApiSettings.geminiApiKey', null);
+  if (savedApiKey) {
+    return savedApiKey;
+  }
+  // Fall back to environment variable
+  return import.meta.env.VITE_GEMINI_API_KEY || '';
+};
 
 let genAI: GoogleGenAI | null = null;
 
-if (API_KEY) {
-  genAI = new GoogleGenAI({ apiKey: API_KEY });
-}
+const initializeGenAI = () => {
+  const apiKey = getApiKey();
+  if (apiKey) {
+    genAI = new GoogleGenAI({ apiKey });
+  }
+};
+
+// Initialize on module load
+initializeGenAI();
+
+// Export function to reinitialize when settings change
+export const reinitializeGeminiService = () => {
+  initializeGenAI();
+};
 
 export async function fetchKeywords(
   seedKeyword: string,

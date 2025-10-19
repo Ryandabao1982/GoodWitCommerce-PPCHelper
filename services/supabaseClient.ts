@@ -3,26 +3,62 @@
  * This module initializes and exports the Supabase client for database operations
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from './database.types';
+import { loadFromLocalStorage } from '../utils/storage';
 
-// Get Supabase configuration from environment variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+const getSupabaseConfig = (): { url: string; key: string } => {
+  // First, try to get from localStorage (user settings)
+  const savedUrl = loadFromLocalStorage<string | null>('ppcGeniusApiSettings.supabaseUrl', null);
+  const savedKey = loadFromLocalStorage<string | null>('ppcGeniusApiSettings.supabaseAnonKey', null);
+  
+  if (savedUrl && savedKey) {
+    return { url: savedUrl, key: savedKey };
+  }
+  
+  // Fall back to environment variables
+  return {
+    url: import.meta.env.VITE_SUPABASE_URL as string,
+    key: import.meta.env.VITE_SUPABASE_ANON_KEY as string,
+  };
+};
 
-// Validate environment variables
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Supabase environment variables are not set. Database features will be disabled.');
-}
+let supabaseInstance: SupabaseClient<Database> | null = null;
 
-// Create and export the Supabase client
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-  },
+const initializeSupabase = () => {
+  const { url, key } = getSupabaseConfig();
+  
+  if (!url || !key) {
+    console.warn('Supabase environment variables are not set. Database features will be disabled.');
+    return;
+  }
+  
+  supabaseInstance = createClient<Database>(url, key, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    },
+  });
+};
+
+// Initialize on module load
+initializeSupabase();
+
+// Export the client getter
+export const supabase = new Proxy({} as SupabaseClient<Database>, {
+  get: (_, prop) => {
+    if (!supabaseInstance) {
+      initializeSupabase();
+    }
+    return supabaseInstance ? (supabaseInstance as any)[prop] : undefined;
+  }
 });
+
+// Export function to reinitialize when settings change
+export const reinitializeSupabaseClient = () => {
+  initializeSupabase();
+};
 
 // Export database-related types for convenience
 export type { Database } from './database.types';
@@ -31,7 +67,8 @@ export type { Database } from './database.types';
  * Check if Supabase is configured and available
  */
 export const isSupabaseConfigured = (): boolean => {
-  return !!(supabaseUrl && supabaseAnonKey);
+  const { url, key } = getSupabaseConfig();
+  return !!(url && key);
 };
 
 /**

@@ -50,6 +50,13 @@ export interface Campaign {
   projections?: CampaignProjections | null;
 }
 
+// API Configuration Settings
+export interface ApiSettings {
+  geminiApiKey: string;
+  supabaseUrl: string;
+  supabaseAnonKey: string;
+}
+
 // Brand/Session state
 export interface BrandState {
   keywordResults: KeywordData[];
