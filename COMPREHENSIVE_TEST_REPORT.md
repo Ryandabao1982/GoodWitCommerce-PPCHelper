@@ -169,11 +169,12 @@ SIMULATION_MODE=mock node scripts/simulate-workflow.js
 
 ### 3.3 Simulation Results
 
-All 10 scenarios pass successfully:
-- ✅ 100% pass rate
+All 10 scenarios executed without errors:
+- ✅ 100% pass rate*
 - ⏱️ Average execution time: 50-100ms per scenario
 - 📊 Report generated with detailed metrics
 
+*Note: The current simulation script does not assert conditions; pass rate reflects scenario execution only. Failure conditions and validations are pending implementation for full correctness checks.
 ---
 
 ## 4. Critical User Flows Validated
