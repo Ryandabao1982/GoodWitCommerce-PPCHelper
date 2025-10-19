@@ -131,7 +131,7 @@ describe('Breadcrumb', () => {
       
       render(<Breadcrumb items={items} />);
       
-      const nav = screen.getByRole('navigation', { name: 'Breadcrumb' });
+      const nav = screen.getByRole('navigation', { name: 'breadcrumb' });
       expect(nav).toBeInTheDocument();
     });
 
