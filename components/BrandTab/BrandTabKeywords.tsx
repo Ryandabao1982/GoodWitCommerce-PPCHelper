@@ -49,8 +49,8 @@ export const BrandTabKeywords: React.FC<BrandTabKeywordsProps> = ({ brandState, 
 
   // Negation queue (keywords to negate)
   const negationQueue = useMemo(() => {
-    return keywordHealthData.filter(kw => 
-      kw.rag === 'Red' && kw.spend > settings.wastedSpendRedThreshold / 10
+    return keywordHealthData.filter(kw =>
+      kw.rag === 'Red' && kw.spend >= settings.wastedSpendRedThreshold
     );
   }, [keywordHealthData, settings]);
 
