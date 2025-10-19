@@ -5,7 +5,7 @@ import { BrandTabLeftRail } from './BrandTabLeftRail';
 import { BrandTabOverview } from './BrandTabOverview';
 import { BrandTabKeywords } from './BrandTabKeywords';
 import { BrandTabCampaigns } from './BrandTabCampaigns';
-import { BrandTabSettings } from './BrandTabSettings';
+import { BrandTabSettings as BrandTabSettingsModal } from './BrandTabSettings';
 
 export type BrandTabView = 'overview' | 'keywords' | 'campaigns';
 
@@ -172,7 +172,7 @@ export const BrandTab: React.FC<BrandTabProps> = ({ brandState, activeBrand, onU
 
       {/* Settings Modal */}
       {showSettings && (
-        <BrandTabSettings
+        <BrandTabSettingsModal
           settings={settings}
           onSave={handleSettingsUpdate}
           onClose={() => setShowSettings(false)}
