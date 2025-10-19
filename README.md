@@ -153,6 +153,13 @@ Enter a single seed keyword to generate a comprehensive list of related keywords
 - **Brand context** - Generate branded keyword variations
 - **Web analysis** - Ground results in real-time Google Search data
 
+#### Manual Keyword Entry (NEW!)
+- **Add your own keywords** - Manually enter up to 50 keywords at once
+- **AI Analysis** - Each keyword is automatically analyzed by AI for metrics
+- **Batch Processing** - Keywords are processed with rate limiting for API safety
+- **Smart Validation** - Input validation ensures quality (max 200 chars per keyword)
+- **Seamless Integration** - Manual keywords are added to your keyword bank with full AI analysis
+
 **Data Points for Each Keyword:**
 - **Keyword** - The keyword phrase
 - **Source** - AI or Web-derived
