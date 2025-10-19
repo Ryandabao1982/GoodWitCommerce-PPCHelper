@@ -6,7 +6,16 @@
  * @returns A deep copy of the object.
  */
 export function safeDeepClone<T>(obj: T): T {
-    // The `as T` is a safe assertion here because we are immediately parsing
-    // the stringified version of the same type.
-    return JSON.parse(JSON.stringify(obj)) as T;
+    // Validate input: must be an object and not null
+    if (obj === null || typeof obj !== 'object') {
+        throw new TypeError('safeDeepClone: input must be a non-null object');
+    }
+    try {
+        // The `as T` is a safe assertion here because we are immediately parsing
+        // the stringified version of the same type.
+        return JSON.parse(JSON.stringify(obj)) as T;
+    } catch (err) {
+        // Handle possible errors from JSON.stringify (e.g., circular refs)
+        throw new Error('safeDeepClone: failed to clone object. ' + (err instanceof Error ? err.message : String(err)));
+    }
 }
