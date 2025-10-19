@@ -60,7 +60,7 @@ export const BrandTabSettings: React.FC<BrandTabSettingsProps> = ({ settings, on
                 <input
                   type="number"
                   value={localSettings.clicksToNegate}
-                  onChange={(e) => handleChange('clicksToNegate', parseInt(e.target.value) || 0)}
+                  onChange={(e) => handleChange('clicksToNegate', parseInt(e.target.value, 10) || 0)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   min="1"
                 />
