@@ -49,10 +49,18 @@ describe('supabaseClient', () => {
 
     // Set env via global import.meta stub provided in setup
     // Note: setup.ts stubs import.meta.env; we override here
-    // @ts-ignore
-    global.import.meta.env.VITE_SUPABASE_URL = 'https://env.supabase.co';
-    // @ts-ignore
-    global.import.meta.env.VITE_SUPABASE_ANON_KEY = 'env-anon';
+    // Ensure global.import.meta.env exists and assign values with type assertion
+    if (!global.import) {
+      (global as any).import = {};
+    }
+    if (!global.import.meta) {
+      (global.import as any).meta = {};
+    }
+    if (!global.import.meta.env) {
+      (global.import.meta as any).env = {};
+    }
+    (global.import.meta.env as Record<string, string>)['VITE_SUPABASE_URL'] = 'https://env.supabase.co';
+    (global.import.meta.env as Record<string, string>)['VITE_SUPABASE_ANON_KEY'] = 'env-anon';
 
     const mod = await import('../../services/supabaseClient');
     expect(mod.isSupabaseConfigured()).toBe(true);
