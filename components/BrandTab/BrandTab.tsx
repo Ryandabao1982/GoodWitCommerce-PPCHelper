@@ -95,7 +95,7 @@ export const BrandTab: React.FC<BrandTabProps> = ({ brandState, activeBrand, onU
       onUpdateBrandState({
         asinToCampaignMaps: asinToCampaignMaps.map(m =>
           m.asinId === asinId
-            ? { ...m, campaignIds: [...m.campaignIds, campaignId] }
+            ? { ...m, campaignIds: m.campaignIds.includes(campaignId) ? m.campaignIds : [...m.campaignIds, campaignId] }
             : m
         ),
       });
