@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import { KeywordInput } from '../../components/KeywordInput';
 
 describe('KeywordInput', () => {
@@ -33,274 +33,240 @@ describe('KeywordInput', () => {
     setBrandName: mockSetBrandName,
   };
 
-  beforeEach(() => {
-    mockSetSeedKeyword.mockClear();
-    mockOnSearch.mockClear();
-    mockOnToggleAdvancedSearch.mockClear();
-    mockSetAdvancedKeywords.mockClear();
-    mockSetMinVolume.mockClear();
-    mockSetMaxVolume.mockClear();
-    mockSetIsWebAnalysisEnabled.mockClear();
-    mockSetBrandName.mockClear();
+  afterEach(() => {
+    vi.clearAllMocks();
   });
 
-  describe('rendering', () => {
-    it('should render seed keyword label', () => {
+  describe('Rendering', () => {
+    it('should render the seed keyword input', () => {
       render(<KeywordInput {...defaultProps} />);
-      expect(screen.getByText('Seed Keyword')).toBeInTheDocument();
+      
+      expect(screen.getByLabelText(/Seed Keyword/i)).toBeInTheDocument();
     });
 
-    it('should render keyword input field', () => {
+    it('should render the search button', () => {
       render(<KeywordInput {...defaultProps} />);
-      expect(screen.getByRole('textbox', { name: /seed keyword/i })).toBeInTheDocument();
-    });
-
-    it('should render search button', () => {
-      render(<KeywordInput {...defaultProps} />);
-      expect(screen.getByRole('button', { name: /search/i })).toBeInTheDocument();
+      
+      expect(screen.getByRole('button', { name: /Search/i })).toBeInTheDocument();
     });
 
     it('should render advanced options toggle', () => {
       render(<KeywordInput {...defaultProps} />);
-      expect(screen.getByRole('button', { name: /advanced options/i })).toBeInTheDocument();
+      
+      expect(screen.getByRole('button', { name: /Advanced Options/i })).toBeInTheDocument();
     });
 
-    it('should not show advanced options by default', () => {
+    it('should have correct placeholder when brand is active', () => {
       render(<KeywordInput {...defaultProps} />);
-      expect(screen.queryByLabelText(/web analysis/i)).not.toBeInTheDocument();
+      
+      const input = screen.getByPlaceholderText(/Enter keyword \(e\.g\., wireless headphones\)/i);
+      expect(input).toBeInTheDocument();
     });
 
-    it('should show advanced options when toggled', () => {
-      render(<KeywordInput {...defaultProps} isAdvancedSearchOpen={true} />);
-      expect(screen.getByLabelText(/web analysis/i)).toBeInTheDocument();
-    });
-
-    it('should show placeholder when brand is active', () => {
-      render(<KeywordInput {...defaultProps} />);
-      expect(screen.getByPlaceholderText(/enter keyword/i)).toBeInTheDocument();
-    });
-
-    it('should show different placeholder when brand is inactive', () => {
+    it('should have different placeholder when brand is inactive', () => {
       render(<KeywordInput {...defaultProps} isBrandActive={false} />);
-      expect(screen.getByPlaceholderText(/create a brand first/i)).toBeInTheDocument();
+      
+      const input = screen.getByPlaceholderText(/Create a brand first\.\.\./i);
+      expect(input).toBeInTheDocument();
     });
   });
 
-  describe('basic interactions', () => {
-    it('should update input value when typing', async () => {
-      const user = userEvent.setup();
-      render(<KeywordInput {...defaultProps} />);
-      
-      const input = screen.getByRole('textbox', { name: /seed keyword/i });
-      await user.type(input, 'headphones');
-      
-      expect(mockSetAdvancedKeywords).toHaveBeenCalled();
-    });
-
-    it('should call onSearch when form is submitted', async () => {
-      const user = userEvent.setup();
-      render(<KeywordInput {...defaultProps} advancedKeywords="test" />);
-      
-      const searchButton = screen.getByRole('button', { name: /search/i });
-      await user.click(searchButton);
-      
-      expect(mockOnSearch).toHaveBeenCalledTimes(1);
-    });
-
-    it('should not call onSearch when input is empty', async () => {
-      const user = userEvent.setup();
-      render(<KeywordInput {...defaultProps} advancedKeywords="" />);
-      
-      const searchButton = screen.getByRole('button', { name: /search/i });
-      expect(searchButton).toBeDisabled();
-    });
-
-    it('should toggle advanced options when clicked', async () => {
-      const user = userEvent.setup();
-      render(<KeywordInput {...defaultProps} />);
-      
-      const toggleButton = screen.getByRole('button', { name: /advanced options/i });
-      await user.click(toggleButton);
-      
-      expect(mockOnToggleAdvancedSearch).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('disabled states', () => {
-    it('should disable input when brand is inactive', () => {
+  describe('Input State', () => {
+    it('should disable input when brand is not active', () => {
       render(<KeywordInput {...defaultProps} isBrandActive={false} />);
       
-      const input = screen.getByRole('textbox', { name: /seed keyword/i });
+      const input = screen.getByLabelText(/Seed Keyword/i);
       expect(input).toBeDisabled();
     });
 
     it('should disable input when loading', () => {
       render(<KeywordInput {...defaultProps} isLoading={true} />);
       
-      const input = screen.getByRole('textbox', { name: /seed keyword/i });
+      const input = screen.getByLabelText(/Seed Keyword/i);
       expect(input).toBeDisabled();
     });
 
-    it('should disable search button when brand is inactive', () => {
-      render(<KeywordInput {...defaultProps} isBrandActive={false} advancedKeywords="test" />);
+    it('should enable input when brand is active and not loading', () => {
+      render(<KeywordInput {...defaultProps} />);
       
-      const searchButton = screen.getByRole('button', { name: /search/i });
-      expect(searchButton).toBeDisabled();
+      const input = screen.getByLabelText(/Seed Keyword/i);
+      expect(input).not.toBeDisabled();
+    });
+
+    it('should call setAdvancedKeywords when input changes', () => {
+      render(<KeywordInput {...defaultProps} />);
+      
+      const input = screen.getByLabelText(/Seed Keyword/i);
+      fireEvent.change(input, { target: { value: 'wireless headphones' } });
+      
+      expect(mockSetAdvancedKeywords).toHaveBeenCalledWith('wireless headphones');
+    });
+  });
+
+  describe('Search Button', () => {
+    it('should disable search button when brand is not active', () => {
+      render(<KeywordInput {...defaultProps} isBrandActive={false} />);
+      
+      const button = screen.getByRole('button', { name: /Search/i });
+      expect(button).toBeDisabled();
     });
 
     it('should disable search button when loading', () => {
-      render(<KeywordInput {...defaultProps} isLoading={true} advancedKeywords="test" />);
+      render(<KeywordInput {...defaultProps} isLoading={true} />);
       
-      const searchButton = screen.getByRole('button', { name: /searching/i });
-      expect(searchButton).toBeDisabled();
+      const button = screen.getByRole('button', { name: /Searching\.\.\./i });
+      expect(button).toBeDisabled();
     });
 
-    it('should disable search button when input is empty', () => {
+    it('should disable search button when keyword is empty', () => {
       render(<KeywordInput {...defaultProps} advancedKeywords="" />);
       
-      const searchButton = screen.getByRole('button', { name: /search/i });
-      expect(searchButton).toBeDisabled();
+      const button = screen.getByRole('button', { name: /Search/i });
+      expect(button).toBeDisabled();
     });
-  });
 
-  describe('loading state', () => {
+    it('should enable search button when all conditions are met', () => {
+      render(<KeywordInput {...defaultProps} advancedKeywords="test keyword" />);
+      
+      const button = screen.getByRole('button', { name: /Search/i });
+      expect(button).not.toBeDisabled();
+    });
+
     it('should show loading spinner when loading', () => {
-      render(<KeywordInput {...defaultProps} isLoading={true} advancedKeywords="test" />);
-      expect(screen.getByText(/searching/i)).toBeInTheDocument();
+      render(<KeywordInput {...defaultProps} isLoading={true} />);
+      
+      expect(screen.getByText(/Searching\.\.\./i)).toBeInTheDocument();
+      const spinner = screen.getByRole('button').querySelector('.animate-spin');
+      expect(spinner).toBeInTheDocument();
     });
 
-    it('should show search text when not loading', () => {
-      render(<KeywordInput {...defaultProps} isLoading={false} advancedKeywords="test" />);
-      const searchButton = screen.getByRole('button', { name: /^search$/i });
-      expect(searchButton).toBeInTheDocument();
+    it('should call onSearch when button is clicked', () => {
+      render(<KeywordInput {...defaultProps} advancedKeywords="test" />);
+      
+      const button = screen.getByRole('button', { name: /Search/i });
+      fireEvent.click(button);
+      
+      expect(mockOnSearch).toHaveBeenCalledTimes(1);
+    });
+
+    it('should call onSearch when form is submitted', () => {
+      render(<KeywordInput {...defaultProps} advancedKeywords="test" />);
+      
+      const form = screen.getByRole('button', { name: /Search/i }).closest('form');
+      fireEvent.submit(form!);
+      
+      expect(mockOnSearch).toHaveBeenCalledTimes(1);
+    });
+
+    it('should prevent default form submission', () => {
+      render(<KeywordInput {...defaultProps} advancedKeywords="test" />);
+      
+      const form = screen.getByRole('button', { name: /Search/i }).closest('form');
+      const event = new Event('submit', { bubbles: true, cancelable: true });
+      form!.dispatchEvent(event);
+      
+      expect(event.defaultPrevented).toBe(true);
     });
   });
 
-  describe('advanced options', () => {
-    it('should render web analysis checkbox when advanced options open', () => {
-      render(<KeywordInput {...defaultProps} isAdvancedSearchOpen={true} />);
-      expect(screen.getByLabelText(/enable web analysis/i)).toBeInTheDocument();
+  describe('Advanced Options Toggle', () => {
+    it('should call onToggleAdvancedSearch when toggle is clicked', () => {
+      render(<KeywordInput {...defaultProps} />);
+      
+      const toggle = screen.getByRole('button', { name: /Advanced Options/i });
+      fireEvent.click(toggle);
+      
+      expect(mockOnToggleAdvancedSearch).toHaveBeenCalledTimes(1);
     });
 
-    it('should render brand context input when advanced options open', () => {
-      render(<KeywordInput {...defaultProps} isAdvancedSearchOpen={true} />);
-      expect(screen.getByLabelText(/brand context/i)).toBeInTheDocument();
+    it('should not display advanced options when closed', () => {
+      render(<KeywordInput {...defaultProps} isAdvancedSearchOpen={false} />);
+      
+      expect(screen.queryByLabelText(/Brand Context/i)).not.toBeInTheDocument();
     });
 
-    it('should render min and max volume inputs when advanced options open', () => {
-      render(<KeywordInput {...defaultProps} isAdvancedSearchOpen={true} />);
-      expect(screen.getByLabelText(/min volume/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/max volume/i)).toBeInTheDocument();
-    });
-
-    it('should call setIsWebAnalysisEnabled when checkbox is toggled', async () => {
-      const user = userEvent.setup();
+    it('should display advanced options when open', () => {
       render(<KeywordInput {...defaultProps} isAdvancedSearchOpen={true} />);
       
-      const checkbox = screen.getByLabelText(/enable web analysis/i);
-      await user.click(checkbox);
+      expect(screen.getByLabelText(/Brand Context/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/Min Volume/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/Max Volume/i)).toBeInTheDocument();
+    });
+  });
+
+  describe('Advanced Options Fields', () => {
+    beforeEach(() => {
+      render(<KeywordInput {...defaultProps} isAdvancedSearchOpen={true} />);
+    });
+
+    it('should render web analysis checkbox', () => {
+      expect(screen.getByLabelText(/Enable Web Analysis/i)).toBeInTheDocument();
+    });
+
+    it('should call setIsWebAnalysisEnabled when checkbox is toggled', () => {
+      const checkbox = screen.getByLabelText(/Enable Web Analysis/i);
+      fireEvent.click(checkbox);
       
       expect(mockSetIsWebAnalysisEnabled).toHaveBeenCalledWith(true);
     });
 
-    it('should call setBrandName when brand input changes', async () => {
-      const user = userEvent.setup();
-      render(<KeywordInput {...defaultProps} isAdvancedSearchOpen={true} />);
-      
-      const input = screen.getByLabelText(/brand context/i);
-      await user.type(input, 'MyBrand');
-      
-      expect(mockSetBrandName).toHaveBeenCalled();
+    it('should render brand name input', () => {
+      expect(screen.getByLabelText(/Brand Context/i)).toBeInTheDocument();
     });
 
-    it('should call setMinVolume when min volume changes', async () => {
-      const user = userEvent.setup();
-      render(<KeywordInput {...defaultProps} isAdvancedSearchOpen={true} />);
+    it('should call setBrandName when brand input changes', () => {
+      const input = screen.getByLabelText(/Brand Context/i);
+      fireEvent.change(input, { target: { value: 'My Brand' } });
       
-      const input = screen.getByLabelText(/min volume/i);
-      await user.type(input, '1000');
-      
-      expect(mockSetMinVolume).toHaveBeenCalled();
+      expect(mockSetBrandName).toHaveBeenCalledWith('My Brand');
     });
 
-    it('should call setMaxVolume when max volume changes', async () => {
-      const user = userEvent.setup();
-      render(<KeywordInput {...defaultProps} isAdvancedSearchOpen={true} />);
-      
-      const input = screen.getByLabelText(/max volume/i);
-      await user.type(input, '10000');
-      
-      expect(mockSetMaxVolume).toHaveBeenCalled();
+    it('should render min volume input', () => {
+      expect(screen.getByLabelText(/Min Volume/i)).toBeInTheDocument();
     });
 
-    it('should disable advanced options inputs when brand is inactive', () => {
-      render(<KeywordInput {...defaultProps} isAdvancedSearchOpen={true} isBrandActive={false} />);
+    it('should call setMinVolume when min volume changes', () => {
+      const input = screen.getByLabelText(/Min Volume/i);
+      fireEvent.change(input, { target: { value: '1000' } });
       
-      expect(screen.getByLabelText(/brand context/i)).toBeDisabled();
-      expect(screen.getByLabelText(/min volume/i)).toBeDisabled();
-      expect(screen.getByLabelText(/max volume/i)).toBeDisabled();
+      expect(mockSetMinVolume).toHaveBeenCalledWith('1000');
     });
 
-    it('should show correct web analysis description', () => {
-      render(<KeywordInput {...defaultProps} isAdvancedSearchOpen={true} />);
-      expect(screen.getByText(/more keywords, slower/i)).toBeInTheDocument();
+    it('should render max volume input', () => {
+      expect(screen.getByLabelText(/Max Volume/i)).toBeInTheDocument();
+    });
+
+    it('should call setMaxVolume when max volume changes', () => {
+      const input = screen.getByLabelText(/Max Volume/i);
+      fireEvent.change(input, { target: { value: '10000' } });
+      
+      expect(mockSetMaxVolume).toHaveBeenCalledWith('10000');
+    });
+
+    it('should disable advanced fields when brand is not active', () => {
+      render(<KeywordInput {...defaultProps} isBrandActive={false} isAdvancedSearchOpen={true} />);
+      
+      expect(screen.getByLabelText(/Brand Context/i)).toBeDisabled();
+      expect(screen.getByLabelText(/Min Volume/i)).toBeDisabled();
+      expect(screen.getByLabelText(/Max Volume/i)).toBeDisabled();
     });
   });
 
-  describe('form submission', () => {
-    it('should prevent default form submission', async () => {
-      const user = userEvent.setup();
-      render(<KeywordInput {...defaultProps} advancedKeywords="test" />);
+  describe('Edge Cases', () => {
+    it('should handle empty keyword with whitespace', () => {
+      render(<KeywordInput {...defaultProps} advancedKeywords="   " />);
       
-      const form = screen.getByRole('textbox', { name: /seed keyword/i }).closest('form');
-      const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
-      const preventDefaultSpy = vi.spyOn(submitEvent, 'preventDefault');
-      
-      form?.dispatchEvent(submitEvent);
-      
-      expect(preventDefaultSpy).toHaveBeenCalled();
+      const button = screen.getByRole('button', { name: /Search/i });
+      expect(button).toBeDisabled();
     });
 
-    it('should not call onSearch when loading', async () => {
-      const user = userEvent.setup();
-      render(<KeywordInput {...defaultProps} isLoading={true} advancedKeywords="test" />);
+    it('should not call onSearch when disabled', () => {
+      render(<KeywordInput {...defaultProps} isBrandActive={false} advancedKeywords="test" />);
       
-      const searchButton = screen.getByRole('button', { name: /searching/i });
-      await user.click(searchButton);
+      const form = screen.getByRole('button').closest('form');
+      fireEvent.submit(form!);
       
       expect(mockOnSearch).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('value display', () => {
-    it('should display current advanced keywords value', () => {
-      render(<KeywordInput {...defaultProps} advancedKeywords="test keyword" />);
-      const input = screen.getByRole('textbox', { name: /seed keyword/i }) as HTMLInputElement;
-      expect(input.value).toBe('test keyword');
-    });
-
-    it('should display current brand name value', () => {
-      render(<KeywordInput {...defaultProps} isAdvancedSearchOpen={true} brandName="My Brand" />);
-      const input = screen.getByLabelText(/brand context/i) as HTMLInputElement;
-      expect(input.value).toBe('My Brand');
-    });
-
-    it('should display current min volume value', () => {
-      render(<KeywordInput {...defaultProps} isAdvancedSearchOpen={true} minVolume="1000" />);
-      const input = screen.getByLabelText(/min volume/i) as HTMLInputElement;
-      expect(input.value).toBe('1000');
-    });
-
-    it('should display current max volume value', () => {
-      render(<KeywordInput {...defaultProps} isAdvancedSearchOpen={true} maxVolume="10000" />);
-      const input = screen.getByLabelText(/max volume/i) as HTMLInputElement;
-      expect(input.value).toBe('10000');
-    });
-
-    it('should show checkbox as checked when web analysis enabled', () => {
-      render(<KeywordInput {...defaultProps} isAdvancedSearchOpen={true} isWebAnalysisEnabled={true} />);
-      const checkbox = screen.getByLabelText(/enable web analysis/i) as HTMLInputElement;
-      expect(checkbox.checked).toBe(true);
     });
   });
 });

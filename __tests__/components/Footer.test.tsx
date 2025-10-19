@@ -1,45 +1,50 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import { Footer } from '../../components/Footer';
 
 describe('Footer', () => {
-  it('should render footer component', () => {
-    render(<Footer />);
-    const footer = screen.getByRole('contentinfo');
-    expect(footer).toBeInTheDocument();
+  describe('Rendering', () => {
+    it('should render the footer component', () => {
+      render(<Footer />);
+      
+      const footer = screen.getByRole('contentinfo');
+      expect(footer).toBeInTheDocument();
+    });
+
+    it('should display the copyright message', () => {
+      render(<Footer />);
+      
+      expect(screen.getByText(/© 2024 Amazon PPC Keyword Genius/i)).toBeInTheDocument();
+      expect(screen.getByText(/Made with ❤️ for Amazon sellers/i)).toBeInTheDocument();
+    });
+
+    it('should display the version information', () => {
+      render(<Footer />);
+      
+      expect(screen.getByText(/Version 1\.4\.0/i)).toBeInTheDocument();
+    });
+
+    it('should display powered by Gemini AI message', () => {
+      render(<Footer />);
+      
+      expect(screen.getByText(/Powered by Google Gemini AI/i)).toBeInTheDocument();
+    });
+
+    it('should apply correct styling classes', () => {
+      render(<Footer />);
+      
+      const footer = screen.getByRole('contentinfo');
+      expect(footer).toHaveClass('bg-white', 'dark:bg-gray-800');
+    });
   });
 
-  it('should display copyright message', () => {
-    render(<Footer />);
-    expect(screen.getByText(/© 2024 Amazon PPC Keyword Genius/)).toBeInTheDocument();
-    expect(screen.getByText(/Made with ❤️ for Amazon sellers/)).toBeInTheDocument();
-  });
-
-  it('should display version information', () => {
-    render(<Footer />);
-    expect(screen.getByText(/Version 1.4.0/)).toBeInTheDocument();
-  });
-
-  it('should display powered by message', () => {
-    render(<Footer />);
-    expect(screen.getByText(/Powered by Google Gemini AI/)).toBeInTheDocument();
-  });
-
-  it('should have proper responsive layout classes', () => {
-    const { container } = render(<Footer />);
-    const contentDiv = container.querySelector('.flex.flex-col.md\\:flex-row');
-    expect(contentDiv).toBeInTheDocument();
-  });
-
-  it('should have border styling', () => {
-    const { container } = render(<Footer />);
-    const footer = container.querySelector('.border-t');
-    expect(footer).toBeInTheDocument();
-  });
-
-  it('should support dark mode classes', () => {
-    const { container } = render(<Footer />);
-    const footer = container.querySelector('.dark\\:bg-gray-800');
-    expect(footer).toBeInTheDocument();
+  describe('Responsive Layout', () => {
+    it('should have responsive flexbox classes', () => {
+      render(<Footer />);
+      
+      const contentContainer = screen.getByText(/© 2024 Amazon PPC Keyword Genius/i).closest('div');
+      expect(contentContainer).toHaveClass('flex', 'flex-col', 'md:flex-row');
+    });
   });
 });

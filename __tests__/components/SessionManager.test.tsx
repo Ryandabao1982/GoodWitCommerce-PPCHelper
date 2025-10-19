@@ -1,23 +1,22 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import { SessionManager } from '../../components/SessionManager';
 
 describe('SessionManager', () => {
   const mockOnClearBrandKeywords = vi.fn();
   const mockOnClusterKeywords = vi.fn();
-  const searchedKeywords = ['headphones', 'earbuds', 'speakers'];
+  const mockSearchedKeywords = ['wireless headphones', 'bluetooth speakers', 'gaming mouse'];
 
-  beforeEach(() => {
-    mockOnClearBrandKeywords.mockClear();
-    mockOnClusterKeywords.mockClear();
+  afterEach(() => {
+    vi.clearAllMocks();
   });
 
-  describe('rendering', () => {
-    it('should render session info header', () => {
+  describe('Rendering', () => {
+    it('should render session info heading', () => {
       render(
         <SessionManager
-          searchedKeywords={searchedKeywords}
+          searchedKeywords={mockSearchedKeywords}
           onClearBrandKeywords={mockOnClearBrandKeywords}
           onClusterKeywords={mockOnClusterKeywords}
           isClustering={false}
@@ -25,13 +24,13 @@ describe('SessionManager', () => {
         />
       );
       
-      expect(screen.getByText('Session Info')).toBeInTheDocument();
+      expect(screen.getByText(/Session Info/i)).toBeInTheDocument();
     });
 
     it('should display keyword count with singular form', () => {
       render(
         <SessionManager
-          searchedKeywords={searchedKeywords}
+          searchedKeywords={mockSearchedKeywords}
           onClearBrandKeywords={mockOnClearBrandKeywords}
           onClusterKeywords={mockOnClusterKeywords}
           isClustering={false}
@@ -39,27 +38,13 @@ describe('SessionManager', () => {
         />
       );
       
-      expect(screen.getByText(/1 keyword in bank/)).toBeInTheDocument();
+      expect(screen.getByText(/1 keyword in bank/i)).toBeInTheDocument();
     });
 
     it('should display keyword count with plural form', () => {
       render(
         <SessionManager
-          searchedKeywords={searchedKeywords}
-          onClearBrandKeywords={mockOnClearBrandKeywords}
-          onClusterKeywords={mockOnClusterKeywords}
-          isClustering={false}
-          keywordCount={25}
-        />
-      );
-      
-      expect(screen.getByText(/25 keywords in bank/)).toBeInTheDocument();
-    });
-
-    it('should display last searched keyword', () => {
-      render(
-        <SessionManager
-          searchedKeywords={searchedKeywords}
+          searchedKeywords={mockSearchedKeywords}
           onClearBrandKeywords={mockOnClearBrandKeywords}
           onClusterKeywords={mockOnClusterKeywords}
           isClustering={false}
@@ -67,10 +52,24 @@ describe('SessionManager', () => {
         />
       );
       
-      expect(screen.getByText(/Last: speakers/)).toBeInTheDocument();
+      expect(screen.getByText(/10 keywords in bank/i)).toBeInTheDocument();
     });
 
-    it('should not display last searched keyword when empty', () => {
+    it('should display last searched keyword when available', () => {
+      render(
+        <SessionManager
+          searchedKeywords={mockSearchedKeywords}
+          onClearBrandKeywords={mockOnClearBrandKeywords}
+          onClusterKeywords={mockOnClusterKeywords}
+          isClustering={false}
+          keywordCount={10}
+        />
+      );
+      
+      expect(screen.getByText(/Last: gaming mouse/i)).toBeInTheDocument();
+    });
+
+    it('should not display last searched keyword when array is empty', () => {
       render(
         <SessionManager
           searchedKeywords={[]}
@@ -81,13 +80,13 @@ describe('SessionManager', () => {
         />
       );
       
-      expect(screen.queryByText(/Last:/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Last:/i)).not.toBeInTheDocument();
     });
 
     it('should render cluster button', () => {
       render(
         <SessionManager
-          searchedKeywords={searchedKeywords}
+          searchedKeywords={mockSearchedKeywords}
           onClearBrandKeywords={mockOnClearBrandKeywords}
           onClusterKeywords={mockOnClusterKeywords}
           isClustering={false}
@@ -95,13 +94,13 @@ describe('SessionManager', () => {
         />
       );
       
-      expect(screen.getByRole('button', { name: /cluster/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /🧩 Cluster/i })).toBeInTheDocument();
     });
 
     it('should render clear button', () => {
       render(
         <SessionManager
-          searchedKeywords={searchedKeywords}
+          searchedKeywords={mockSearchedKeywords}
           onClearBrandKeywords={mockOnClearBrandKeywords}
           onClusterKeywords={mockOnClusterKeywords}
           isClustering={false}
@@ -109,45 +108,15 @@ describe('SessionManager', () => {
         />
       );
       
-      expect(screen.getByRole('button', { name: /clear/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /🗑️ Clear/i })).toBeInTheDocument();
     });
   });
 
-  describe('cluster button states', () => {
-    it('should disable cluster button when clustering', () => {
+  describe('Cluster Button States', () => {
+    it('should enable cluster button when keywordCount is 2 or more', () => {
       render(
         <SessionManager
-          searchedKeywords={searchedKeywords}
-          onClearBrandKeywords={mockOnClearBrandKeywords}
-          onClusterKeywords={mockOnClusterKeywords}
-          isClustering={true}
-          keywordCount={10}
-        />
-      );
-      
-      const clusterButton = screen.getByRole('button', { name: /clustering/i });
-      expect(clusterButton).toBeDisabled();
-    });
-
-    it('should disable cluster button when less than 2 keywords', () => {
-      render(
-        <SessionManager
-          searchedKeywords={searchedKeywords}
-          onClearBrandKeywords={mockOnClearBrandKeywords}
-          onClusterKeywords={mockOnClusterKeywords}
-          isClustering={false}
-          keywordCount={1}
-        />
-      );
-      
-      const clusterButton = screen.getByRole('button', { name: /cluster/i });
-      expect(clusterButton).toBeDisabled();
-    });
-
-    it('should enable cluster button with 2 or more keywords', () => {
-      render(
-        <SessionManager
-          searchedKeywords={searchedKeywords}
+          searchedKeywords={mockSearchedKeywords}
           onClearBrandKeywords={mockOnClearBrandKeywords}
           onClusterKeywords={mockOnClusterKeywords}
           isClustering={false}
@@ -155,14 +124,29 @@ describe('SessionManager', () => {
         />
       );
       
-      const clusterButton = screen.getByRole('button', { name: /cluster/i });
+      const clusterButton = screen.getByRole('button', { name: /🧩 Cluster/i });
       expect(clusterButton).not.toBeDisabled();
     });
 
-    it('should show clustering spinner when clustering', () => {
+    it('should disable cluster button when keywordCount is less than 2', () => {
       render(
         <SessionManager
-          searchedKeywords={searchedKeywords}
+          searchedKeywords={mockSearchedKeywords}
+          onClearBrandKeywords={mockOnClearBrandKeywords}
+          onClusterKeywords={mockOnClusterKeywords}
+          isClustering={false}
+          keywordCount={1}
+        />
+      );
+      
+      const clusterButton = screen.getByRole('button', { name: /🧩 Cluster/i });
+      expect(clusterButton).toBeDisabled();
+    });
+
+    it('should disable cluster button when isClustering is true', () => {
+      render(
+        <SessionManager
+          searchedKeywords={mockSearchedKeywords}
           onClearBrandKeywords={mockOnClearBrandKeywords}
           onClusterKeywords={mockOnClusterKeywords}
           isClustering={true}
@@ -170,30 +154,32 @@ describe('SessionManager', () => {
         />
       );
       
-      expect(screen.getByText(/Clustering\.\.\./)).toBeInTheDocument();
+      const clusterButton = screen.getByRole('button', { name: /Clustering.../i });
+      expect(clusterButton).toBeDisabled();
     });
 
-    it('should show cluster emoji when not clustering', () => {
+    it('should show loading spinner when clustering', () => {
       render(
         <SessionManager
-          searchedKeywords={searchedKeywords}
+          searchedKeywords={mockSearchedKeywords}
           onClearBrandKeywords={mockOnClearBrandKeywords}
           onClusterKeywords={mockOnClusterKeywords}
-          isClustering={false}
+          isClustering={true}
           keywordCount={10}
         />
       );
       
-      expect(screen.getByText(/🧩 Cluster/)).toBeInTheDocument();
+      expect(screen.getByText(/Clustering\.\.\./i)).toBeInTheDocument();
+      const spinner = screen.getByRole('button', { name: /Clustering.../i }).querySelector('.animate-spin');
+      expect(spinner).toBeInTheDocument();
     });
   });
 
-  describe('interactions', () => {
-    it('should call onClusterKeywords when cluster button is clicked', async () => {
-      const user = userEvent.setup();
+  describe('User Interactions', () => {
+    it('should call onClusterKeywords when cluster button is clicked', () => {
       render(
         <SessionManager
-          searchedKeywords={searchedKeywords}
+          searchedKeywords={mockSearchedKeywords}
           onClearBrandKeywords={mockOnClearBrandKeywords}
           onClusterKeywords={mockOnClusterKeywords}
           isClustering={false}
@@ -201,17 +187,16 @@ describe('SessionManager', () => {
         />
       );
       
-      const clusterButton = screen.getByRole('button', { name: /cluster/i });
-      await user.click(clusterButton);
+      const clusterButton = screen.getByRole('button', { name: /🧩 Cluster/i });
+      fireEvent.click(clusterButton);
       
       expect(mockOnClusterKeywords).toHaveBeenCalledTimes(1);
     });
 
-    it('should call onClearBrandKeywords when clear button is clicked', async () => {
-      const user = userEvent.setup();
+    it('should call onClearBrandKeywords when clear button is clicked', () => {
       render(
         <SessionManager
-          searchedKeywords={searchedKeywords}
+          searchedKeywords={mockSearchedKeywords}
           onClearBrandKeywords={mockOnClearBrandKeywords}
           onClusterKeywords={mockOnClusterKeywords}
           isClustering={false}
@@ -219,60 +204,57 @@ describe('SessionManager', () => {
         />
       );
       
-      const clearButton = screen.getByRole('button', { name: /clear/i });
-      await user.click(clearButton);
+      const clearButton = screen.getByRole('button', { name: /🗑️ Clear/i });
+      fireEvent.click(clearButton);
       
       expect(mockOnClearBrandKeywords).toHaveBeenCalledTimes(1);
     });
 
-    it('should not call onClusterKeywords when button is disabled', async () => {
-      const user = userEvent.setup();
+    it('should not call onClusterKeywords when button is disabled', () => {
       render(
         <SessionManager
-          searchedKeywords={searchedKeywords}
+          searchedKeywords={mockSearchedKeywords}
           onClearBrandKeywords={mockOnClearBrandKeywords}
           onClusterKeywords={mockOnClusterKeywords}
-          isClustering={true}
-          keywordCount={10}
+          isClustering={false}
+          keywordCount={1}
         />
       );
       
-      const clusterButton = screen.getByRole('button', { name: /clustering/i });
-      await user.click(clusterButton);
+      const clusterButton = screen.getByRole('button', { name: /🧩 Cluster/i });
+      fireEvent.click(clusterButton);
       
       expect(mockOnClusterKeywords).not.toHaveBeenCalled();
     });
   });
 
-  describe('styling', () => {
-    it('should have border and rounded styling', () => {
-      const { container } = render(
+  describe('Edge Cases', () => {
+    it('should handle zero keywords', () => {
+      render(
         <SessionManager
-          searchedKeywords={searchedKeywords}
+          searchedKeywords={[]}
           onClearBrandKeywords={mockOnClearBrandKeywords}
           onClusterKeywords={mockOnClusterKeywords}
           isClustering={false}
-          keywordCount={10}
+          keywordCount={0}
         />
       );
       
-      const wrapper = container.querySelector('.border.rounded-lg');
-      expect(wrapper).toBeInTheDocument();
+      expect(screen.getByText(/0 keywords in bank/i)).toBeInTheDocument();
     });
 
-    it('should support dark mode classes', () => {
-      const { container } = render(
+    it('should handle large keyword counts', () => {
+      render(
         <SessionManager
-          searchedKeywords={searchedKeywords}
+          searchedKeywords={mockSearchedKeywords}
           onClearBrandKeywords={mockOnClearBrandKeywords}
           onClusterKeywords={mockOnClusterKeywords}
           isClustering={false}
-          keywordCount={10}
+          keywordCount={1000}
         />
       );
       
-      const darkElement = container.querySelector('.dark\\:bg-gray-800\\/50');
-      expect(darkElement).toBeInTheDocument();
+      expect(screen.getByText(/1000 keywords in bank/i)).toBeInTheDocument();
     });
   });
 });

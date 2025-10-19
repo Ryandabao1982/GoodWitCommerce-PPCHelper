@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import { Sidebar } from '../../components/Sidebar';
 
 describe('Sidebar', () => {
@@ -10,26 +10,22 @@ describe('Sidebar', () => {
   const mockOnDeleteBrand = vi.fn();
   const mockOnCreateBrandClick = vi.fn();
   
-  const brands = ['Brand A', 'Brand B', 'Brand C'];
-  const recentSearches = ['headphones', 'earbuds', 'speakers'];
+  const mockBrands = ['Brand A', 'Brand B', 'Brand C'];
+  const mockRecentSearches = ['wireless headphones', 'bluetooth speakers', 'gaming mouse'];
 
-  beforeEach(() => {
-    mockOnClose.mockClear();
-    mockOnHistoryItemClick.mockClear();
-    mockOnSelectBrand.mockClear();
-    mockOnDeleteBrand.mockClear();
-    mockOnCreateBrandClick.mockClear();
+  afterEach(() => {
+    vi.clearAllMocks();
   });
 
-  describe('rendering', () => {
+  describe('Rendering', () => {
     it('should not render when isOpen is false', () => {
       const { container } = render(
         <Sidebar
           isOpen={false}
           onClose={mockOnClose}
-          recentSearches={recentSearches}
+          recentSearches={mockRecentSearches}
           onHistoryItemClick={mockOnHistoryItemClick}
-          brands={brands}
+          brands={mockBrands}
           onSelectBrand={mockOnSelectBrand}
           onDeleteBrand={mockOnDeleteBrand}
           onCreateBrandClick={mockOnCreateBrandClick}
@@ -45,9 +41,9 @@ describe('Sidebar', () => {
         <Sidebar
           isOpen={true}
           onClose={mockOnClose}
-          recentSearches={recentSearches}
+          recentSearches={mockRecentSearches}
           onHistoryItemClick={mockOnHistoryItemClick}
-          brands={brands}
+          brands={mockBrands}
           onSelectBrand={mockOnSelectBrand}
           onDeleteBrand={mockOnDeleteBrand}
           onCreateBrandClick={mockOnCreateBrandClick}
@@ -55,7 +51,7 @@ describe('Sidebar', () => {
         />
       );
       
-      expect(screen.getByText('Menu')).toBeInTheDocument();
+      expect(screen.getByText(/Menu/i)).toBeInTheDocument();
     });
 
     it('should render close button', () => {
@@ -63,9 +59,9 @@ describe('Sidebar', () => {
         <Sidebar
           isOpen={true}
           onClose={mockOnClose}
-          recentSearches={recentSearches}
+          recentSearches={mockRecentSearches}
           onHistoryItemClick={mockOnHistoryItemClick}
-          brands={brands}
+          brands={mockBrands}
           onSelectBrand={mockOnSelectBrand}
           onDeleteBrand={mockOnDeleteBrand}
           onCreateBrandClick={mockOnCreateBrandClick}
@@ -73,17 +69,19 @@ describe('Sidebar', () => {
         />
       );
       
-      expect(screen.getByRole('button', { name: /close menu/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Close menu/i })).toBeInTheDocument();
     });
+  });
 
-    it('should render brands section header', () => {
+  describe('Brands Section', () => {
+    it('should render brands heading', () => {
       render(
         <Sidebar
           isOpen={true}
           onClose={mockOnClose}
-          recentSearches={recentSearches}
+          recentSearches={mockRecentSearches}
           onHistoryItemClick={mockOnHistoryItemClick}
-          brands={brands}
+          brands={mockBrands}
           onSelectBrand={mockOnSelectBrand}
           onDeleteBrand={mockOnDeleteBrand}
           onCreateBrandClick={mockOnCreateBrandClick}
@@ -91,7 +89,7 @@ describe('Sidebar', () => {
         />
       );
       
-      expect(screen.getByText('Brands')).toBeInTheDocument();
+      expect(screen.getByText(/Brands/i)).toBeInTheDocument();
     });
 
     it('should render all brands', () => {
@@ -99,9 +97,9 @@ describe('Sidebar', () => {
         <Sidebar
           isOpen={true}
           onClose={mockOnClose}
-          recentSearches={recentSearches}
+          recentSearches={mockRecentSearches}
           onHistoryItemClick={mockOnHistoryItemClick}
-          brands={brands}
+          brands={mockBrands}
           onSelectBrand={mockOnSelectBrand}
           onDeleteBrand={mockOnDeleteBrand}
           onCreateBrandClick={mockOnCreateBrandClick}
@@ -109,7 +107,7 @@ describe('Sidebar', () => {
         />
       );
       
-      brands.forEach(brand => {
+      mockBrands.forEach(brand => {
         expect(screen.getByText(brand)).toBeInTheDocument();
       });
     });
@@ -119,7 +117,7 @@ describe('Sidebar', () => {
         <Sidebar
           isOpen={true}
           onClose={mockOnClose}
-          recentSearches={recentSearches}
+          recentSearches={mockRecentSearches}
           onHistoryItemClick={mockOnHistoryItemClick}
           brands={[]}
           onSelectBrand={mockOnSelectBrand}
@@ -129,17 +127,17 @@ describe('Sidebar', () => {
         />
       );
       
-      expect(screen.getByText('No brands yet')).toBeInTheDocument();
+      expect(screen.getByText(/No brands yet/i)).toBeInTheDocument();
     });
 
-    it('should render recent searches section when searches exist', () => {
+    it('should render create brand button', () => {
       render(
         <Sidebar
           isOpen={true}
           onClose={mockOnClose}
-          recentSearches={recentSearches}
+          recentSearches={mockRecentSearches}
           onHistoryItemClick={mockOnHistoryItemClick}
-          brands={brands}
+          brands={mockBrands}
           onSelectBrand={mockOnSelectBrand}
           onDeleteBrand={mockOnDeleteBrand}
           onCreateBrandClick={mockOnCreateBrandClick}
@@ -147,7 +145,113 @@ describe('Sidebar', () => {
         />
       );
       
-      expect(screen.getByText('Recent Searches')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Create new brand/i })).toBeInTheDocument();
+    });
+
+    it('should call onSelectBrand and onClose when brand is clicked', () => {
+      render(
+        <Sidebar
+          isOpen={true}
+          onClose={mockOnClose}
+          recentSearches={mockRecentSearches}
+          onHistoryItemClick={mockOnHistoryItemClick}
+          brands={mockBrands}
+          onSelectBrand={mockOnSelectBrand}
+          onDeleteBrand={mockOnDeleteBrand}
+          onCreateBrandClick={mockOnCreateBrandClick}
+          isLoading={false}
+        />
+      );
+      
+      const brandButton = screen.getByRole('button', { name: mockBrands[0] });
+      fireEvent.click(brandButton);
+      
+      expect(mockOnSelectBrand).toHaveBeenCalledWith(mockBrands[0]);
+      expect(mockOnClose).toHaveBeenCalled();
+    });
+
+    it('should call onDeleteBrand when delete button is clicked', () => {
+      render(
+        <Sidebar
+          isOpen={true}
+          onClose={mockOnClose}
+          recentSearches={mockRecentSearches}
+          onHistoryItemClick={mockOnHistoryItemClick}
+          brands={mockBrands}
+          onSelectBrand={mockOnSelectBrand}
+          onDeleteBrand={mockOnDeleteBrand}
+          onCreateBrandClick={mockOnCreateBrandClick}
+          isLoading={false}
+        />
+      );
+      
+      const deleteButtons = screen.getAllByLabelText(/Delete/i);
+      fireEvent.click(deleteButtons[0]);
+      
+      expect(mockOnDeleteBrand).toHaveBeenCalledWith(mockBrands[0]);
+    });
+
+    it('should disable delete buttons when isLoading is true', () => {
+      render(
+        <Sidebar
+          isOpen={true}
+          onClose={mockOnClose}
+          recentSearches={mockRecentSearches}
+          onHistoryItemClick={mockOnHistoryItemClick}
+          brands={mockBrands}
+          onSelectBrand={mockOnSelectBrand}
+          onDeleteBrand={mockOnDeleteBrand}
+          onCreateBrandClick={mockOnCreateBrandClick}
+          isLoading={true}
+        />
+      );
+      
+      const deleteButtons = screen.getAllByLabelText(/Delete/i);
+      deleteButtons.forEach(button => {
+        expect(button).toBeDisabled();
+      });
+    });
+
+    it('should call onCreateBrandClick and onClose when create button is clicked', () => {
+      render(
+        <Sidebar
+          isOpen={true}
+          onClose={mockOnClose}
+          recentSearches={mockRecentSearches}
+          onHistoryItemClick={mockOnHistoryItemClick}
+          brands={mockBrands}
+          onSelectBrand={mockOnSelectBrand}
+          onDeleteBrand={mockOnDeleteBrand}
+          onCreateBrandClick={mockOnCreateBrandClick}
+          isLoading={false}
+        />
+      );
+      
+      const createButton = screen.getByRole('button', { name: /Create new brand/i });
+      fireEvent.click(createButton);
+      
+      expect(mockOnCreateBrandClick).toHaveBeenCalled();
+      expect(mockOnClose).toHaveBeenCalled();
+    });
+  });
+
+  describe('Recent Searches Section', () => {
+    it('should render recent searches heading when searches exist', () => {
+      render(
+        <Sidebar
+          isOpen={true}
+          onClose={mockOnClose}
+          recentSearches={mockRecentSearches}
+          onHistoryItemClick={mockOnHistoryItemClick}
+          brands={mockBrands}
+          onSelectBrand={mockOnSelectBrand}
+          onDeleteBrand={mockOnDeleteBrand}
+          onCreateBrandClick={mockOnCreateBrandClick}
+          isLoading={false}
+        />
+      );
+      
+      expect(screen.getByText(/Recent Searches/i)).toBeInTheDocument();
     });
 
     it('should not render recent searches section when empty', () => {
@@ -157,7 +261,7 @@ describe('Sidebar', () => {
           onClose={mockOnClose}
           recentSearches={[]}
           onHistoryItemClick={mockOnHistoryItemClick}
-          brands={brands}
+          brands={mockBrands}
           onSelectBrand={mockOnSelectBrand}
           onDeleteBrand={mockOnDeleteBrand}
           onCreateBrandClick={mockOnCreateBrandClick}
@@ -165,7 +269,7 @@ describe('Sidebar', () => {
         />
       );
       
-      expect(screen.queryByText('Recent Searches')).not.toBeInTheDocument();
+      expect(screen.queryByText(/Recent Searches/i)).not.toBeInTheDocument();
     });
 
     it('should render all recent searches', () => {
@@ -173,9 +277,9 @@ describe('Sidebar', () => {
         <Sidebar
           isOpen={true}
           onClose={mockOnClose}
-          recentSearches={recentSearches}
+          recentSearches={mockRecentSearches}
           onHistoryItemClick={mockOnHistoryItemClick}
-          brands={brands}
+          brands={mockBrands}
           onSelectBrand={mockOnSelectBrand}
           onDeleteBrand={mockOnDeleteBrand}
           onCreateBrandClick={mockOnCreateBrandClick}
@@ -183,19 +287,19 @@ describe('Sidebar', () => {
         />
       );
       
-      recentSearches.forEach(search => {
+      mockRecentSearches.forEach(search => {
         expect(screen.getByText(search)).toBeInTheDocument();
       });
     });
 
-    it('should render create brand button', () => {
+    it('should call onHistoryItemClick and onClose when search is clicked', () => {
       render(
         <Sidebar
           isOpen={true}
           onClose={mockOnClose}
-          recentSearches={recentSearches}
+          recentSearches={mockRecentSearches}
           onHistoryItemClick={mockOnHistoryItemClick}
-          brands={brands}
+          brands={mockBrands}
           onSelectBrand={mockOnSelectBrand}
           onDeleteBrand={mockOnDeleteBrand}
           onCreateBrandClick={mockOnCreateBrandClick}
@@ -203,132 +307,21 @@ describe('Sidebar', () => {
         />
       );
       
-      expect(screen.getByRole('button', { name: /create new brand/i })).toBeInTheDocument();
+      const searchButton = screen.getByRole('button', { name: mockRecentSearches[0] });
+      fireEvent.click(searchButton);
+      
+      expect(mockOnHistoryItemClick).toHaveBeenCalledWith(mockRecentSearches[0]);
+      expect(mockOnClose).toHaveBeenCalled();
     });
-  });
 
-  describe('interactions', () => {
-    it('should call onClose when close button is clicked', async () => {
-      const user = userEvent.setup();
+    it('should disable search history buttons when isLoading is true', () => {
       render(
         <Sidebar
           isOpen={true}
           onClose={mockOnClose}
-          recentSearches={recentSearches}
+          recentSearches={mockRecentSearches}
           onHistoryItemClick={mockOnHistoryItemClick}
-          brands={brands}
-          onSelectBrand={mockOnSelectBrand}
-          onDeleteBrand={mockOnDeleteBrand}
-          onCreateBrandClick={mockOnCreateBrandClick}
-          isLoading={false}
-        />
-      );
-      
-      const closeButton = screen.getByRole('button', { name: /close menu/i });
-      await user.click(closeButton);
-      
-      expect(mockOnClose).toHaveBeenCalledTimes(1);
-    });
-
-    it('should call onSelectBrand and onClose when brand is clicked', async () => {
-      const user = userEvent.setup();
-      render(
-        <Sidebar
-          isOpen={true}
-          onClose={mockOnClose}
-          recentSearches={recentSearches}
-          onHistoryItemClick={mockOnHistoryItemClick}
-          brands={brands}
-          onSelectBrand={mockOnSelectBrand}
-          onDeleteBrand={mockOnDeleteBrand}
-          onCreateBrandClick={mockOnCreateBrandClick}
-          isLoading={false}
-        />
-      );
-      
-      const brandButton = screen.getByRole('button', { name: 'Brand B' });
-      await user.click(brandButton);
-      
-      expect(mockOnSelectBrand).toHaveBeenCalledWith('Brand B');
-      expect(mockOnClose).toHaveBeenCalledTimes(1);
-    });
-
-    it('should call onDeleteBrand when delete button is clicked', async () => {
-      const user = userEvent.setup();
-      render(
-        <Sidebar
-          isOpen={true}
-          onClose={mockOnClose}
-          recentSearches={recentSearches}
-          onHistoryItemClick={mockOnHistoryItemClick}
-          brands={brands}
-          onSelectBrand={mockOnSelectBrand}
-          onDeleteBrand={mockOnDeleteBrand}
-          onCreateBrandClick={mockOnCreateBrandClick}
-          isLoading={false}
-        />
-      );
-      
-      const deleteButton = screen.getByRole('button', { name: /delete brand a/i });
-      await user.click(deleteButton);
-      
-      expect(mockOnDeleteBrand).toHaveBeenCalledWith('Brand A');
-    });
-
-    it('should call onHistoryItemClick and onClose when recent search is clicked', async () => {
-      const user = userEvent.setup();
-      render(
-        <Sidebar
-          isOpen={true}
-          onClose={mockOnClose}
-          recentSearches={recentSearches}
-          onHistoryItemClick={mockOnHistoryItemClick}
-          brands={brands}
-          onSelectBrand={mockOnSelectBrand}
-          onDeleteBrand={mockOnDeleteBrand}
-          onCreateBrandClick={mockOnCreateBrandClick}
-          isLoading={false}
-        />
-      );
-      
-      const searchButton = screen.getByRole('button', { name: 'headphones' });
-      await user.click(searchButton);
-      
-      expect(mockOnHistoryItemClick).toHaveBeenCalledWith('headphones');
-      expect(mockOnClose).toHaveBeenCalledTimes(1);
-    });
-
-    it('should call onCreateBrandClick and onClose when create brand button is clicked', async () => {
-      const user = userEvent.setup();
-      render(
-        <Sidebar
-          isOpen={true}
-          onClose={mockOnClose}
-          recentSearches={recentSearches}
-          onHistoryItemClick={mockOnHistoryItemClick}
-          brands={brands}
-          onSelectBrand={mockOnSelectBrand}
-          onDeleteBrand={mockOnDeleteBrand}
-          onCreateBrandClick={mockOnCreateBrandClick}
-          isLoading={false}
-        />
-      );
-      
-      const createButton = screen.getByRole('button', { name: /create new brand/i });
-      await user.click(createButton);
-      
-      expect(mockOnCreateBrandClick).toHaveBeenCalledTimes(1);
-      expect(mockOnClose).toHaveBeenCalledTimes(1);
-    });
-
-    it('should disable delete brand button when loading', async () => {
-      render(
-        <Sidebar
-          isOpen={true}
-          onClose={mockOnClose}
-          recentSearches={recentSearches}
-          onHistoryItemClick={mockOnHistoryItemClick}
-          brands={brands}
+          brands={mockBrands}
           onSelectBrand={mockOnSelectBrand}
           onDeleteBrand={mockOnDeleteBrand}
           onCreateBrandClick={mockOnCreateBrandClick}
@@ -336,39 +329,46 @@ describe('Sidebar', () => {
         />
       );
       
-      const deleteButton = screen.getByRole('button', { name: /delete brand a/i });
-      expect(deleteButton).toBeDisabled();
+      const searchButtons = mockRecentSearches.map(search => 
+        screen.getByRole('button', { name: search })
+      );
+      
+      searchButtons.forEach(button => {
+        expect(button).toBeDisabled();
+      });
     });
+  });
 
-    it('should disable recent search buttons when loading', async () => {
+  describe('Close Actions', () => {
+    it('should call onClose when close button is clicked', () => {
       render(
         <Sidebar
           isOpen={true}
           onClose={mockOnClose}
-          recentSearches={recentSearches}
+          recentSearches={mockRecentSearches}
           onHistoryItemClick={mockOnHistoryItemClick}
-          brands={brands}
+          brands={mockBrands}
           onSelectBrand={mockOnSelectBrand}
           onDeleteBrand={mockOnDeleteBrand}
           onCreateBrandClick={mockOnCreateBrandClick}
-          isLoading={true}
+          isLoading={false}
         />
       );
       
-      const searchButton = screen.getByRole('button', { name: 'headphones' });
-      expect(searchButton).toBeDisabled();
+      const closeButton = screen.getByRole('button', { name: /Close menu/i });
+      fireEvent.click(closeButton);
+      
+      expect(mockOnClose).toHaveBeenCalledTimes(1);
     });
-  });
 
-  describe('overlay', () => {
-    it('should render overlay when open', () => {
+    it('should call onClose when overlay is clicked', () => {
       const { container } = render(
         <Sidebar
           isOpen={true}
           onClose={mockOnClose}
-          recentSearches={recentSearches}
+          recentSearches={mockRecentSearches}
           onHistoryItemClick={mockOnHistoryItemClick}
-          brands={brands}
+          brands={mockBrands}
           onSelectBrand={mockOnSelectBrand}
           onDeleteBrand={mockOnDeleteBrand}
           onCreateBrandClick={mockOnCreateBrandClick}
@@ -377,18 +377,21 @@ describe('Sidebar', () => {
       );
       
       const overlay = container.querySelector('.fixed.inset-0.bg-black');
-      expect(overlay).toBeInTheDocument();
+      fireEvent.click(overlay!);
+      
+      expect(mockOnClose).toHaveBeenCalledTimes(1);
     });
+  });
 
-    it('should call onClose when overlay is clicked', async () => {
-      const user = userEvent.setup();
-      const { container } = render(
+  describe('Accessibility', () => {
+    it('should have proper aria-labels', () => {
+      render(
         <Sidebar
           isOpen={true}
           onClose={mockOnClose}
-          recentSearches={recentSearches}
+          recentSearches={mockRecentSearches}
           onHistoryItemClick={mockOnHistoryItemClick}
-          brands={brands}
+          brands={mockBrands}
           onSelectBrand={mockOnSelectBrand}
           onDeleteBrand={mockOnDeleteBrand}
           onCreateBrandClick={mockOnCreateBrandClick}
@@ -396,10 +399,8 @@ describe('Sidebar', () => {
         />
       );
       
-      const overlay = container.querySelector('.fixed.inset-0.bg-black') as HTMLElement;
-      await user.click(overlay);
-      
-      expect(mockOnClose).toHaveBeenCalledTimes(1);
+      expect(screen.getByLabelText(/Close menu/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/Create new brand/i)).toBeInTheDocument();
     });
   });
 });

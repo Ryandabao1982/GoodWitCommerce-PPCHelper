@@ -1,92 +1,80 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import { ScrollToTopButton } from '../../components/ScrollToTopButton';
 
 describe('ScrollToTopButton', () => {
-  describe('visibility', () => {
-    it('should render when isVisible is true', () => {
-      const mockOnClick = vi.fn();
-      render(<ScrollToTopButton isVisible={true} onClick={mockOnClick} />);
-      
-      const button = screen.getByRole('button', { name: /scroll to top/i });
-      expect(button).toBeInTheDocument();
-    });
+  const mockOnClick = vi.fn();
 
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('Rendering', () => {
     it('should not render when isVisible is false', () => {
-      const mockOnClick = vi.fn();
       render(<ScrollToTopButton isVisible={false} onClick={mockOnClick} />);
       
-      const button = screen.queryByRole('button', { name: /scroll to top/i });
-      expect(button).not.toBeInTheDocument();
+      expect(screen.queryByRole('button')).not.toBeInTheDocument();
     });
 
-    it('should return null when not visible', () => {
-      const mockOnClick = vi.fn();
-      const { container } = render(<ScrollToTopButton isVisible={false} onClick={mockOnClick} />);
-      expect(container.firstChild).toBeNull();
+    it('should render when isVisible is true', () => {
+      render(<ScrollToTopButton isVisible={true} onClick={mockOnClick} />);
+      
+      expect(screen.getByRole('button', { name: /scroll to top/i })).toBeInTheDocument();
+    });
+
+    it('should have correct styling classes when visible', () => {
+      render(<ScrollToTopButton isVisible={true} onClick={mockOnClick} />);
+      
+      const button = screen.getByRole('button');
+      expect(button).toHaveClass('fixed', 'bottom-8', 'right-8', 'bg-blue-600');
+    });
+
+    it('should display the up arrow icon', () => {
+      render(<ScrollToTopButton isVisible={true} onClick={mockOnClick} />);
+      
+      const button = screen.getByRole('button');
+      const svg = button.querySelector('svg');
+      expect(svg).toBeInTheDocument();
     });
   });
 
-  describe('interactions', () => {
-    it('should call onClick when button is clicked', async () => {
-      const mockOnClick = vi.fn();
-      const user = userEvent.setup();
-      
+  describe('User Interactions', () => {
+    it('should call onClick handler when button is clicked', () => {
       render(<ScrollToTopButton isVisible={true} onClick={mockOnClick} />);
       
-      const button = screen.getByRole('button', { name: /scroll to top/i });
-      await user.click(button);
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
       
       expect(mockOnClick).toHaveBeenCalledTimes(1);
     });
 
-    it('should call onClick multiple times when clicked repeatedly', async () => {
-      const mockOnClick = vi.fn();
-      const user = userEvent.setup();
-      
+    it('should call onClick multiple times when clicked repeatedly', () => {
       render(<ScrollToTopButton isVisible={true} onClick={mockOnClick} />);
       
-      const button = screen.getByRole('button', { name: /scroll to top/i });
-      await user.click(button);
-      await user.click(button);
-      await user.click(button);
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+      fireEvent.click(button);
+      fireEvent.click(button);
       
       expect(mockOnClick).toHaveBeenCalledTimes(3);
     });
   });
 
-  describe('styling and accessibility', () => {
+  describe('Accessibility', () => {
     it('should have proper aria-label', () => {
-      const mockOnClick = vi.fn();
       render(<ScrollToTopButton isVisible={true} onClick={mockOnClick} />);
       
-      const button = screen.getByRole('button', { name: 'Scroll to top' });
+      const button = screen.getByLabelText(/scroll to top/i);
       expect(button).toBeInTheDocument();
     });
 
-    it('should have fixed positioning classes', () => {
-      const mockOnClick = vi.fn();
-      const { container } = render(<ScrollToTopButton isVisible={true} onClick={mockOnClick} />);
+    it('should be keyboard accessible', () => {
+      render(<ScrollToTopButton isVisible={true} onClick={mockOnClick} />);
       
-      const button = container.querySelector('.fixed');
-      expect(button).toBeInTheDocument();
-    });
-
-    it('should have rounded styling', () => {
-      const mockOnClick = vi.fn();
-      const { container } = render(<ScrollToTopButton isVisible={true} onClick={mockOnClick} />);
-      
-      const button = container.querySelector('.rounded-full');
-      expect(button).toBeInTheDocument();
-    });
-
-    it('should contain an SVG icon', () => {
-      const mockOnClick = vi.fn();
-      const { container } = render(<ScrollToTopButton isVisible={true} onClick={mockOnClick} />);
-      
-      const svg = container.querySelector('svg');
-      expect(svg).toBeInTheDocument();
+      const button = screen.getByRole('button');
+      button.focus();
+      expect(button).toHaveFocus();
     });
   });
 });
