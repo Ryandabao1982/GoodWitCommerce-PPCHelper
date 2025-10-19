@@ -209,7 +209,14 @@ export const BrandTabCampaigns: React.FC<BrandTabCampaignsProps> = ({ brandState
   );
 };
 
-const CampaignCard: React.FC<{ campaign: any }> = ({ campaign }) => {
+interface CampaignData {
+  name: string;
+  acosTrend: number[];
+  multiplier: number;
+  // Add other properties as needed
+}
+
+const CampaignCard: React.FC<{ campaign: CampaignData }> = ({ campaign }) => {
   const currentACOS = campaign.acosTrend[campaign.acosTrend.length - 1];
   const isOnTarget = currentACOS <= 25;
 
