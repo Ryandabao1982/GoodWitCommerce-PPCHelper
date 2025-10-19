@@ -165,6 +165,18 @@ export const CAMPAIGN_TEMPLATES: CampaignTemplate[] = [
   },
 ];
 
+/**
+ * Creates a Campaign object from a CampaignTemplate, optionally overriding the name and daily budget.
+ *
+ * The function instantiates ad groups from the template, allocating each ad group's budget according to its
+ * `budgetPercent` relative to the chosen campaign daily budget when provided, and initializes default bids,
+ * match types, keywords (empty), and bid modifiers.
+ *
+ * @param template - The campaign template to instantiate
+ * @param customName - Optional custom campaign name to use instead of the template's name
+ * @param dailyBudget - Optional daily budget to use instead of the template's suggestedDailyBudget
+ * @returns The constructed Campaign populated with ad groups derived from the template and their computed budgets
+ */
 export function createCampaignFromTemplate(
   template: CampaignTemplate,
   customName?: string,
