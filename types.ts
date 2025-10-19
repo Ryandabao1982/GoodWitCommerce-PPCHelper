@@ -141,8 +141,8 @@ export interface BrandTabSettings {
   cvrFactorMedian: number;
   wastedSpendRedThreshold: number;
   isCompetitiveCategory: boolean;
-  price?: number;
-  targetAcos?: number;
+  // price?: number; // Removed: not exposed in modal
+  // targetAcos?: number; // Removed: not exposed in modal
 }
 
 // Brand/Session state
