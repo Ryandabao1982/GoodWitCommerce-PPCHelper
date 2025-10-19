@@ -4,7 +4,7 @@ import { Sidebar } from './components/Sidebar';
 import { KeywordInput } from './components/KeywordInput';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { ErrorMessage } from './components/ErrorMessage';
-import { fetchKeywords, fetchKeywordClusters, reinitializeGeminiService } from './services/geminiService';
+import { fetchKeywords, fetchKeywordClusters, reinitializeGeminiService, analyzeKeywordsBatch } from './services/geminiService';
 import { reinitializeSupabaseClient } from './services/supabaseClient';
 import { BrandState, KeywordData, AdvancedSearchSettings, Campaign, ApiSettings } from './types';
 import { ScrollToTopButton } from './components/ScrollToTopButton';
@@ -48,6 +48,7 @@ const App: React.FC = () => {
   
   const [isLoading, setIsLoading] = useState(false);
   const [isClustering, setIsClustering] = useState(false);
+  const [isAnalyzingManualKeywords, setIsAnalyzingManualKeywords] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [relatedKeywords, setRelatedKeywords] = useState<string[]>([]);
   
@@ -312,6 +313,75 @@ const App: React.FC = () => {
       e.dataTransfer.effectAllowed = 'move';
   };
 
+  // --- Manual Keyword Entry ---
+  const handleAddManualKeywords = useCallback(async (keywords: string[]) => {
+    if (!activeBrand || !activeBrandState) return;
+    
+    // Check if API key is configured
+    if (!apiSettings.geminiApiKey && !import.meta.env.VITE_GEMINI_API_KEY) {
+      setIsApiKeyPromptOpen(true);
+      return;
+    }
+
+    setIsAnalyzingManualKeywords(true);
+    setError(null);
+
+    try {
+      const brandName = activeBrandState.advancedSearchSettings.brandName || '';
+      
+      // Filter out keywords that already exist
+      const existingKeywordsLower = new Set(
+        activeBrandState.keywordResults.map(kw => kw.keyword.toLowerCase())
+      );
+      const newKeywords = keywords.filter(
+        kw => !existingKeywordsLower.has(kw.toLowerCase())
+      );
+
+      if (newKeywords.length === 0) {
+        alert('All keywords already exist in your keyword bank.');
+        return;
+      }
+
+      // Analyze keywords in batch with progress tracking
+      const result = await analyzeKeywordsBatch(newKeywords, brandName, (completed, total) => {
+        // Could update a progress state here if we want to show progress
+        console.log(`Analyzing keywords: ${completed}/${total}`);
+      });
+
+      if (result.successful.length > 0) {
+        // Merge new keywords with existing ones
+        const uniqueKeywords = new Map(
+          activeBrandState.keywordResults.map(kw => [kw.keyword.toLowerCase(), kw])
+        );
+        result.successful.forEach(kw => {
+          if (!uniqueKeywords.has(kw.keyword.toLowerCase())) {
+            uniqueKeywords.set(kw.keyword.toLowerCase(), kw);
+          }
+        });
+
+        updateBrandState(activeBrand, {
+          keywordResults: Array.from(uniqueKeywords.values()),
+          keywordClusters: null, // Reset clusters when adding new keywords
+        });
+
+        // Show success message
+        const successMsg = `✅ Successfully added ${result.successful.length} keyword${result.successful.length > 1 ? 's' : ''}`;
+        const failedMsg = result.failed.length > 0 
+          ? `\n⚠️ ${result.failed.length} keyword${result.failed.length > 1 ? 's' : ''} failed to analyze` 
+          : '';
+        alert(successMsg + failedMsg);
+      }
+
+      if (result.failed.length > 0 && result.successful.length === 0) {
+        throw new Error(`Failed to analyze any keywords. Please check your input and try again.`);
+      }
+
+    } catch (err: any) {
+      setError(err.message || 'An error occurred while analyzing keywords.');
+    } finally {
+      setIsAnalyzingManualKeywords(false);
+    }
+  }, [activeBrand, activeBrandState, updateBrandState, apiSettings.geminiApiKey]);
 
   // --- Brand Management ---
   const handleCreateBrand = (brandName: string): boolean => {
@@ -593,6 +663,9 @@ const App: React.FC = () => {
                   onToggleSelect={handleToggleSelect}
                   onToggleSelectAll={handleToggleSelectAll}
                   onDragStart={handleDragStart}
+                  onAddManualKeywords={handleAddManualKeywords}
+                  isAnalyzingManualKeywords={isAnalyzingManualKeywords}
+                  brandContextName={activeBrandState?.advancedSearchSettings.brandName || ''}
                 />
               )}
 
@@ -645,6 +718,9 @@ const App: React.FC = () => {
                         onToggleSelect={handleToggleSelect}
                         onToggleSelectAll={handleToggleSelectAll}
                         onDragStart={handleDragStart}
+                        onAddManualKeywords={handleAddManualKeywords}
+                        isAnalyzingManualKeywords={isAnalyzingManualKeywords}
+                        brandContextName={activeBrandState?.advancedSearchSettings.brandName || ''}
                       />
                   )}
 
@@ -673,6 +749,9 @@ const App: React.FC = () => {
                             onToggleSelect={handleToggleSelect}
                             onToggleSelectAll={handleToggleSelectAll}
                             onDragStart={handleDragStart}
+                            onAddManualKeywords={handleAddManualKeywords}
+                            isAnalyzingManualKeywords={isAnalyzingManualKeywords}
+                            brandContextName={activeBrandState?.advancedSearchSettings.brandName || ''}
                           />
                         </div>
                       </div>

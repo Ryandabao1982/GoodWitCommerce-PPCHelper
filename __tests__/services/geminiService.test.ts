@@ -18,7 +18,7 @@ vi.mock('@google/genai', () => {
 });
 
 // Import after mocking
-const { fetchKeywords, fetchKeywordClusters, fetchKeywordDeepDive } = await import('../../services/geminiService');
+const { fetchKeywords, fetchKeywordClusters, fetchKeywordDeepDive, analyzeKeyword, analyzeKeywordsBatch } = await import('../../services/geminiService');
 
 describe('geminiService', () => {
   beforeEach(() => {
@@ -305,6 +305,219 @@ describe('geminiService', () => {
       expect(Array.isArray(result.adCopyAngles)).toBe(true);
       expect(Array.isArray(result.negativeKeywords)).toBe(true);
       expect(typeof result.bidStrategy).toBe('string');
+    });
+  });
+
+  describe('analyzeKeyword - Manual Keyword Entry', () => {
+    it('should analyze a single keyword successfully', async () => {
+      const mockAnalysis: KeywordData = {
+        keyword: 'wireless headphones',
+        type: 'Phrase',
+        category: 'Core',
+        searchVolume: '10k-20k',
+        competition: 'Medium',
+        relevance: 9,
+        source: 'AI',
+      };
+
+      mockGenerateContent.mockResolvedValue({
+        text: JSON.stringify(mockAnalysis),
+      });
+
+      const result = await analyzeKeyword('wireless headphones');
+
+      expect(result.keyword).toBe('wireless headphones');
+      expect(result.type).toBe('Phrase');
+      expect(result.category).toBe('Core');
+      expect(result.source).toBe('AI');
+      expect(result.relevance).toBe(9);
+    });
+
+    it('should reject empty keyword', async () => {
+      await expect(analyzeKeyword('')).rejects.toThrow('Keyword cannot be empty');
+    });
+
+    it('should reject keyword over 200 characters', async () => {
+      const longKeyword = 'a'.repeat(201);
+      await expect(analyzeKeyword(longKeyword)).rejects.toThrow('Keyword is too long');
+    });
+
+    it('should trim whitespace from keyword', async () => {
+      const mockAnalysis: KeywordData = {
+        keyword: 'test keyword',
+        type: 'Broad',
+        category: 'Core',
+        searchVolume: '1k-5k',
+        competition: 'Low',
+        relevance: 8,
+        source: 'AI',
+      };
+
+      mockGenerateContent.mockResolvedValue({
+        text: JSON.stringify(mockAnalysis),
+      });
+
+      const result = await analyzeKeyword('  test keyword  ');
+      expect(result.keyword).toBe('test keyword');
+    });
+
+    it('should include brand context when provided', async () => {
+      const mockAnalysis: KeywordData = {
+        keyword: 'branded headphones',
+        type: 'Phrase',
+        category: 'Branded',
+        searchVolume: '5k-10k',
+        competition: 'High',
+        relevance: 10,
+        source: 'AI',
+      };
+
+      mockGenerateContent.mockResolvedValue({
+        text: JSON.stringify(mockAnalysis),
+      });
+
+      const result = await analyzeKeyword('branded headphones', 'MyBrand');
+      expect(result.category).toBe('Branded');
+    });
+
+    it('should handle JSON in code blocks', async () => {
+      const mockAnalysis: KeywordData = {
+        keyword: 'test',
+        type: 'Exact',
+        category: 'Core',
+        searchVolume: '1k',
+        competition: 'Low',
+        relevance: 7,
+        source: 'AI',
+      };
+
+      mockGenerateContent.mockResolvedValue({
+        text: '```json\n' + JSON.stringify(mockAnalysis) + '\n```',
+      });
+
+      const result = await analyzeKeyword('test');
+      expect(result.keyword).toBe('test');
+    });
+
+    it('should handle API errors gracefully', async () => {
+      mockGenerateContent.mockRejectedValue(new Error('API error'));
+
+      await expect(analyzeKeyword('test')).rejects.toThrow(
+        'Failed to analyze keyword: API error'
+      );
+    });
+
+    it('should validate response structure', async () => {
+      // Missing required fields
+      mockGenerateContent.mockResolvedValue({
+        text: JSON.stringify({ keyword: 'test' }),
+      });
+
+      await expect(analyzeKeyword('test')).rejects.toThrow(
+        'Invalid response structure from AI'
+      );
+    });
+  });
+
+  describe('analyzeKeywordsBatch - Batch Processing', () => {
+    it('should process multiple keywords successfully', async () => {
+      const mockAnalysis: KeywordData = {
+        keyword: 'test',
+        type: 'Broad',
+        category: 'Core',
+        searchVolume: '1k',
+        competition: 'Low',
+        relevance: 8,
+        source: 'AI',
+      };
+
+      mockGenerateContent.mockResolvedValue({
+        text: JSON.stringify(mockAnalysis),
+      });
+
+      const result = await analyzeKeywordsBatch(['keyword1', 'keyword2']);
+
+      expect(result.successful.length).toBeGreaterThan(0);
+      expect(result.failed.length).toBeLessThanOrEqual(2);
+    });
+
+    it('should handle empty keyword array', async () => {
+      const result = await analyzeKeywordsBatch([]);
+
+      expect(result.successful).toEqual([]);
+      expect(result.failed).toEqual([]);
+    });
+
+    it('should continue processing after individual failures', async () => {
+      let callCount = 0;
+      mockGenerateContent.mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          return Promise.reject(new Error('Failed'));
+        }
+        return Promise.resolve({
+          text: JSON.stringify({
+            keyword: 'test',
+            type: 'Broad',
+            category: 'Core',
+            searchVolume: '1k',
+            competition: 'Low',
+            relevance: 8,
+            source: 'AI',
+          }),
+        });
+      });
+
+      const result = await analyzeKeywordsBatch(['fail', 'success']);
+
+      expect(result.failed.length).toBeGreaterThan(0);
+      expect(result.successful.length).toBeGreaterThan(0);
+    });
+
+    it('should report progress during batch processing', async () => {
+      const progressUpdates: Array<{ completed: number; total: number }> = [];
+
+      mockGenerateContent.mockResolvedValue({
+        text: JSON.stringify({
+          keyword: 'test',
+          type: 'Broad',
+          category: 'Core',
+          searchVolume: '1k',
+          competition: 'Low',
+          relevance: 8,
+          source: 'AI',
+        }),
+      });
+
+      await analyzeKeywordsBatch(
+        ['kw1', 'kw2', 'kw3'],
+        'BrandName',
+        (completed, total) => {
+          progressUpdates.push({ completed, total });
+        }
+      );
+
+      expect(progressUpdates.length).toBeGreaterThan(0);
+    });
+
+    it('should include brand context in batch processing', async () => {
+      const mockAnalysis: KeywordData = {
+        keyword: 'test',
+        type: 'Branded',
+        category: 'Branded',
+        searchVolume: '5k',
+        competition: 'Medium',
+        relevance: 9,
+        source: 'AI',
+      };
+
+      mockGenerateContent.mockResolvedValue({
+        text: JSON.stringify(mockAnalysis),
+      });
+
+      const result = await analyzeKeywordsBatch(['test'], 'MyBrand');
+
+      expect(result.successful[0]?.category).toBe('Branded');
     });
   });
 });

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { KeywordData, Campaign } from '../types';
 import { EmptyState } from './EmptyState';
+import { ManualKeywordEntry } from './ManualKeywordEntry';
 
 interface KeywordBankProps {
   keywords: KeywordData[];
@@ -15,6 +16,9 @@ interface KeywordBankProps {
   onToggleSelect: (keyword: string, isSelected: boolean) => void;
   onToggleSelectAll: (isSelected: boolean) => void;
   onDragStart: (e: React.DragEvent, keyword: string) => void;
+  onAddManualKeywords?: (keywords: string[]) => void;
+  isAnalyzingManualKeywords?: boolean;
+  brandContextName?: string;
 }
 
 export const KeywordBank: React.FC<KeywordBankProps> = ({
@@ -30,6 +34,9 @@ export const KeywordBank: React.FC<KeywordBankProps> = ({
   onToggleSelect,
   onToggleSelectAll,
   onDragStart,
+  onAddManualKeywords,
+  isAnalyzingManualKeywords = false,
+  brandContextName = '',
 }) => {
   const [filter, setFilter] = useState('');
   const [showAssignModal, setShowAssignModal] = useState(false);
@@ -127,6 +134,15 @@ export const KeywordBank: React.FC<KeywordBankProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Manual Keyword Entry */}
+      {onAddManualKeywords && (
+        <ManualKeywordEntry
+          onAddKeywords={onAddManualKeywords}
+          isProcessing={isAnalyzingManualKeywords}
+          brandName={brandContextName}
+        />
+      )}
 
       {/* Main Keyword Bank */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6">
