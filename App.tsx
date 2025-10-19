@@ -4,8 +4,9 @@ import { Sidebar } from './components/Sidebar';
 import { KeywordInput } from './components/KeywordInput';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { ErrorMessage } from './components/ErrorMessage';
-import { fetchKeywords, fetchKeywordClusters } from './services/geminiService';
-import { BrandState, KeywordData, AdvancedSearchSettings, Campaign } from './types';
+import { fetchKeywords, fetchKeywordClusters, reinitializeGeminiService } from './services/geminiService';
+import { reinitializeSupabaseClient } from './services/supabaseClient';
+import { BrandState, KeywordData, AdvancedSearchSettings, Campaign, ApiSettings } from './types';
 import { ScrollToTopButton } from './components/ScrollToTopButton';
 import { RelatedKeywords } from './components/RelatedKeywords';
 import { SessionManager } from './components/SessionManager';
@@ -19,7 +20,18 @@ import { CampaignManager } from './components/CampaignManager';
 import { parseSearchVolume } from './utils/sorting';
 import { KeywordBank } from './components/KeywordBank';
 import { WelcomeMessage } from './components/WelcomeMessage';
+import { Settings } from './components/Settings';
+import { BrandTab } from './components/BrandTab';
+import { QuickStartGuide } from './components/QuickStartGuide';
+import { ApiKeyPrompt } from './components/ApiKeyPrompt';
+import { SearchFeedback, SearchSuccessToast } from './components/SearchFeedback';
+import { BottomNavigation } from './components/BottomNavigation';
+import { DesktopSidebar } from './components/DesktopSidebar';
+import { EnhancedViewSwitcher } from './components/EnhancedViewSwitcher';
+import { Breadcrumb } from './components/Breadcrumb';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { loadFromLocalStorage, saveToLocalStorage } from './utils/storage';
+import { SmartTabSuggestion } from './components/SmartTabSuggestion';
 
 const App: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
@@ -44,8 +56,22 @@ const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isBrandModalOpen, setIsBrandModalOpen] = useState(false);
   const [isScrollButtonVisible, setIsScrollButtonVisible] = useState(false);
+  const [isApiKeyPromptOpen, setIsApiKeyPromptOpen] = useState(false);
+  const [hasSeenQuickStart, setHasSeenQuickStart] = useState<boolean>(() => 
+    loadFromLocalStorage<boolean>('ppcGeniusHasSeenQuickStart', false)
+  );
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [lastSearchKeyword, setLastSearchKeyword] = useState('');
+  const [searchResultCount, setSearchResultCount] = useState(0);
 
   const [selectedKeywords, setSelectedKeywords] = useState<Set<string>>(new Set());
+
+  // API Settings state
+  const [apiSettings, setApiSettings] = useState<ApiSettings>(() => ({
+    geminiApiKey: loadFromLocalStorage<string>('ppcGeniusApiSettings.geminiApiKey', ''),
+    supabaseUrl: loadFromLocalStorage<string>('ppcGeniusApiSettings.supabaseUrl', ''),
+    supabaseAnonKey: loadFromLocalStorage<string>('ppcGeniusApiSettings.supabaseAnonKey', ''),
+  }));
   
   // Load from localStorage on initial render
   useEffect(() => {
@@ -60,7 +86,8 @@ const App: React.FC = () => {
     saveToLocalStorage('ppcGeniusActiveBrand', activeBrand);
     saveToLocalStorage('ppcGeniusBrandStates', brandStates);
     saveToLocalStorage('ppcGeniusDarkMode', isDarkMode);
-  }, [brands, activeBrand, brandStates, isDarkMode]);
+    saveToLocalStorage('ppcGeniusHasSeenQuickStart', hasSeenQuickStart);
+  }, [brands, activeBrand, brandStates, isDarkMode, hasSeenQuickStart]);
   
   // Handle dark mode class on html element
   useEffect(() => {
@@ -110,6 +137,12 @@ const App: React.FC = () => {
   const handleSearch = useCallback(async (searchOverride?: string) => {
     if (!activeBrand || !activeBrandState) return;
     
+    // Check if API key is configured
+    if (!apiSettings.geminiApiKey && !import.meta.env.VITE_GEMINI_API_KEY) {
+      setIsApiKeyPromptOpen(true);
+      return;
+    }
+    
     const searchSettings = activeBrandState.advancedSearchSettings;
     const seedKeyword = searchOverride ?? (searchSettings.advancedKeywords);
 
@@ -122,6 +155,8 @@ const App: React.FC = () => {
     setError(null);
     setRelatedKeywords([]);
     setSelectedKeywords(new Set()); // Clear selection on new search
+    setLastSearchKeyword(seedKeyword.trim());
+    setShowSuccessToast(false);
 
     try {
       const [newKeywords, related] = await fetchKeywords(
@@ -147,13 +182,22 @@ const App: React.FC = () => {
       });
       setRelatedKeywords(related);
       setCurrentView('bank'); // UX Improvement: Default to keyword bank after search
+      
+      // Show success toast
+      setSearchResultCount(newKeywords.length);
+      setShowSuccessToast(true);
+      
+      // Dismiss Quick Start Guide after first successful search
+      if (!hasSeenQuickStart) {
+        setHasSeenQuickStart(true);
+      }
 
     } catch (err: any) {
       setError(err.message || 'An unknown error occurred.');
     } finally {
       setIsLoading(false);
     }
-  }, [activeBrand, activeBrandState, updateBrandState]);
+  }, [activeBrand, activeBrandState, updateBrandState, apiSettings.geminiApiKey, hasSeenQuickStart]);
 
   const handleAdvancedSettingsChange = (settings: Partial<AdvancedSearchSettings>) => {
     if (!activeBrand) return;
@@ -349,11 +393,71 @@ const App: React.FC = () => {
     handleSearch(keyword);
     setIsSidebarOpen(false);
   };
+
+  // API Settings handlers
+  const handleApiSettingsChange = (settings: Partial<ApiSettings>) => {
+    setApiSettings(prev => ({ ...prev, ...settings }));
+  };
+
+  const handleSaveApiSettings = () => {
+    saveToLocalStorage('ppcGeniusApiSettings.geminiApiKey', apiSettings.geminiApiKey);
+    saveToLocalStorage('ppcGeniusApiSettings.supabaseUrl', apiSettings.supabaseUrl);
+    saveToLocalStorage('ppcGeniusApiSettings.supabaseAnonKey', apiSettings.supabaseAnonKey);
+    // Reinitialize services with new settings
+    reinitializeGeminiService();
+    reinitializeSupabaseClient();
+    
+    // Close API key prompt if it was open
+    setIsApiKeyPromptOpen(false);
+  };
+
+  const handleResetApiSettings = () => {
+    const defaultSettings: ApiSettings = {
+      geminiApiKey: import.meta.env.VITE_GEMINI_API_KEY || '',
+      supabaseUrl: import.meta.env.VITE_SUPABASE_URL || '',
+      supabaseAnonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+    };
+    setApiSettings(defaultSettings);
+    saveToLocalStorage('ppcGeniusApiSettings.geminiApiKey', defaultSettings.geminiApiKey);
+    saveToLocalStorage('ppcGeniusApiSettings.supabaseUrl', defaultSettings.supabaseUrl);
+    saveToLocalStorage('ppcGeniusApiSettings.supabaseAnonKey', defaultSettings.supabaseAnonKey);
+    // Reinitialize services with default settings
+    reinitializeGeminiService();
+    reinitializeSupabaseClient();
+  };
   
   const allBrandKeywords = activeBrandState?.keywordResults || [];
+  const hasApiKey = !!(apiSettings.geminiApiKey || import.meta.env.VITE_GEMINI_API_KEY);
+  const shouldShowQuickStart = !hasSeenQuickStart && (!hasApiKey || brands.length === 0);
+
+  const handleDismissQuickStart = () => {
+    setHasSeenQuickStart(true);
+  };
+
+  const handleGoToSettings = () => {
+    setCurrentView('settings');
+    handleDismissQuickStart();
+  };
+
+  const handleApiKeySave = (apiKey: string) => {
+    handleApiSettingsChange({ geminiApiKey: apiKey });
+    handleSaveApiSettings();
+  };
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts({
+    onViewChange: setCurrentView,
+    onCreateBrand: () => setIsBrandModalOpen(true),
+    onSearch: () => {
+      // Focus search input if available
+      const searchInput = document.querySelector('input[placeholder*="keyword"]') as HTMLInputElement;
+      if (searchInput) searchInput.focus();
+    },
+  });
 
   return (
     <div className={`flex min-h-screen bg-gray-50 dark:bg-gray-900 font-sans transition-colors duration-300`}>
+      {/* Mobile Sidebar */}
       <Sidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
@@ -364,7 +468,22 @@ const App: React.FC = () => {
         onDeleteBrand={handleDeleteBrand}
         onCreateBrandClick={() => setIsBrandModalOpen(true)}
         isLoading={isLoading || isClustering}
+        currentView={currentView}
+        onViewChange={setCurrentView}
       />
+
+      {/* Desktop Sidebar */}
+      <DesktopSidebar
+        currentView={currentView}
+        onViewChange={setCurrentView}
+        brands={brands}
+        activeBrand={activeBrand}
+        onSelectBrand={handleSelectBrand}
+        onCreateBrandClick={() => setIsBrandModalOpen(true)}
+        recentSearches={activeBrandState?.searchedKeywords.slice(-10) || []}
+        onHistoryItemClick={handleHistoryItemClick}
+      />
+
       <div className="flex-1 flex flex-col min-w-0">
         <Header
           onMenuClick={() => setIsSidebarOpen(true)}
@@ -375,41 +494,133 @@ const App: React.FC = () => {
           isDarkMode={isDarkMode}
           onToggleDarkMode={handleToggleDarkMode}
         />
-        <main className="container mx-auto p-4 md:p-6 lg:p-8 flex-1">
-          {!isLoading && allBrandKeywords.length === 0 && (
-            <div className="mb-8">
-              <WelcomeMessage
+        <main className="container mx-auto p-4 md:p-6 lg:p-8 flex-1 pb-20 md:pb-6">
+          {/* Breadcrumb Navigation - Desktop only */}
+          {activeBrand && (
+            <div className="hidden lg:block">
+              <Breadcrumb
+                currentView={currentView}
                 activeBrand={activeBrand}
-                onCreateBrandClick={() => setIsBrandModalOpen(true)}
+                onViewChange={setCurrentView}
+                onBrandClick={() => setIsSidebarOpen(true)}
               />
             </div>
           )}
 
-          <KeywordInput
-            seedKeyword={activeBrandState?.advancedSearchSettings.advancedKeywords || ''}
-            setSeedKeyword={(value) => handleAdvancedSettingsChange({ advancedKeywords: value })}
-            onSearch={handleSearch}
-            isLoading={isLoading}
-            isBrandActive={!!activeBrand}
-            isAdvancedSearchOpen={activeBrandState?.advancedSearchSettings.isWebAnalysisEnabled ?? false}
-            onToggleAdvancedSearch={() => handleAdvancedSettingsChange({ isWebAnalysisEnabled: !(activeBrandState?.advancedSearchSettings.isWebAnalysisEnabled ?? false) })}
-            advancedKeywords={activeBrandState?.advancedSearchSettings.advancedKeywords || ''}
-            setAdvancedKeywords={(value) => handleAdvancedSettingsChange({ advancedKeywords: value })}
-            minVolume={activeBrandState?.advancedSearchSettings.minVolume || ''}
-            setMinVolume={(value) => handleAdvancedSettingsChange({ minVolume: value })}
-            maxVolume={activeBrandState?.advancedSearchSettings.maxVolume || ''}
-            setMaxVolume={(value) => handleAdvancedSettingsChange({ maxVolume: value })}
-            isWebAnalysisEnabled={activeBrandState?.advancedSearchSettings.isWebAnalysisEnabled ?? false}
-            setIsWebAnalysisEnabled={(value) => handleAdvancedSettingsChange({ isWebAnalysisEnabled: value })}
-            brandName={activeBrandState?.advancedSearchSettings.brandName || ''}
-            setBrandName={(value) => handleAdvancedSettingsChange({ brandName: value })}
-          />
-          
-          {error && <div className="mt-6"><ErrorMessage message={error} /></div>}
+          {/* Enhanced ViewSwitcher for Desktop - Hidden on mobile */}
+          {activeBrand && !activeBrandState?.keywordClusters && (
+            <div className="mb-6 hidden md:block">
+              <div className="hidden lg:block">
+                <EnhancedViewSwitcher currentView={currentView} onViewChange={setCurrentView} />
+              </div>
+              <div className="lg:hidden">
+                <ViewSwitcher currentView={currentView} onViewChange={setCurrentView} />
+              </div>
+            </div>
+          )}
 
-          {isLoading && <div className="mt-6"><LoadingSpinner /></div>}
+          {currentView === 'settings' ? (
+            <Settings
+              apiSettings={apiSettings}
+              onApiSettingsChange={handleApiSettingsChange}
+              onSaveSettings={handleSaveApiSettings}
+              onResetSettings={handleResetApiSettings}
+            />
+          ) : currentView === 'brand' && activeBrand && activeBrandState ? (
+            <BrandTab
+              brandState={activeBrandState}
+              activeBrand={activeBrand}
+              onUpdateBrandState={(updates) => updateBrandState(activeBrand, updates)}
+            />
+          ) : (
+            <>
+              {/* Smart Tab Suggestions */}
+              {activeBrand && !shouldShowQuickStart && !isLoading && (
+                <SmartTabSuggestion
+                  currentView={currentView}
+                  onViewChange={setCurrentView}
+                  keywordCount={allBrandKeywords.length}
+                  campaignCount={activeBrandState?.campaigns?.length || 0}
+                  selectedKeywordsCount={selectedKeywords.size}
+                  hasRecentSearch={activeBrandState?.searchedKeywords.length > 0}
+                  hasASINs={(activeBrandState?.asins?.length || 0) > 0}
+                />
+              )}
 
-          {!isLoading && allBrandKeywords.length > 0 && (
+              {/* Quick Start Guide for new users */}
+              {shouldShowQuickStart && !isLoading && (
+                <QuickStartGuide
+                  onCreateBrand={() => setIsBrandModalOpen(true)}
+                  onGoToSettings={handleGoToSettings}
+                  hasApiKey={hasApiKey}
+                  hasBrand={brands.length > 0}
+                />
+              )}
+
+              {!isLoading && allBrandKeywords.length === 0 && (
+                <div className="mb-8">
+                  <WelcomeMessage
+                    activeBrand={activeBrand}
+                    onCreateBrandClick={() => setIsBrandModalOpen(true)}
+                    hasKeywords={allBrandKeywords.length > 0}
+                    currentView={currentView}
+                  />
+                </div>
+              )}
+
+              <KeywordInput
+                seedKeyword={activeBrandState?.advancedSearchSettings.advancedKeywords || ''}
+                setSeedKeyword={(value) => handleAdvancedSettingsChange({ advancedKeywords: value })}
+                onSearch={handleSearch}
+                isLoading={isLoading}
+                isBrandActive={!!activeBrand}
+                isAdvancedSearchOpen={activeBrandState?.advancedSearchSettings.isWebAnalysisEnabled ?? false}
+                onToggleAdvancedSearch={() => handleAdvancedSettingsChange({ isWebAnalysisEnabled: !(activeBrandState?.advancedSearchSettings.isWebAnalysisEnabled ?? false) })}
+                advancedKeywords={activeBrandState?.advancedSearchSettings.advancedKeywords || ''}
+                setAdvancedKeywords={(value) => handleAdvancedSettingsChange({ advancedKeywords: value })}
+                minVolume={activeBrandState?.advancedSearchSettings.minVolume || ''}
+                setMinVolume={(value) => handleAdvancedSettingsChange({ minVolume: value })}
+                maxVolume={activeBrandState?.advancedSearchSettings.maxVolume || ''}
+                setMaxVolume={(value) => handleAdvancedSettingsChange({ maxVolume: value })}
+                isWebAnalysisEnabled={activeBrandState?.advancedSearchSettings.isWebAnalysisEnabled ?? false}
+                setIsWebAnalysisEnabled={(value) => handleAdvancedSettingsChange({ isWebAnalysisEnabled: value })}
+                brandName={activeBrandState?.advancedSearchSettings.brandName || ''}
+                setBrandName={(value) => handleAdvancedSettingsChange({ brandName: value })}
+              />
+              
+              {error && <div className="mt-6"><ErrorMessage message={error} /></div>}
+
+              {isLoading && <div className="mt-6"><LoadingSpinner /></div>}
+
+              {/* Show views even when no keywords to display empty states */}
+              {!isLoading && allBrandKeywords.length === 0 && activeBrand && currentView === 'bank' && (
+                <KeywordBank
+                  keywords={allBrandKeywords}
+                  searchedKeywords={activeBrandState?.searchedKeywords || []}
+                  campaigns={activeBrandState?.campaigns || []}
+                  onCampaignsChange={handleCampaignsChange}
+                  onAssignKeywords={handleAssignKeywords}
+                  onDeleteSelected={handleDeleteSelected}
+                  onUnassignSelected={handleUnassignSelected}
+                  activeBrandName={activeBrand}
+                  selectedKeywords={selectedKeywords}
+                  onToggleSelect={handleToggleSelect}
+                  onToggleSelectAll={handleToggleSelectAll}
+                  onDragStart={handleDragStart}
+                />
+              )}
+
+              {!isLoading && allBrandKeywords.length === 0 && activeBrand && currentView === 'planner' && (
+                <CampaignManager
+                  campaigns={activeBrandState?.campaigns || []}
+                  onCampaignsChange={handleCampaignsChange}
+                  onAssignKeywords={handleAssignKeywords}
+                  allKeywords={allBrandKeywords}
+                  activeBrandName={activeBrand}
+                />
+              )}
+
+              {!isLoading && allBrandKeywords.length > 0 && (
             <>
               {relatedKeywords.length > 0 && (
                 <RelatedKeywords keywords={relatedKeywords} onKeywordSelect={handleHistoryItemClick} />
@@ -427,10 +638,6 @@ const App: React.FC = () => {
                 <KeywordClusters clusters={activeBrandState.keywordClusters} onClear={() => activeBrand && updateBrandState(activeBrand, { keywordClusters: null })} />
               ) : (
                 <>
-                  <div className="my-6">
-                    <ViewSwitcher currentView={currentView} onViewChange={setCurrentView} />
-                  </div>
-                  
                   {currentView === 'research' && (
                      <Dashboard
                         data={allBrandKeywords}
@@ -456,8 +663,8 @@ const App: React.FC = () => {
                   )}
 
                   {currentView === 'planner' && activeBrand && (
-                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div className="lg:col-span-1">
+                      <div className="flex flex-col lg:grid lg:grid-cols-3 gap-6">
+                        <div className="lg:col-span-1 order-2 lg:order-1">
                            <CampaignManager
                               campaigns={activeBrandState?.campaigns || []}
                               onCampaignsChange={handleCampaignsChange}
@@ -466,7 +673,7 @@ const App: React.FC = () => {
                               activeBrandName={activeBrand}
                             />
                         </div>
-                        <div className="lg:col-span-2">
+                        <div className="lg:col-span-2 order-1 lg:order-2">
                           <KeywordBank
                             keywords={allBrandKeywords}
                             searchedKeywords={activeBrandState?.searchedKeywords || []}
@@ -488,11 +695,39 @@ const App: React.FC = () => {
               )}
             </>
           )}
+        </>
+          )}
         </main>
         <Footer />
       </div>
       <ScrollToTopButton isVisible={isScrollButtonVisible} onClick={scrollToTop} />
       <BrandCreationModal isOpen={isBrandModalOpen} onClose={() => setIsBrandModalOpen(false)} onCreate={handleCreateBrand} />
+      <ApiKeyPrompt 
+        isOpen={isApiKeyPromptOpen} 
+        onClose={() => setIsApiKeyPromptOpen(false)}
+        onSave={handleApiKeySave}
+      />
+      
+      {/* Search Feedback Modal */}
+      <SearchFeedback
+        isSearching={isLoading}
+        searchKeyword={lastSearchKeyword}
+        onCancel={() => setIsLoading(false)}
+      />
+      
+      {/* Success Toast */}
+      {showSuccessToast && (
+        <SearchSuccessToast
+          keyword={lastSearchKeyword}
+          resultCount={searchResultCount}
+          onDismiss={() => setShowSuccessToast(false)}
+        />
+      )}
+      
+      {/* Bottom Navigation for Mobile */}
+      {activeBrand && (
+        <BottomNavigation currentView={currentView} onViewChange={setCurrentView} />
+      )}
     </div>
   );
 };

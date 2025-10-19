@@ -1,6 +1,7 @@
 # Product Requirements Document (PRO.md): Amazon PPC Keyword Genius
 
-**Version 1.2**
+**Version 1.3**
+**Last Updated**: 2025-10-18
 
 ---
 
