@@ -26,6 +26,10 @@ import { QuickStartGuide } from './components/QuickStartGuide';
 import { ApiKeyPrompt } from './components/ApiKeyPrompt';
 import { SearchFeedback, SearchSuccessToast } from './components/SearchFeedback';
 import { BottomNavigation } from './components/BottomNavigation';
+import { DesktopSidebar } from './components/DesktopSidebar';
+import { EnhancedViewSwitcher } from './components/EnhancedViewSwitcher';
+import { Breadcrumb } from './components/Breadcrumb';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { loadFromLocalStorage, saveToLocalStorage } from './utils/storage';
 
 const App: React.FC = () => {
@@ -439,8 +443,20 @@ const App: React.FC = () => {
     handleSaveApiSettings();
   };
 
+  // Keyboard shortcuts
+  useKeyboardShortcuts({
+    onViewChange: setCurrentView,
+    onCreateBrand: () => setIsBrandModalOpen(true),
+    onSearch: () => {
+      // Focus search input if available
+      const searchInput = document.querySelector('input[placeholder*="keyword"]') as HTMLInputElement;
+      if (searchInput) searchInput.focus();
+    },
+  });
+
   return (
     <div className={`flex min-h-screen bg-gray-50 dark:bg-gray-900 font-sans transition-colors duration-300`}>
+      {/* Mobile Sidebar */}
       <Sidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
@@ -454,6 +470,19 @@ const App: React.FC = () => {
         currentView={currentView}
         onViewChange={setCurrentView}
       />
+
+      {/* Desktop Sidebar */}
+      <DesktopSidebar
+        currentView={currentView}
+        onViewChange={setCurrentView}
+        brands={brands}
+        activeBrand={activeBrand}
+        onSelectBrand={handleSelectBrand}
+        onCreateBrandClick={() => setIsBrandModalOpen(true)}
+        recentSearches={activeBrandState?.searchedKeywords.slice(-10) || []}
+        onHistoryItemClick={handleHistoryItemClick}
+      />
+
       <div className="flex-1 flex flex-col min-w-0">
         <Header
           onMenuClick={() => setIsSidebarOpen(true)}
@@ -465,10 +494,27 @@ const App: React.FC = () => {
           onToggleDarkMode={handleToggleDarkMode}
         />
         <main className="container mx-auto p-4 md:p-6 lg:p-8 flex-1 pb-20 md:pb-6">
-          {/* Show ViewSwitcher when brand is active and not in clusters view - Hidden on mobile */}
+          {/* Breadcrumb Navigation - Desktop only */}
+          {activeBrand && (
+            <div className="hidden lg:block">
+              <Breadcrumb
+                currentView={currentView}
+                activeBrand={activeBrand}
+                onViewChange={setCurrentView}
+                onBrandClick={() => {/* Could open brand switcher */}}
+              />
+            </div>
+          )}
+
+          {/* Enhanced ViewSwitcher for Desktop - Hidden on mobile */}
           {activeBrand && !activeBrandState?.keywordClusters && (
             <div className="mb-6 hidden md:block">
-              <ViewSwitcher currentView={currentView} onViewChange={setCurrentView} />
+              <div className="hidden lg:block">
+                <EnhancedViewSwitcher currentView={currentView} onViewChange={setCurrentView} />
+              </div>
+              <div className="lg:hidden">
+                <ViewSwitcher currentView={currentView} onViewChange={setCurrentView} />
+              </div>
             </div>
           )}
 
