@@ -33,7 +33,6 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({ items }) => {
             <button
               onClick={item.onClick}
               className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors font-medium"
-              aria-current={item.isActive ? 'page' : undefined}
             >
               {item.label}
             </button>
