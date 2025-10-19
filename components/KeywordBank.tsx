@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { KeywordData, Campaign } from '../types';
+import { EmptyState } from './EmptyState';
 
 interface KeywordBankProps {
   keywords: KeywordData[];
@@ -78,6 +79,19 @@ export const KeywordBank: React.FC<KeywordBankProps> = ({
   };
 
   const selectedCampaign = campaigns.find(c => c.id === selectedCampaignId);
+
+  // Show empty state if no keywords
+  if (keywords.length === 0) {
+    return (
+      <EmptyState
+        type="no-keywords"
+        onPrimaryAction={() => {
+          // Scroll to top to show search input
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+      />
+    );
+  }
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6">

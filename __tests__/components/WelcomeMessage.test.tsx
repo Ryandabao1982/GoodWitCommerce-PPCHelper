@@ -48,13 +48,19 @@ describe('WelcomeMessage', () => {
       expect(screen.getByText(/Welcome to My Brand!/)).toBeInTheDocument();
     });
 
-    it('should render workflow steps', () => {
+    it('should render compact message for dashboard', () => {
       const mockOnCreateBrandClick = vi.fn();
-      render(<WelcomeMessage activeBrand="Test Brand" onCreateBrandClick={mockOnCreateBrandClick} />);
+      render(
+        <WelcomeMessage 
+          activeBrand="Test Brand" 
+          onCreateBrandClick={mockOnCreateBrandClick}
+          hasKeywords={false}
+          currentView="research"
+        />
+      );
       
-      expect(screen.getByText('1. Research')).toBeInTheDocument();
-      expect(screen.getByText('2. Organize')).toBeInTheDocument();
-      expect(screen.getByText('3. Plan')).toBeInTheDocument();
+      expect(screen.getByText(/Welcome to Test Brand!/)).toBeInTheDocument();
+      expect(screen.getByText(/Start your keyword research by entering a seed keyword below/)).toBeInTheDocument();
     });
 
     it('should not render create brand button', () => {
@@ -65,29 +71,34 @@ describe('WelcomeMessage', () => {
       expect(button).not.toBeInTheDocument();
     });
 
-    it('should display workflow step descriptions', () => {
+    it('should hide welcome message for experienced users with keywords', () => {
       const mockOnCreateBrandClick = vi.fn();
-      render(<WelcomeMessage activeBrand="Test Brand" onCreateBrandClick={mockOnCreateBrandClick} />);
+      const { container } = render(
+        <WelcomeMessage 
+          activeBrand="Test Brand" 
+          onCreateBrandClick={mockOnCreateBrandClick}
+          hasKeywords={true}
+          currentView="keywordBank"
+        />
+      );
       
-      expect(screen.getByText(/Enter keywords and get AI-powered suggestions/)).toBeInTheDocument();
-      expect(screen.getByText(/Build your keyword bank and analyze results/)).toBeInTheDocument();
-      expect(screen.getByText(/Create campaigns and export to Amazon/)).toBeInTheDocument();
+      // Component should return null for experienced users on non-research views
+      expect(container.firstChild).toBeNull();
     });
 
-    it('should render emojis in workflow steps', () => {
+    it('should hide welcome message for experienced users on dashboard', () => {
       const mockOnCreateBrandClick = vi.fn();
-      render(<WelcomeMessage activeBrand="Test Brand" onCreateBrandClick={mockOnCreateBrandClick} />);
+      const { container } = render(
+        <WelcomeMessage 
+          activeBrand="Test Brand" 
+          onCreateBrandClick={mockOnCreateBrandClick}
+          hasKeywords={true}
+          currentView="research"
+        />
+      );
       
-      expect(screen.getByText('🔍')).toBeInTheDocument();
-      expect(screen.getByText('🏦')).toBeInTheDocument();
-      expect(screen.getByText('📋')).toBeInTheDocument();
-    });
-
-    it('should display instruction text', () => {
-      const mockOnCreateBrandClick = vi.fn();
-      render(<WelcomeMessage activeBrand="Test Brand" onCreateBrandClick={mockOnCreateBrandClick} />);
-      
-      expect(screen.getByText(/Start your keyword research by entering a seed keyword above/)).toBeInTheDocument();
+      // Component should return null for experienced users
+      expect(container.firstChild).toBeNull();
     });
   });
 
