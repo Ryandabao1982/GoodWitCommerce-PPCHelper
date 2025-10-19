@@ -7,7 +7,6 @@ interface BrandTabCampaignsProps {
 }
 
 export const BrandTabCampaigns: React.FC<BrandTabCampaignsProps> = ({ brandState, portfolios }) => {
-  const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
 
   const handleCreateShell = (type: string) => {
     console.log(`Creating shell campaign: ${type}`);
