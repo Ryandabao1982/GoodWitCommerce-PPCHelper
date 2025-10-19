@@ -54,18 +54,27 @@ export const ASINDetailView: React.FC<ASINDetailViewProps> = ({
     const keywordsToAssignLowerCase = new Set(keywordsToAssign.map((k: string) => k.toLowerCase()));
 
     const newCampaigns = campaigns.map(campaign => {
-      const isTargetCampaign = campaign.id === campaignId;
+      if (campaign.id !== campaignId) {
+        // Leave other campaigns unchanged
+        return campaign;
+      }
+      // Only process the target campaign
       const newAdGroups = campaign.adGroups.map(adGroup => {
-        let updatedKeywords = adGroup.keywords.filter(kw => !keywordsToAssignLowerCase.has(kw.toLowerCase()));
-        if (isTargetCampaign && adGroup.id === adGroupId) {
-          const existingKeywords = new Set(updatedKeywords.map((k: string) => k.toLowerCase()));
+        if (adGroup.id === adGroupId) {
+          // For the target ad group, add keywords if not already present
+          const existingKeywords = new Set(adGroup.keywords.map((k: string) => k.toLowerCase()));
+          const updatedKeywords = [...adGroup.keywords];
           keywordsToAssign.forEach((kw: string) => {
             if (!existingKeywords.has(kw.toLowerCase())) {
               updatedKeywords.push(kw);
             }
           });
+          return { ...adGroup, keywords: updatedKeywords };
+        } else {
+          // For other ad groups in the target campaign, remove the keywords to assign
+          const updatedKeywords = adGroup.keywords.filter(kw => !keywordsToAssignLowerCase.has(kw.toLowerCase()));
+          return { ...adGroup, keywords: updatedKeywords };
         }
-        return { ...adGroup, keywords: updatedKeywords };
       });
       return { ...campaign, adGroups: newAdGroups };
     });
