@@ -95,12 +95,20 @@ export const BrandTabHeader: React.FC<BrandTabHeaderProps> = ({
         {/* RAG Badge */}
         <div className="col-span-2 sm:col-span-4 lg:col-span-1">
           <div className="relative group">
-            <div className={`px-3 py-2 rounded-lg ${getRAGColor(ragBadge.status)} font-medium text-center cursor-help`}>
+            <button
+              type="button"
+              aria-describedby="rag-status-tooltip"
+              className={`w-full px-3 py-2 rounded-lg ${getRAGColor(ragBadge.status)} font-medium text-center cursor-help focus:outline-none focus:ring-2 focus:ring-blue-500`}
+            >
               <div className="text-xs opacity-70">Status</div>
               <div className="text-sm font-bold">{ragBadge.status}</div>
-            </div>
+            </button>
             {/* Tooltip */}
-            <div className="absolute z-50 invisible group-hover:visible bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-3 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg shadow-lg">
+            <div
+              id="rag-status-tooltip"
+              role="tooltip"
+              className="absolute z-50 invisible group-hover:visible group-focus-within:visible bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-3 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg shadow-lg"
+            >
               <div className="font-semibold mb-1">Drivers:</div>
               <ul className="list-disc list-inside space-y-1">
                 {ragBadge.drivers.map((driver, idx) => (
