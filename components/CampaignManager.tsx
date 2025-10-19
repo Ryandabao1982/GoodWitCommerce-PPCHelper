@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Campaign, AdGroup, KeywordData, MatchType } from '../types';
 import { CAMPAIGN_TEMPLATES, createCampaignFromTemplate } from '../utils/campaignTemplates';
 import { EmptyState } from './EmptyState';
+import { Tooltip, InfoTooltip } from './Tooltip';
+import { exportCampaignsToAmazonBulk, exportCampaignAnalysis } from '../utils/exportTemplates';
 
 interface CampaignManagerProps {
   campaigns: Campaign[];
@@ -171,6 +173,8 @@ export const CampaignManager: React.FC<CampaignManagerProps> = ({
     }
     setExpandedCampaigns(newExpanded);
   };
+
+  const [showExportMenu, setShowExportMenu] = useState(false);
 
   const handleExportCampaign = () => {
     const csvContent = [

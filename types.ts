@@ -145,6 +145,23 @@ export interface BrandTabSettings {
   // targetAcos?: number; // Removed: not exposed in modal
 }
 
+// ASIN Management Types
+export interface ASIN {
+  id: string;
+  asin: string;
+  title: string;
+  sku?: string;
+  imageUrl?: string;
+  price?: number;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface ASINToCampaignMap {
+  asinId: string;
+  campaignIds: string[];
+}
+
 // Brand/Session state
 export interface BrandState {
   keywordResults: KeywordData[];
@@ -158,6 +175,8 @@ export interface BrandState {
   ragBadge?: RAGBadge;
   keywordHealthData?: KeywordHealth[];
   rolloutTasks?: RolloutTask[];
+  asins?: ASIN[];
+  asinToCampaignMaps?: ASINToCampaignMap[];
 }
 
 // Lifecycle Management Types

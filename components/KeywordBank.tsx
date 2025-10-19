@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { KeywordData, Campaign } from '../types';
 import { EmptyState } from './EmptyState';
+import { Tooltip, InfoTooltip, KeyboardShortcutTooltip } from './Tooltip';
+import { exportKeywordsEnhanced } from '../utils/exportTemplates';
 
 interface KeywordBankProps {
   keywords: KeywordData[];
@@ -42,6 +44,8 @@ export const KeywordBank: React.FC<KeywordBankProps> = ({
 
   const allSelected = filteredKeywords.length > 0 && filteredKeywords.every(kw => selectedKeywords.has(kw.keyword));
 
+  const [showExportMenu, setShowExportMenu] = useState(false);
+
   const handleExportCSV = () => {
     const csvContent = [
       ['Keyword', 'Type', 'Category', 'Search Volume', 'Competition', 'Relevance', 'Source'].join(','),
@@ -57,6 +61,19 @@ export const KeywordBank: React.FC<KeywordBankProps> = ({
     a.download = `${activeBrandName}_keywords.csv`;
     a.click();
     URL.revokeObjectURL(url);
+    setShowExportMenu(false);
+  };
+
+  const handleExportEnhanced = () => {
+    const csvContent = exportKeywordsEnhanced(keywords, activeBrandName);
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${activeBrandName}_keywords_enhanced.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setShowExportMenu(false);
   };
 
   const handleAssignClick = () => {
@@ -132,19 +149,46 @@ export const KeywordBank: React.FC<KeywordBankProps> = ({
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6">
         <div className="mb-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-            <div>
-              <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Keyword Management</h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                Organize, filter, and assign keywords to campaigns
-              </p>
+            <div className="flex items-center gap-2">
+              <div>
+                <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Keyword Management</h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  Organize, filter, and assign keywords to campaigns
+                </p>
+              </div>
+              <InfoTooltip content="Select keywords, assign to campaigns, or export for use in Amazon Ads. Use Ctrl/Cmd+Click to select multiple keywords." />
             </div>
-            <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-              <button
-                onClick={handleExportCSV}
-                className="flex-1 sm:flex-initial px-3 md:px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm font-medium"
-              >
-                📥 Export CSV
-              </button>
+            <div className="flex flex-wrap gap-2 w-full sm:w-auto relative">
+              <div className="relative">
+                <Tooltip content="Export keywords in different formats">
+                  <button
+                    onClick={() => setShowExportMenu(!showExportMenu)}
+                    className="flex-1 sm:flex-initial px-3 md:px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm font-medium"
+                  >
+                    📥 Export
+                  </button>
+                </Tooltip>
+                {showExportMenu && (
+                  <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
+                    <div className="py-2">
+                      <button
+                        onClick={handleExportCSV}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      >
+                        <div className="font-medium">Basic CSV</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-500">Simple format with core fields</div>
+                      </button>
+                      <button
+                        onClick={handleExportEnhanced}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      >
+                        <div className="font-medium">Enhanced CSV</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-500">Includes bid suggestions and notes</div>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

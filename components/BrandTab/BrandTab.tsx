@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { BrandState, KPIMetrics, RAGBadge, BrandTabSettings } from '../../types';
+import { BrandState, KPIMetrics, RAGBadge, BrandTabSettings, ASIN, ASINToCampaignMap } from '../../types';
 import { BrandTabHeader } from './BrandTabHeader';
 import { BrandTabLeftRail } from './BrandTabLeftRail';
 import { BrandTabOverview } from './BrandTabOverview';
 import { BrandTabKeywords } from './BrandTabKeywords';
 import { BrandTabCampaigns } from './BrandTabCampaigns';
 import { BrandTabSettings as BrandTabSettingsModal } from './BrandTabSettings';
+import { ASINManager } from '../ASINManager';
 
-export type BrandTabView = 'overview' | 'keywords' | 'campaigns';
+export type BrandTabView = 'overview' | 'keywords' | 'campaigns' | 'asins';
 
 interface BrandTabProps {
   brandState: BrandState;
@@ -61,6 +62,54 @@ export const BrandTab: React.FC<BrandTabProps> = ({ brandState, activeBrand, onU
   const handleSettingsUpdate = (newSettings: BrandTabSettings) => {
     onUpdateBrandState({ brandTabSettings: newSettings });
     setShowSettings(false);
+  };
+
+  // ASIN Management handlers
+  const asins = brandState.asins || [];
+  const asinToCampaignMaps = brandState.asinToCampaignMaps || [];
+
+  const handleAddASIN = (asin: ASIN) => {
+    onUpdateBrandState({ asins: [...asins, asin] });
+  };
+
+  const handleDeleteASIN = (asinId: string) => {
+    onUpdateBrandState({
+      asins: asins.filter(a => a.id !== asinId),
+      asinToCampaignMaps: asinToCampaignMaps.filter(m => m.asinId !== asinId),
+    });
+  };
+
+  const handleUpdateASIN = (asinId: string, updates: Partial<ASIN>) => {
+    onUpdateBrandState({
+      asins: asins.map(a => a.id === asinId ? { ...a, ...updates } : a),
+    });
+  };
+
+  const handleLinkASINToCampaign = (asinId: string, campaignId: string) => {
+    const existingMap = asinToCampaignMaps.find(m => m.asinId === asinId);
+    if (existingMap) {
+      onUpdateBrandState({
+        asinToCampaignMaps: asinToCampaignMaps.map(m =>
+          m.asinId === asinId
+            ? { ...m, campaignIds: [...m.campaignIds, campaignId] }
+            : m
+        ),
+      });
+    } else {
+      onUpdateBrandState({
+        asinToCampaignMaps: [...asinToCampaignMaps, { asinId, campaignIds: [campaignId] }],
+      });
+    }
+  };
+
+  const handleUnlinkASINFromCampaign = (asinId: string, campaignId: string) => {
+    onUpdateBrandState({
+      asinToCampaignMaps: asinToCampaignMaps.map(m =>
+        m.asinId === asinId
+          ? { ...m, campaignIds: m.campaignIds.filter(id => id !== campaignId) }
+          : m
+      ).filter(m => m.campaignIds.length > 0),
+    });
   };
 
   // Keyboard shortcuts
@@ -129,6 +178,7 @@ export const BrandTab: React.FC<BrandTabProps> = ({ brandState, activeBrand, onU
                 { id: 'overview', label: 'Overview', icon: '📋' },
                 { id: 'keywords', label: 'Keywords', icon: '🔑' },
                 { id: 'campaigns', label: 'Campaigns', icon: '📊' },
+                { id: 'asins', label: 'ASINs', icon: '📦' },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -164,6 +214,18 @@ export const BrandTab: React.FC<BrandTabProps> = ({ brandState, activeBrand, onU
               <BrandTabCampaigns
                 brandState={brandState}
                 portfolios={portfolios}
+              />
+            )}
+            {activeTab === 'asins' && (
+              <ASINManager
+                asins={asins}
+                campaigns={brandState.campaigns}
+                asinToCampaignMaps={asinToCampaignMaps}
+                onAddASIN={handleAddASIN}
+                onDeleteASIN={handleDeleteASIN}
+                onUpdateASIN={handleUpdateASIN}
+                onLinkASINToCampaign={handleLinkASINToCampaign}
+                onUnlinkASINFromCampaign={handleUnlinkASINFromCampaign}
               />
             )}
           </div>
