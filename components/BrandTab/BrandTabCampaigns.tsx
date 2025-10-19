@@ -235,7 +235,7 @@ const CampaignCard: React.FC<{ campaign: CampaignData }> = ({ campaign }) => {
           </span>
         </div>
         <div className="flex gap-1 h-8 items-end">
-          {campaign.acosTrend.map((acos: number, idx: number) => {
+          {campaign.acosTrend.map((acos, idx) => {
             const height = (acos / 30) * 100;
             return (
               <div
