@@ -1,4 +1,5 @@
 export type KeywordType = 'Broad' | 'Phrase' | 'Exact' | 'Long-tail';
+export type MatchType = 'Broad' | 'Phrase' | 'Exact';
 export type CompetitionLevel = 'Low' | 'Medium' | 'High';
 export type KeywordCategory = 'Core' | 'Opportunity' | 'Branded' | 'Low-hanging Fruit' | 'Complementary';
 export type KeywordSource = 'AI' | 'Web';
@@ -29,10 +30,19 @@ export interface AdvancedSearchSettings {
   brandName: string;
 }
 
+export interface BidModifiers {
+  topOfSearch?: number; // Percentage modifier for top of search placement
+  productPages?: number; // Percentage modifier for product pages
+}
+
 export interface AdGroup {
   id: string;
   name: string;
   keywords: string[];
+  defaultBid?: number; // Default bid for keywords in this ad group
+  defaultMatchType?: MatchType; // Default match type for keywords
+  bidModifiers?: BidModifiers; // Bid modifiers for different placements
+  budget?: number; // Budget allocated to this ad group
 }
 
 export interface CampaignProjections {
@@ -47,6 +57,7 @@ export interface Campaign {
   name: string;
   adGroups: AdGroup[];
   totalBudget?: number;
+  dailyBudget?: number; // Daily budget for the campaign
   projections?: CampaignProjections | null;
 }
 
