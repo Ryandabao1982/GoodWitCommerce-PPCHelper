@@ -51,7 +51,7 @@ export const ASINDetailView: React.FC<ASINDetailViewProps> = ({
   };
 
   const handleAssignKeywords = (campaignId: string, adGroupId: string, keywordsToAssign: string[]) => {
-    const keywordsToAssignLowerCase = new Set(keywordsToAssign.map((k: string) => k.toLowerCase()));
+    const keywordsToAssignLowerCase = new Set(keywordsToAssign.map(k => k.toLowerCase()));
 
     const newCampaigns = campaigns.map(campaign => {
       if (campaign.id !== campaignId) {
