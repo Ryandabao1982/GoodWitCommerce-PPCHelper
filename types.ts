@@ -1,5 +1,5 @@
 export type KeywordType = 'Broad' | 'Phrase' | 'Exact' | 'Long-tail';
-export type MatchType = 'BROAD' | 'PHRASE' | 'EXACT';
+export type MatchType = 'Broad' | 'Phrase' | 'Exact';
 export type CompetitionLevel = 'Low' | 'Medium' | 'High';
 export type KeywordCategory = 'Core' | 'Opportunity' | 'Branded' | 'Low-hanging Fruit' | 'Complementary' | 'Brand' | 'Competitor' | 'Generic' | 'ProductCore';
 export type KeywordSource = 'AI' | 'Web';
