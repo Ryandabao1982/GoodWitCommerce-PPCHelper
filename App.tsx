@@ -391,6 +391,47 @@ const App: React.FC = () => {
   
   const allBrandKeywords = activeBrandState?.keywordResults || [];
 
+  // Generate breadcrumb items based on current navigation state
+  const breadcrumbItems = useMemo((): BreadcrumbItem[] => {
+    const items: BreadcrumbItem[] = [];
+    
+    // Home/Root level
+    items.push({
+      label: 'Home',
+      onClick: () => {
+        setCurrentView('research');
+        if (brands.length === 0) {
+          setIsBrandModalOpen(true);
+        }
+      },
+      isActive: !activeBrand && brands.length === 0,
+    });
+
+    // Brand level
+    if (activeBrand) {
+      items.push({
+        label: activeBrand,
+        onClick: brands.length > 1 ? () => setCurrentView('research') : undefined,
+        isActive: false,
+      });
+
+      // View level
+      const viewLabels: Record<ViewType, string> = {
+        research: 'Dashboard',
+        bank: 'Keyword Bank',
+        planner: 'Campaign Planner',
+        settings: 'Settings',
+      };
+
+      items.push({
+        label: viewLabels[currentView],
+        isActive: true,
+      });
+    }
+
+    return items;
+  }, [activeBrand, brands.length, currentView]);
+
   return (
     <div className={`flex min-h-screen bg-gray-50 dark:bg-gray-900 font-sans transition-colors duration-300`}>
       <Sidebar
@@ -413,6 +454,7 @@ const App: React.FC = () => {
           onOpenCreateBrandModal={() => setIsBrandModalOpen(true)}
           isDarkMode={isDarkMode}
           onToggleDarkMode={handleToggleDarkMode}
+          breadcrumbItems={breadcrumbItems}
         />
         <main className="container mx-auto p-4 md:p-6 lg:p-8 flex-1">
           {/* Show ViewSwitcher when brand is active and not in clusters view */}
