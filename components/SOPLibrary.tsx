@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { SOP, SOPCategory } from '../types';
 import { EmptyState } from './EmptyState';
 import { LoadingSpinner } from './LoadingSpinner';
+import { aiAssistSOPCreation, generateCompleteSOP, suggestSOPCategory, generateSOPTags } from '../services/sopService';
 
 interface SOPLibraryProps {
   sops: SOP[];
@@ -45,6 +46,11 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
   const [showAIResult, setShowAIResult] = useState(false);
   const [aiRecommendations, setAiRecommendations] = useState<SOP[]>([]);
   const [showRecommendations, setShowRecommendations] = useState(false);
+  
+  // AI Assistant state
+  const [showAIAssistant, setShowAIAssistant] = useState(false);
+  const [aiAssistantPrompt, setAiAssistantPrompt] = useState('');
+  const [isAIAssisting, setIsAIAssisting] = useState(false);
 
   // Form state for create/edit
   const [formData, setFormData] = useState({
@@ -172,6 +178,132 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
       ...formData,
       tags: formData.tags.filter(tag => tag !== tagToRemove),
     });
+  };
+
+  const handleAICreateFromPrompt = async () => {
+    if (!aiAssistantPrompt.trim()) return;
+    
+    setIsAIAssisting(true);
+    try {
+      const result = await generateCompleteSOP(
+        formData.title || 'Untitled SOP',
+        aiAssistantPrompt
+      );
+      
+      setFormData({
+        ...formData,
+        content: result.content,
+        category: result.category as SOPCategory,
+        tags: result.tags,
+      });
+      
+      setAiAssistantPrompt('');
+      setShowAIAssistant(false);
+    } catch (error) {
+      alert('Failed to generate SOP. Please check your API key configuration.');
+    } finally {
+      setIsAIAssisting(false);
+    }
+  };
+
+  const handleAIImproveContent = async () => {
+    if (!formData.content.trim()) {
+      alert('Please add some content first');
+      return;
+    }
+    
+    setIsAIAssisting(true);
+    try {
+      const improved = await aiAssistSOPCreation({
+        existingContent: formData.content,
+        action: 'improve',
+      });
+      
+      setFormData({
+        ...formData,
+        content: improved,
+      });
+    } catch (error) {
+      alert('Failed to improve content. Please check your API key configuration.');
+    } finally {
+      setIsAIAssisting(false);
+    }
+  };
+
+  const handleAIFormatContent = async () => {
+    if (!formData.content.trim()) {
+      alert('Please add some content first');
+      return;
+    }
+    
+    setIsAIAssisting(true);
+    try {
+      const formatted = await aiAssistSOPCreation({
+        existingContent: formData.content,
+        action: 'format',
+      });
+      
+      setFormData({
+        ...formData,
+        content: formatted,
+      });
+    } catch (error) {
+      alert('Failed to format content. Please check your API key configuration.');
+    } finally {
+      setIsAIAssisting(false);
+    }
+  };
+
+  const handleAIExpandContent = async () => {
+    if (!formData.content.trim()) {
+      alert('Please add some content first');
+      return;
+    }
+    
+    setIsAIAssisting(true);
+    try {
+      const expanded = await aiAssistSOPCreation({
+        existingContent: formData.content,
+        context: aiAssistantPrompt,
+        action: 'expand',
+      });
+      
+      setFormData({
+        ...formData,
+        content: expanded,
+      });
+      
+      setAiAssistantPrompt('');
+    } catch (error) {
+      alert('Failed to expand content. Please check your API key configuration.');
+    } finally {
+      setIsAIAssisting(false);
+    }
+  };
+
+  const handleAIAutoSuggest = async () => {
+    if (!formData.title.trim()) {
+      alert('Please enter a title first');
+      return;
+    }
+    
+    setIsAIAssisting(true);
+    try {
+      const [category, tags] = await Promise.all([
+        suggestSOPCategory(formData.title, formData.content),
+        generateSOPTags(formData.title, formData.content || formData.title),
+      ]);
+      
+      setFormData({
+        ...formData,
+        category: category as SOPCategory,
+        tags: [...new Set([...formData.tags, ...tags])], // Merge with existing tags
+      });
+    } catch (error) {
+      alert('Failed to generate suggestions. Please check your API key configuration.');
+    } finally {
+      setIsAIAssisting(false);
+    }
   };
 
   const handleAISearchClick = async () => {
@@ -521,6 +653,97 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
             </div>
 
             <div className="p-6 space-y-4">
+              {/* AI Assistant Panel */}
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-2 border-purple-300 dark:border-purple-700 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">🤖</span>
+                    <h4 className="font-bold text-purple-900 dark:text-purple-200">AI Assistant</h4>
+                  </div>
+                  <button
+                    onClick={() => setShowAIAssistant(!showAIAssistant)}
+                    className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200 font-medium"
+                  >
+                    {showAIAssistant ? '▼ Hide' : '▶ Show'}
+                  </button>
+                </div>
+                
+                {showAIAssistant && (
+                  <div className="space-y-3">
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      Let AI help you create, improve, or format your SOP with professional structure and formatting.
+                    </p>
+                    
+                    {/* Quick Actions */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={handleAIAutoSuggest}
+                        disabled={isAIAssisting || !formData.title.trim()}
+                        className="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        ✨ Auto-Suggest Tags & Category
+                      </button>
+                      <button
+                        onClick={handleAIFormatContent}
+                        disabled={isAIAssisting || !formData.content.trim()}
+                        className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        📝 Format Content
+                      </button>
+                      <button
+                        onClick={handleAIImproveContent}
+                        disabled={isAIAssisting || !formData.content.trim()}
+                        className="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        ⬆️ Improve Content
+                      </button>
+                      <button
+                        onClick={handleAIExpandContent}
+                        disabled={isAIAssisting || !formData.content.trim()}
+                        className="px-3 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        📈 Expand Content
+                      </button>
+                    </div>
+
+                    {/* Generate from scratch */}
+                    <div className="border-t border-purple-200 dark:border-purple-700 pt-3 mt-3">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Or generate complete SOP from description:
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={aiAssistantPrompt}
+                          onChange={(e) => setAiAssistantPrompt(e.target.value)}
+                          placeholder="Describe what the SOP should cover..."
+                          className="flex-1 px-3 py-2 border border-purple-300 dark:border-purple-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white text-sm"
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter' && !isAIAssisting) {
+                              handleAICreateFromPrompt();
+                            }
+                          }}
+                        />
+                        <button
+                          onClick={handleAICreateFromPrompt}
+                          disabled={isAIAssisting || !aiAssistantPrompt.trim()}
+                          className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                        >
+                          {isAIAssisting ? '🔄 Generating...' : '🚀 Generate'}
+                        </button>
+                      </div>
+                    </div>
+
+                    {isAIAssisting && (
+                      <div className="flex items-center gap-2 text-purple-700 dark:text-purple-300 text-sm">
+                        <LoadingSpinner size="small" />
+                        <span>AI is working on your request...</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Title *
