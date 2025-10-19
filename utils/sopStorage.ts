@@ -7,7 +7,7 @@ const STORAGE_KEY_PREFIX = 'ppcGeniusSOP_';
  * Generate a unique ID for a SOP
  */
 export const generateSOPId = (): string => {
-  return `sop_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  return `sop_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
 };
 
 /**
