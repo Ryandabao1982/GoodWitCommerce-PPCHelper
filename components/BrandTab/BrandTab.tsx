@@ -287,7 +287,7 @@ export const BrandTab: React.FC<BrandTabProps> = ({ brandState, activeBrand, onU
       )}
 
       {/* ASIN Detail View Modal */}
-      {selectedASINId && (
+      {selectedASINId && asins.some(a => a.id === selectedASINId) && (
         <ASINDetailView
           asin={asins.find(a => a.id === selectedASINId)!}
           onUpdateASIN={(updates) => handleUpdateASIN(selectedASINId, updates)}
