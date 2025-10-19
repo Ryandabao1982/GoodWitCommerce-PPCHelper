@@ -377,7 +377,11 @@ export const CampaignManager: React.FC<CampaignManagerProps> = ({
                                   step="0.01"
                                   min="0"
                                   value={adGroup.defaultBid || ''}
-                                  onChange={(e) => handleUpdateAdGroup(campaign.id, adGroup.id, { defaultBid: parseFloat(e.target.value) || 0 })}
+                                  onChange={(e) => handleUpdateAdGroup(
+                                    campaign.id,
+                                    adGroup.id,
+                                    { defaultBid: e.target.value === '' ? undefined : parseFloat(e.target.value) }
+                                  )}
                                   className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-800 dark:text-white"
                                 />
                               </div>
