@@ -101,7 +101,7 @@ The application is a React-based TypeScript application using Vite as the build 
 
 ### 2.2 New Integration Tests
 
-**User Flow Tests (1 test file, 9 scenarios):**
+**User Flow Tests (1 test file, 6 scenarios):**
 
 Created `/home/runner/.../Amazon-PPC-Keyword-Research-and-Analysis-/__tests__/integration/userFlows.test.tsx`
 
