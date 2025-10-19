@@ -21,6 +21,7 @@ import { parseSearchVolume } from './utils/sorting';
 import { KeywordBank } from './components/KeywordBank';
 import { WelcomeMessage } from './components/WelcomeMessage';
 import { Settings } from './components/Settings';
+import { BrandTab } from './components/BrandTab';
 import { loadFromLocalStorage, saveToLocalStorage } from './utils/storage';
 
 const App: React.FC = () => {
@@ -427,6 +428,12 @@ const App: React.FC = () => {
               onApiSettingsChange={handleApiSettingsChange}
               onSaveSettings={handleSaveApiSettings}
               onResetSettings={handleResetApiSettings}
+            />
+          ) : currentView === 'brand' && activeBrand && activeBrandState ? (
+            <BrandTab
+              brandState={activeBrandState}
+              activeBrand={activeBrand}
+              onUpdateBrandState={(updates) => updateBrandState(activeBrand, updates)}
             />
           ) : (
             <>
