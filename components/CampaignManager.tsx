@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Campaign, AdGroup, KeywordData, MatchType } from '../types';
 import { CAMPAIGN_TEMPLATES, createCampaignFromTemplate } from '../utils/campaignTemplates';
+import { EmptyState } from './EmptyState';
 
 interface CampaignManagerProps {
   campaigns: Campaign[];
@@ -217,6 +218,113 @@ export const CampaignManager: React.FC<CampaignManagerProps> = ({
     a.click();
     URL.revokeObjectURL(url);
   };
+
+  // Show empty state if no campaigns
+  if (campaigns.length === 0) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Campaign Manager</h2>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
+          >
+            ➕ New Campaign
+          </button>
+        </div>
+        <EmptyState
+          type="no-campaigns"
+          onPrimaryAction={() => setShowCreateModal(true)}
+          onSecondaryAction={() => {
+            // Could show templates modal or guide
+            alert('Campaign templates help you create optimized structures based on Amazon PPC best practices. Click "New Campaign" to get started!');
+          }}
+        />
+        
+        {/* Campaign Creation Modal - still needed for empty state */}
+        {showCreateModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">Create New Campaign</h3>
+                  <button
+                    onClick={() => setShowCreateModal(false)}
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  >
+                    <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Campaign Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={newCampaignName}
+                      onChange={(e) => setNewCampaignName(e.target.value)}
+                      placeholder="e.g., Headphones - Exact Match"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Daily Budget (Optional)
+                    </label>
+                    <input
+                      type="number"
+                      value={dailyBudget}
+                      onChange={(e) => setDailyBudget(e.target.value)}
+                      placeholder="e.g., 50.00"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Template (Optional)
+                    </label>
+                    <select
+                      value={selectedTemplate}
+                      onChange={(e) => setSelectedTemplate(parseInt(e.target.value))}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    >
+                      <option value={-1}>Custom (Blank)</option>
+                      {CAMPAIGN_TEMPLATES.map((template, index) => (
+                        <option key={index} value={index}>
+                          {template.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex gap-3 justify-end mt-6">
+                    <button
+                      onClick={() => setShowCreateModal(false)}
+                      className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleCreateCampaign}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                    >
+                      Create Campaign
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6">

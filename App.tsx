@@ -24,6 +24,7 @@ import { Settings } from './components/Settings';
 import { BrandTab } from './components/BrandTab';
 import { QuickStartGuide } from './components/QuickStartGuide';
 import { ApiKeyPrompt } from './components/ApiKeyPrompt';
+import { SearchFeedback, SearchSuccessToast } from './components/SearchFeedback';
 import { loadFromLocalStorage, saveToLocalStorage } from './utils/storage';
 
 const App: React.FC = () => {
@@ -53,6 +54,9 @@ const App: React.FC = () => {
   const [hasSeenQuickStart, setHasSeenQuickStart] = useState<boolean>(() => 
     loadFromLocalStorage<boolean>('ppcGeniusHasSeenQuickStart', false)
   );
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [lastSearchKeyword, setLastSearchKeyword] = useState('');
+  const [searchResultCount, setSearchResultCount] = useState(0);
 
   const [selectedKeywords, setSelectedKeywords] = useState<Set<string>>(new Set());
 
@@ -145,6 +149,8 @@ const App: React.FC = () => {
     setError(null);
     setRelatedKeywords([]);
     setSelectedKeywords(new Set()); // Clear selection on new search
+    setLastSearchKeyword(seedKeyword.trim());
+    setShowSuccessToast(false);
 
     try {
       const [newKeywords, related] = await fetchKeywords(
@@ -170,13 +176,22 @@ const App: React.FC = () => {
       });
       setRelatedKeywords(related);
       setCurrentView('bank'); // UX Improvement: Default to keyword bank after search
+      
+      // Show success toast
+      setSearchResultCount(newKeywords.length);
+      setShowSuccessToast(true);
+      
+      // Dismiss Quick Start Guide after first successful search
+      if (!hasSeenQuickStart) {
+        setHasSeenQuickStart(true);
+      }
 
     } catch (err: any) {
       setError(err.message || 'An unknown error occurred.');
     } finally {
       setIsLoading(false);
     }
-  }, [activeBrand, activeBrandState, updateBrandState, apiSettings.geminiApiKey]);
+  }, [activeBrand, activeBrandState, updateBrandState, apiSettings.geminiApiKey, hasSeenQuickStart]);
 
   const handleAdvancedSettingsChange = (settings: Partial<AdvancedSearchSettings>) => {
     if (!activeBrand) return;
@@ -484,6 +499,8 @@ const App: React.FC = () => {
                   <WelcomeMessage
                     activeBrand={activeBrand}
                     onCreateBrandClick={() => setIsBrandModalOpen(true)}
+                    hasKeywords={allBrandKeywords.length > 0}
+                    currentView={currentView}
                   />
                 </div>
               )}
@@ -511,6 +528,34 @@ const App: React.FC = () => {
               {error && <div className="mt-6"><ErrorMessage message={error} /></div>}
 
               {isLoading && <div className="mt-6"><LoadingSpinner /></div>}
+
+              {/* Show views even when no keywords to display empty states */}
+              {!isLoading && allBrandKeywords.length === 0 && activeBrand && currentView === 'bank' && (
+                <KeywordBank
+                  keywords={allBrandKeywords}
+                  searchedKeywords={activeBrandState?.searchedKeywords || []}
+                  campaigns={activeBrandState?.campaigns || []}
+                  onCampaignsChange={handleCampaignsChange}
+                  onAssignKeywords={handleAssignKeywords}
+                  onDeleteSelected={handleDeleteSelected}
+                  onUnassignSelected={handleUnassignSelected}
+                  activeBrandName={activeBrand}
+                  selectedKeywords={selectedKeywords}
+                  onToggleSelect={handleToggleSelect}
+                  onToggleSelectAll={handleToggleSelectAll}
+                  onDragStart={handleDragStart}
+                />
+              )}
+
+              {!isLoading && allBrandKeywords.length === 0 && activeBrand && currentView === 'planner' && (
+                <CampaignManager
+                  campaigns={activeBrandState?.campaigns || []}
+                  onCampaignsChange={handleCampaignsChange}
+                  onAssignKeywords={handleAssignKeywords}
+                  allKeywords={allBrandKeywords}
+                  activeBrandName={activeBrand}
+                />
+              )}
 
               {!isLoading && allBrandKeywords.length > 0 && (
             <>
@@ -599,6 +644,22 @@ const App: React.FC = () => {
         onClose={() => setIsApiKeyPromptOpen(false)}
         onSave={handleApiKeySave}
       />
+      
+      {/* Search Feedback Modal */}
+      <SearchFeedback
+        isSearching={isLoading}
+        searchKeyword={lastSearchKeyword}
+        onCancel={() => setIsLoading(false)}
+      />
+      
+      {/* Success Toast */}
+      {showSuccessToast && (
+        <SearchSuccessToast
+          keyword={lastSearchKeyword}
+          resultCount={searchResultCount}
+          onDismiss={() => setShowSuccessToast(false)}
+        />
+      )}
     </div>
   );
 };
