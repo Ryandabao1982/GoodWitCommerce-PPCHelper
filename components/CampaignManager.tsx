@@ -281,8 +281,14 @@ export const CampaignManager: React.FC<CampaignManagerProps> = ({
                         step="0.01"
                         min="0"
                         placeholder="Budget"
-                        value={campaign.dailyBudget || ''}
-                        onChange={(e) => handleUpdateCampaignBudget(campaign.id, parseFloat(e.target.value) || 0)}
+                        value={campaign.dailyBudget ?? ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          handleUpdateCampaignBudget(
+                            campaign.id,
+                            val === '' ? undefined : parseFloat(val)
+                          );
+                        }}
                         className="w-24 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white"
                       />
                       <button
