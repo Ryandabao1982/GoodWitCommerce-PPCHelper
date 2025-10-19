@@ -159,3 +159,197 @@ export interface BrandState {
   keywordHealthData?: KeywordHealth[];
   rolloutTasks?: RolloutTask[];
 }
+
+// Lifecycle Management Types
+
+export interface KeywordPerformance {
+  id: string;
+  keywordId: string;
+  brandId: string;
+  impressions: number;
+  clicks: number;
+  spend: number;
+  sales: number;
+  orders: number;
+  ctr: number;
+  cvr: number;
+  cpc: number;
+  acos: number;
+  roas: number;
+  lifecycleStage: LifecycleStage;
+  ragStatus: RAGStatus;
+  ragDrivers: string[];
+  opportunityScore: number;
+  intent?: string;
+  currentBid?: number;
+  suggestedBid?: number;
+  cpcMax?: number;
+  lastUpdated: string;
+  createdAt: string;
+}
+
+export type LifecycleEventType = 'promoted' | 'negated' | 'paused' | 'activated' | 'bid_changed' | 'stage_changed';
+
+export interface LifecycleEvent {
+  id: string;
+  keywordId: string;
+  brandId: string;
+  eventType: LifecycleEventType;
+  fromStage?: LifecycleStage;
+  toStage?: LifecycleStage;
+  reason: string;
+  automated: boolean;
+  metadata?: Record<string, any>;
+  occurredAt: string;
+}
+
+export interface NegativeKeyword {
+  id: string;
+  brandId: string;
+  campaignId?: string;
+  keyword: string;
+  matchType: 'Negative Exact' | 'Negative Phrase';
+  source: 'manual' | 'automated' | 'cannibalization';
+  originalKeywordId?: string;
+  reason: string;
+  status: 'active' | 'removed';
+  createdAt: string;
+  removedAt?: string;
+}
+
+export interface CannibalizationAlert {
+  id: string;
+  brandId: string;
+  keyword1Id: string;
+  keyword2Id: string;
+  campaign1Id?: string;
+  campaign2Id?: string;
+  cannibalizationScore: number;
+  reason: string;
+  suggestedAction: string;
+  status: 'active' | 'resolved' | 'ignored';
+  resolvedAction?: string;
+  detectedAt: string;
+  resolvedAt?: string;
+}
+
+export type ImportSource = 'cerebro' | 'magnet' | 'amazon_str' | 'manual';
+
+export interface KeywordImport {
+  id: string;
+  brandId: string;
+  source: ImportSource;
+  filename?: string;
+  totalRows: number;
+  successfulImports: number;
+  failedImports: number;
+  rawData?: any;
+  errors?: any;
+  status: 'processing' | 'completed' | 'failed';
+  importedAt: string;
+  completedAt?: string;
+}
+
+export interface BrandSettings {
+  id: string;
+  brandId: string;
+  clicksToPromote: number;
+  clicksToNegate: number;
+  ctrPauseThreshold: number;
+  cvrFactorMedian: number;
+  wastedSpendRedThreshold: number;
+  targetAcos: number;
+  productPrice?: number;
+  isCompetitiveCategory: boolean;
+  targetRoas: number;
+  targetCtr: number;
+  targetCvr: number;
+  enableAutoPromotion: boolean;
+  enableAutoNegation: boolean;
+  enableAutoPause: boolean;
+  enableCannibalizationDetection: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface KeywordCampaignAssignment {
+  id: string;
+  keywordId: string;
+  campaignId: string;
+  adGroupId?: string;
+  matchType: MatchType;
+  bid?: number;
+  isRecommended: boolean;
+  recommendationScore: number;
+  recommendationReason?: string;
+  status: 'pending' | 'assigned' | 'removed';
+  recommendedAt: string;
+  assignedAt?: string;
+  removedAt?: string;
+}
+
+// Rules Engine Types
+export interface LifecycleDecision {
+  action: 'promote' | 'negate' | 'pause' | 'maintain';
+  toStage?: LifecycleStage;
+  reason: string;
+  confidence: number; // 0-100
+}
+
+export interface BidAdvisory {
+  currentBid?: number;
+  suggestedBid: number;
+  cpcMax: number;
+  reasoning: string;
+  expectedImpact: string;
+}
+
+export interface CampaignRecommendation {
+  campaignId: string;
+  campaignName: string;
+  score: number;
+  reason: string;
+  suggestedAdGroup?: string;
+  suggestedBid?: number;
+  suggestedMatchType?: MatchType;
+}
+
+// Parser Types
+export interface CerebroRow {
+  keyword: string;
+  searchVolume: number;
+  competingProducts: number;
+  cpr: number; // Cerebro Product Rank
+  position: number;
+}
+
+export interface MagnetRow {
+  keyword: string;
+  searchVolume: number;
+  magnetIQScore: number;
+}
+
+export interface AmazonSTRRow {
+  customerSearchTerm: string;
+  impressions: number;
+  clicks: number;
+  clickThroughRate: number;
+  totalSpend: number;
+  totalSales: number;
+  acos: number;
+  conversionRate: number;
+}
+
+export interface ParsedKeywordData {
+  keyword: string;
+  searchVolume?: number | string;
+  impressions?: number;
+  clicks?: number;
+  ctr?: number;
+  spend?: number;
+  sales?: number;
+  acos?: number;
+  cvr?: number;
+  source: ImportSource;
+  metadata?: Record<string, any>;
+}
