@@ -65,7 +65,7 @@ export const KeywordBank: React.FC<KeywordBankProps> = ({
   };
 
   const handleExportEnhanced = () => {
-    const csvContent = exportKeywordsEnhanced(keywords, activeBrandName);
+    const csvContent = exportKeywordsEnhanced(filteredKeywords, activeBrandName);
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
