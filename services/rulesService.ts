@@ -244,7 +244,7 @@ export function generateKeywordAlert(
   return {
     level: 'GREEN',
     title: 'Healthy',
-    message: agg.totalOrders > 0 
+    message: (agg.totalOrders > 0 && agg.totalSales > 0)
       ? `${agg.totalOrders} orders, ACOS ${(agg.avgAcos * 100).toFixed(1)}%`
       : `${agg.totalClicks} clicks, monitoring performance`,
   };
