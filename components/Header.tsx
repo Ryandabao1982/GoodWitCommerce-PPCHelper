@@ -1,4 +1,5 @@
 import React from 'react';
+import { OnboardingTooltip } from './OnboardingTooltip';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -60,16 +61,23 @@ export const Header: React.FC<HeaderProps> = ({
                     </option>
                   ))}
                 </select>
-                <button
-                  onClick={onOpenCreateBrandModal}
-                  className="p-1.5 md:p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex-shrink-0"
-                  aria-label="Create new brand"
-                  title="Create new brand"
+                <OnboardingTooltip
+                  step="create-brand"
+                  title="Create Your First Brand"
+                  description="Start by creating a brand workspace to organize your keyword research and campaigns. Each brand has its own keyword bank and campaign structures."
+                  position="bottom"
                 >
-                  <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                </button>
+                  <button
+                    onClick={onOpenCreateBrandModal}
+                    className="p-1.5 md:p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex-shrink-0"
+                    aria-label="Create new brand"
+                    title="Create new brand"
+                  >
+                    <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                  </button>
+                </OnboardingTooltip>
               </div>
             )}
             <button

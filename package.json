@@ -10,7 +10,9 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "check:conflicts": "node scripts/check-merge-conflicts.cjs",
+    "premerge": "node scripts/check-merge-conflicts.cjs"
   },
   "dependencies": {
     "@google/genai": "^1.25.0",
