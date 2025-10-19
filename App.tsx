@@ -31,6 +31,7 @@ import { EnhancedViewSwitcher } from './components/EnhancedViewSwitcher';
 import { Breadcrumb } from './components/Breadcrumb';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { loadFromLocalStorage, saveToLocalStorage } from './utils/storage';
+import { SmartTabSuggestion } from './components/SmartTabSuggestion';
 
 const App: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
@@ -533,6 +534,19 @@ const App: React.FC = () => {
             />
           ) : (
             <>
+              {/* Smart Tab Suggestions */}
+              {activeBrand && !shouldShowQuickStart && !isLoading && (
+                <SmartTabSuggestion
+                  currentView={currentView}
+                  onViewChange={setCurrentView}
+                  keywordCount={allBrandKeywords.length}
+                  campaignCount={activeBrandState?.campaigns?.length || 0}
+                  selectedKeywordsCount={selectedKeywords.size}
+                  hasRecentSearch={activeBrandState?.searchedKeywords.length > 0}
+                  hasASINs={(activeBrandState?.asins?.length || 0) > 0}
+                />
+              )}
+
               {/* Quick Start Guide for new users */}
               {shouldShowQuickStart && !isLoading && (
                 <QuickStartGuide
