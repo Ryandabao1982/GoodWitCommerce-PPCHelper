@@ -40,7 +40,7 @@ export function detectCannibalization(
   const results: CannibalizationResult[] = [];
 
   // Create keyword lookup
-  const keywordLookup = new Map(keywords.map((k) => [k.keyword, k]));
+  const keywordLookup = new Map(keywords.map((k) => [k.id, k]));
 
   // Check each pair of keywords
   for (let i = 0; i < performances.length; i++) {
