@@ -94,19 +94,59 @@ export const KeywordBank: React.FC<KeywordBankProps> = ({
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6">
-      <div className="mb-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-          <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Keyword Bank</h2>
-          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-            <button
-              onClick={handleExportCSV}
-              className="flex-1 sm:flex-initial px-3 md:px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm font-medium"
-            >
-              📥 Export
-            </button>
+    <div className="space-y-6">
+      {/* Quick Actions & Stats Section */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-sm text-blue-800 dark:text-blue-300 font-medium">Keywords in Bank</div>
+              <div className="text-2xl font-bold text-blue-900 dark:text-blue-100 mt-1">{keywords.length}</div>
+            </div>
+            <div className="text-3xl">🏦</div>
           </div>
         </div>
+        
+        <div className="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-sm text-green-800 dark:text-green-300 font-medium">Selected</div>
+              <div className="text-2xl font-bold text-green-900 dark:text-green-100 mt-1">{selectedKeywords.size}</div>
+            </div>
+            <div className="text-3xl">✓</div>
+          </div>
+        </div>
+        
+        <div className="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-sm text-purple-800 dark:text-purple-300 font-medium">Campaigns</div>
+              <div className="text-2xl font-bold text-purple-900 dark:text-purple-100 mt-1">{campaigns.length}</div>
+            </div>
+            <div className="text-3xl">📋</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Keyword Bank */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6">
+        <div className="mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+            <div>
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Keyword Management</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Organize, filter, and assign keywords to campaigns
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+              <button
+                onClick={handleExportCSV}
+                className="flex-1 sm:flex-initial px-3 md:px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm font-medium"
+              >
+                📥 Export CSV
+              </button>
+            </div>
+          </div>
 
         {/* Filter and Bulk Actions */}
         <div className="space-y-3">
@@ -140,6 +180,48 @@ export const KeywordBank: React.FC<KeywordBankProps> = ({
             </div>
           )}
         </div>
+
+        {/* Bulk Actions Section */}
+        {selectedKeywords.size > 0 && (
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-4">
+            <h3 className="text-sm font-semibold text-yellow-900 dark:text-yellow-300 mb-3">
+              ⚡ Bulk Actions ({selectedKeywords.size} selected)
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={handleAssignClick}
+                className="flex-1 sm:flex-initial px-3 md:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium whitespace-nowrap"
+              >
+                ➕ Assign to Campaign
+              </button>
+              <button
+                onClick={onUnassignSelected}
+                className="flex-1 sm:flex-initial px-3 md:px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors text-sm font-medium whitespace-nowrap"
+              >
+                ↩️ Unassign All
+              </button>
+              <button
+                onClick={onDeleteSelected}
+                className="flex-1 sm:flex-initial px-3 md:px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm font-medium whitespace-nowrap"
+              >
+                🗑️ Delete Selected
+              </button>
+            </div>
+          </div>
+        )}
+        
+        {/* Efficiency Tips */}
+        {!selectedKeywords.size && keywords.length > 0 && (
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
+            <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-2">💡 Keyword Bank Tips</h3>
+            <ul className="text-xs text-blue-800 dark:text-blue-300 space-y-1">
+              <li>• Select keywords using checkboxes and use bulk actions to manage them efficiently</li>
+              <li>• Drag keywords directly onto ad groups in the Campaign Planner view</li>
+              <li>• Use the filter to quickly find specific keywords</li>
+              <li>• Export to CSV to work with keywords in Excel or other tools</li>
+            </ul>
+          </div>
+        )}
       </div>
 
       {/* Mobile Card View */}
@@ -328,6 +410,7 @@ export const KeywordBank: React.FC<KeywordBankProps> = ({
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };

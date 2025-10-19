@@ -80,14 +80,91 @@ export const Dashboard: React.FC<DashboardProps> = ({ data, parseVolume }) => {
     return <span>{sortDirection === 'asc' ? '↑' : '↓'}</span>;
   };
 
+  // Calculate statistics for the dashboard sections
+  const stats = useMemo(() => {
+    const totalKeywords = data.length;
+    const avgRelevance = totalKeywords > 0 
+      ? (data.reduce((sum, kw) => sum + kw.relevance, 0) / totalKeywords).toFixed(1)
+      : '0';
+    const highVolumeCount = data.filter(kw => parseVolume(kw.searchVolume) > 10000).length;
+    const lowCompetitionCount = data.filter(kw => kw.competition === 'Low').length;
+    const exactMatchCount = data.filter(kw => kw.type === 'Exact').length;
+    const phraseMatchCount = data.filter(kw => kw.type === 'Phrase').length;
+    const broadMatchCount = data.filter(kw => kw.type === 'Broad').length;
+
+    return {
+      totalKeywords,
+      avgRelevance,
+      highVolumeCount,
+      lowCompetitionCount,
+      exactMatchCount,
+      phraseMatchCount,
+      broadMatchCount,
+    };
+  }, [data, parseVolume]);
+
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-      <div className="px-4 md:px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-        <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Keyword Research Dashboard</h2>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-          {data.length} keyword{data.length !== 1 ? 's' : ''} found
-        </p>
+    <div className="space-y-6">
+      {/* Quick Stats Section */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
+          <div className="text-sm text-gray-600 dark:text-gray-400">Total Keywords</div>
+          <div className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{stats.totalKeywords}</div>
+        </div>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
+          <div className="text-sm text-gray-600 dark:text-gray-400">Avg Relevance</div>
+          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">{stats.avgRelevance}/10</div>
+        </div>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
+          <div className="text-sm text-gray-600 dark:text-gray-400">High Volume</div>
+          <div className="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">{stats.highVolumeCount}</div>
+        </div>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
+          <div className="text-sm text-gray-600 dark:text-gray-400">Low Competition</div>
+          <div className="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-1">{stats.lowCompetitionCount}</div>
+        </div>
       </div>
+
+      {/* Match Type Distribution Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Match Type Distribution</h3>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="text-center">
+            <div className="text-sm text-gray-600 dark:text-gray-400">Exact</div>
+            <div className="text-xl font-bold text-gray-900 dark:text-white mt-1">{stats.exactMatchCount}</div>
+            <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+              {stats.totalKeywords > 0 ? Math.round((stats.exactMatchCount / stats.totalKeywords) * 100) : 0}%
+            </div>
+          </div>
+          <div className="text-center">
+            <div className="text-sm text-gray-600 dark:text-gray-400">Phrase</div>
+            <div className="text-xl font-bold text-gray-900 dark:text-white mt-1">{stats.phraseMatchCount}</div>
+            <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+              {stats.totalKeywords > 0 ? Math.round((stats.phraseMatchCount / stats.totalKeywords) * 100) : 0}%
+            </div>
+          </div>
+          <div className="text-center">
+            <div className="text-sm text-gray-600 dark:text-gray-400">Broad</div>
+            <div className="text-xl font-bold text-gray-900 dark:text-white mt-1">{stats.broadMatchCount}</div>
+            <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+              {stats.totalKeywords > 0 ? Math.round((stats.broadMatchCount / stats.totalKeywords) * 100) : 0}%
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Keywords Table Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+        <div className="px-4 md:px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Keyword Research Results</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Detailed view of all discovered keywords
+              </p>
+            </div>
+          </div>
+        </div>
 
       {/* Mobile Card View - visible on small screens */}
       <div className="block md:hidden divide-y divide-gray-200 dark:divide-gray-700">
@@ -219,6 +296,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ data, parseVolume }) => {
             ))}
           </tbody>
         </table>
+      </div>
+      </div>
+
+      {/* Efficiency Tips Section */}
+      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+        <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-2">💡 Research Tips</h3>
+        <ul className="text-xs text-blue-800 dark:text-blue-300 space-y-1">
+          <li>• Click column headers to sort by different metrics</li>
+          <li>• Focus on keywords with high relevance (7+) and low-medium competition</li>
+          <li>• Use the Keyword Bank tab to organize and assign keywords to campaigns</li>
+          <li>• High volume keywords (&gt;10K) are great for brand awareness</li>
+        </ul>
       </div>
     </div>
   );
