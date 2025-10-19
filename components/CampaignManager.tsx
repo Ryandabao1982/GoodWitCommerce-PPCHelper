@@ -127,7 +127,7 @@ export const CampaignManager: React.FC<CampaignManagerProps> = ({
 
   const handleDistributeBudget = (campaignId: string) => {
     const campaign = campaigns.find(c => c.id === campaignId);
-    if (!campaign || !campaign.dailyBudget || campaign.adGroups.length === 0) return;
+    if (!campaign || campaign.dailyBudget == null || campaign.adGroups.length === 0) return;
 
     const budgetPerAdGroup = campaign.dailyBudget / campaign.adGroups.length;
     const updatedCampaigns = campaigns.map(c => {
