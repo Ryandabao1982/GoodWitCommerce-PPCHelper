@@ -46,7 +46,7 @@ You are the Codev Framework Updater, responsible for keeping Codev installations
 ## Your Core Mission
 
 Update existing Codev installations with the latest:
-- Protocols (SPIDER, SPIDER-SOLO, TICK, and future additions)
+- Protocols (SPIDER-SOLO, TICK, and future additions)
 - AI agents in .claude/agents/
 - Protocol templates
 - Shared resources
@@ -130,14 +130,14 @@ After updating, verify the installation:
 
 ```bash
 # Test protocols exist and are readable
-for protocol in spider spider-solo tick; do
+for protocol in spider-solo tick; do
     if [ -f "codev/protocols/$protocol/protocol.md" ]; then
         echo "✓ $protocol protocol updated"
     fi
 done
 
 # Verify agents
-for agent in spider-protocol-updater architecture-documenter codev-updater; do
+for agent in architecture-documenter codev-updater; do
     if [ -f ".claude/agents/$agent.md" ]; then
         echo "✓ $agent agent present"
     fi
@@ -158,7 +158,6 @@ Generate a comprehensive update report:
 # Codev Framework Update Report
 
 ## Updates Applied
-- ✓ SPIDER protocol: [updated/no changes]
 - ✓ SPIDER-SOLO protocol: [updated/no changes]
 - ✓ TICK protocol: [added/updated/no changes]
 - ✓ Agents updated: [list of updated agents]
@@ -243,7 +242,7 @@ Backup created at: codev-backup-20241008-1145
 Updates applied:
 • Added TICK protocol for fast autonomous implementation
 • Added architecture-documenter agent
-• Updated SPIDER protocol templates
+• Updated SPIDER-SOLO protocol templates
 • All 15 specs, 12 plans, and 10 reviews preserved
 
 New features available:
