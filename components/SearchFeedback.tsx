@@ -40,7 +40,7 @@ export const SearchFeedback: React.FC<SearchFeedbackProps> = ({
     return () => {
       intervals.forEach(clearTimeout);
     };
-  }, [isSearching]);
+  }, [isSearching, steps]);
 
   if (!isSearching) return null;
 
