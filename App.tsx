@@ -414,8 +414,8 @@ const App: React.FC = () => {
           onToggleDarkMode={handleToggleDarkMode}
         />
         <main className="container mx-auto p-4 md:p-6 lg:p-8 flex-1">
-          {/* Show ViewSwitcher at the top when there are keywords or in settings view */}
-          {(allBrandKeywords.length > 0 || currentView === 'settings') && !activeBrandState?.keywordClusters && (
+          {/* Show ViewSwitcher when brand is active and not in clusters view */}
+          {activeBrand && !activeBrandState?.keywordClusters && (
             <div className="mb-6">
               <ViewSwitcher currentView={currentView} onViewChange={setCurrentView} />
             </div>
