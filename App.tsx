@@ -404,7 +404,7 @@ const App: React.FC = () => {
           setIsBrandModalOpen(true);
         }
       },
-      isActive: !activeBrand && brands.length === 0,
+      isActive: !activeBrand,
     });
 
     // Brand level
