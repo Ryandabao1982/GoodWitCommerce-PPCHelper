@@ -31,6 +31,7 @@ import { EnhancedViewSwitcher } from './components/EnhancedViewSwitcher';
 import { Breadcrumb } from './components/Breadcrumb';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { loadFromLocalStorage, saveToLocalStorage } from './utils/storage';
+import { brandStorage, brandStateStorage, settingsStorage } from './utils/hybridStorage';
 import { SOPLibrary } from './components/SOPLibrary';
 import { 
   getSOPsForBrand, 
@@ -46,9 +47,8 @@ import { aiSearchSOPs, getAIRecommendedSOPs } from './services/sopService';
 const App: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
-      const savedDarkMode = loadFromLocalStorage<boolean | null>('ppcGeniusDarkMode', null);
-      if (savedDarkMode !== null) return savedDarkMode;
-      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      return settingsStorage.getDarkMode() || 
+        (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
     }
     return false;
   });
@@ -69,7 +69,7 @@ const App: React.FC = () => {
   const [isScrollButtonVisible, setIsScrollButtonVisible] = useState(false);
   const [isApiKeyPromptOpen, setIsApiKeyPromptOpen] = useState(false);
   const [hasSeenQuickStart, setHasSeenQuickStart] = useState<boolean>(() => 
-    loadFromLocalStorage<boolean>('ppcGeniusHasSeenQuickStart', false)
+    settingsStorage.getQuickStartSeen()
   );
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [lastSearchKeyword, setLastSearchKeyword] = useState('');
@@ -87,20 +87,51 @@ const App: React.FC = () => {
     supabaseAnonKey: loadFromLocalStorage<string>('ppcGeniusApiSettings.supabaseAnonKey', ''),
   }));
   
-  // Load from localStorage on initial render
+  // Load from hybrid storage on initial render
   useEffect(() => {
-    setBrands(loadFromLocalStorage<string[]>('ppcGeniusBrands', []));
-    setActiveBrand(loadFromLocalStorage<string | null>('ppcGeniusActiveBrand', null));
-    setBrandStates(loadFromLocalStorage<Record<string, BrandState>>('ppcGeniusBrandStates', {}));
+    const loadData = async () => {
+      try {
+        const [loadedBrands, loadedActiveBrand, loadedBrandStates] = await Promise.all([
+          brandStorage.list(),
+          brandStorage.getActive(),
+          brandStateStorage.getAll(),
+        ]);
+        
+        setBrands(loadedBrands);
+        setActiveBrand(loadedActiveBrand);
+        setBrandStates(loadedBrandStates);
+      } catch (error) {
+        console.error('Error loading data:', error);
+        // Fall back to localStorage directly if hybrid storage fails
+        setBrands(loadFromLocalStorage<string[]>('ppcGeniusBrands', []));
+        setActiveBrand(loadFromLocalStorage<string | null>('ppcGeniusActiveBrand', null));
+        setBrandStates(loadFromLocalStorage<Record<string, BrandState>>('ppcGeniusBrandStates', {}));
+      }
+    };
+    loadData();
   }, []);
 
-  // Save to localStorage whenever state changes
+  // Save to hybrid storage whenever state changes
   useEffect(() => {
-    saveToLocalStorage('ppcGeniusBrands', brands);
-    saveToLocalStorage('ppcGeniusActiveBrand', activeBrand);
-    saveToLocalStorage('ppcGeniusBrandStates', brandStates);
-    saveToLocalStorage('ppcGeniusDarkMode', isDarkMode);
-    saveToLocalStorage('ppcGeniusHasSeenQuickStart', hasSeenQuickStart);
+    const saveData = async () => {
+      try {
+        // Save brands
+        saveToLocalStorage('ppcGeniusBrands', brands);
+        
+        // Save active brand
+        await brandStorage.setActive(activeBrand);
+        
+        // Save brand states
+        saveToLocalStorage('ppcGeniusBrandStates', brandStates);
+        
+        // Save settings
+        settingsStorage.setDarkMode(isDarkMode);
+        settingsStorage.setQuickStartSeen(hasSeenQuickStart);
+      } catch (error) {
+        console.error('Error saving data:', error);
+      }
+    };
+    saveData();
   }, [brands, activeBrand, brandStates, isDarkMode, hasSeenQuickStart]);
   
   // Handle dark mode class on html element
@@ -133,19 +164,28 @@ const App: React.FC = () => {
   }, [activeBrand, brandStates]);
 
   const updateBrandState = useCallback((brandName: string, updates: Partial<BrandState>) => {
-    setBrandStates(prev => ({
-      ...prev,
-      [brandName]: {
-        ...(prev[brandName] || { // Provide a default structure if it doesn't exist
-          keywordResults: [],
-          searchedKeywords: [],
-          advancedSearchSettings: { advancedKeywords: '', minVolume: '', maxVolume: '', isWebAnalysisEnabled: false, brandName: '' },
-          keywordClusters: null,
-          campaigns: []
-        }),
-        ...updates,
-      }
-    }));
+    setBrandStates(prev => {
+      const newState = {
+        ...prev,
+        [brandName]: {
+          ...(prev[brandName] || { // Provide a default structure if it doesn't exist
+            keywordResults: [],
+            searchedKeywords: [],
+            advancedSearchSettings: { advancedKeywords: '', minVolume: '', maxVolume: '', isWebAnalysisEnabled: false, brandName: '' },
+            keywordClusters: null,
+            campaigns: []
+          }),
+          ...updates,
+        }
+      };
+      
+      // Sync to hybrid storage asynchronously
+      brandStateStorage.update(brandName, newState[brandName]).catch(error => {
+        console.error('Error syncing brand state to storage:', error);
+      });
+      
+      return newState;
+    });
   }, []);
   
   const handleSearch = useCallback(async (searchOverride?: string) => {
@@ -398,26 +438,36 @@ const App: React.FC = () => {
   }, [activeBrand, activeBrandState, updateBrandState, apiSettings.geminiApiKey]);
 
   // --- Brand Management ---
-  const handleCreateBrand = (brandName: string): boolean => {
+  const handleCreateBrand = async (brandName: string): Promise<boolean> => {
     if (brands.includes(brandName)) {
       alert(`Brand "${brandName}" already exists.`);
       return false;
     }
-    const newBrands = [...brands, brandName];
-    setBrands(newBrands);
-    setBrandStates(prev => ({
-      ...prev,
-      [brandName]: {
-        keywordResults: [],
-        searchedKeywords: [],
-        advancedSearchSettings: { advancedKeywords: '', minVolume: '', maxVolume: '', isWebAnalysisEnabled: false, brandName: '' },
-        keywordClusters: null,
-        campaigns: []
-      }
-    }));
-    setActiveBrand(brandName);
-    setIsBrandModalOpen(false);
-    return true;
+    
+    try {
+      // Create brand via hybrid storage
+      await brandStorage.create(brandName);
+      
+      const newBrands = [...brands, brandName];
+      setBrands(newBrands);
+      setBrandStates(prev => ({
+        ...prev,
+        [brandName]: {
+          keywordResults: [],
+          searchedKeywords: [],
+          advancedSearchSettings: { advancedKeywords: '', minVolume: '', maxVolume: '', isWebAnalysisEnabled: false, brandName: '' },
+          keywordClusters: null,
+          campaigns: []
+        }
+      }));
+      setActiveBrand(brandName);
+      setIsBrandModalOpen(false);
+      return true;
+    } catch (error) {
+      console.error('Error creating brand:', error);
+      alert('Failed to create brand. Please try again.');
+      return false;
+    }
   };
   
   const handleSelectBrand = (brandName: string) => {
@@ -427,15 +477,23 @@ const App: React.FC = () => {
     setSelectedKeywords(new Set()); // Clear selection when changing brands
   };
   
-  const handleDeleteBrand = (brandName: string) => {
+  const handleDeleteBrand = async (brandName: string) => {
     if (window.confirm(`Are you sure you want to delete the brand "${brandName}" and all its data? This cannot be undone.`)) {
-      const newBrands = brands.filter(b => b !== brandName);
-      setBrands(newBrands);
-      const newBrandStates = { ...brandStates };
-      delete newBrandStates[brandName];
-      setBrandStates(newBrandStates);
-      if (activeBrand === brandName) {
-        setActiveBrand(newBrands[0] || null);
+      try {
+        // Delete brand via hybrid storage
+        await brandStorage.delete(brandName);
+        
+        const newBrands = brands.filter(b => b !== brandName);
+        setBrands(newBrands);
+        const newBrandStates = { ...brandStates };
+        delete newBrandStates[brandName];
+        setBrandStates(newBrandStates);
+        if (activeBrand === brandName) {
+          setActiveBrand(newBrands[0] || null);
+        }
+      } catch (error) {
+        console.error('Error deleting brand:', error);
+        alert('Failed to delete brand. Please try again.');
       }
     }
   };
