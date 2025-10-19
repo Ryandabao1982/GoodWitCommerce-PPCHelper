@@ -170,7 +170,7 @@ describe('BrandCreationModal', () => {
       const createButton = screen.getByRole('button', { name: /Create Brand/i });
       fireEvent.click(createButton);
       
-      expect(screen.getByText(/Brand already exists/i)).toBeInTheDocument();
+      expect(screen.getByText(/A brand with this name already exists/i)).toBeInTheDocument();
       expect(mockOnClose).not.toHaveBeenCalled();
     });
 
@@ -267,7 +267,7 @@ describe('BrandCreationModal', () => {
       const createButton = screen.getByRole('button', { name: /Create Brand/i });
       fireEvent.click(createButton);
       
-      expect(screen.getByText(/Brand already exists/i)).toBeInTheDocument();
+      expect(screen.getByText(/A brand with this name already exists/i)).toBeInTheDocument();
       
       rerender(
         <BrandCreationModal isOpen={false} onClose={mockOnClose} onCreate={mockOnCreate} />
@@ -277,7 +277,7 @@ describe('BrandCreationModal', () => {
         <BrandCreationModal isOpen={true} onClose={mockOnClose} onCreate={mockOnCreate} />
       );
       
-      expect(screen.queryByText(/Brand already exists/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/A brand with this name already exists/i)).not.toBeInTheDocument();
     });
   });
 });

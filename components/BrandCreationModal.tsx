@@ -13,29 +13,64 @@ export const BrandCreationModal: React.FC<BrandCreationModalProps> = ({
 }) => {
   const [brandName, setBrandName] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [validationMessage, setValidationMessage] = useState<string>('');
+
+  const MIN_LENGTH = 3;
+  const MAX_LENGTH = 50;
 
   useEffect(() => {
     if (!isOpen) {
       setBrandName('');
       setError(null);
+      setValidationMessage('');
     }
   }, [isOpen]);
+
+  // Real-time validation
+  useEffect(() => {
+    if (!brandName) {
+      setValidationMessage('');
+      return;
+    }
+
+    if (brandName.length < MIN_LENGTH) {
+      setValidationMessage(`At least ${MIN_LENGTH} characters required`);
+    } else if (brandName.length > MAX_LENGTH) {
+      setValidationMessage(`Maximum ${MAX_LENGTH} characters allowed`);
+    } else if (!/^[a-zA-Z0-9\s\-_]+$/.test(brandName)) {
+      setValidationMessage('Only letters, numbers, spaces, hyphens, and underscores allowed');
+    } else {
+      setValidationMessage('✓ Valid brand name');
+    }
+  }, [brandName]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    if (!brandName.trim()) {
+    const trimmedName = brandName.trim();
+
+    if (!trimmedName) {
       setError('Brand name cannot be empty');
       return;
     }
 
-    const success = onCreate(brandName.trim());
+    if (trimmedName.length < MIN_LENGTH || trimmedName.length > MAX_LENGTH) {
+      setError(`Brand name must be between ${MIN_LENGTH} and ${MAX_LENGTH} characters`);
+      return;
+    }
+
+    if (!/^[a-zA-Z0-9\s\-_]+$/.test(trimmedName)) {
+      setError('Brand name contains invalid characters');
+      return;
+    }
+
+    const success = onCreate(trimmedName);
     if (success) {
       setBrandName('');
       onClose();
     } else {
-      setError('Brand already exists');
+      setError('A brand with this name already exists');
     }
   };
 
@@ -69,11 +104,41 @@ export const BrandCreationModal: React.FC<BrandCreationModalProps> = ({
                 value={brandName}
                 onChange={(e) => setBrandName(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                placeholder="Enter brand name..."
+                placeholder="e.g., AcmeTools, Premium Headphones, BudgetGear"
                 autoFocus
+                maxLength={MAX_LENGTH}
               />
+              
+              {/* Character count */}
+              <div className="flex justify-between items-center mt-2">
+                <div className="text-xs">
+                  {validationMessage && (
+                    <span className={
+                      validationMessage.startsWith('✓') 
+                        ? 'text-green-600 dark:text-green-400' 
+                        : 'text-amber-600 dark:text-amber-400'
+                    }>
+                      {validationMessage}
+                    </span>
+                  )}
+                </div>
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  {brandName.length}/{MAX_LENGTH}
+                </span>
+              </div>
+
+              {/* Helper text */}
+              <p className="mt-2 text-xs text-gray-600 dark:text-gray-400">
+                Use a descriptive name to organize your research and campaigns
+              </p>
+
               {error && (
-                <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>
+                <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {error}
+                </p>
               )}
             </div>
 
@@ -87,7 +152,8 @@ export const BrandCreationModal: React.FC<BrandCreationModalProps> = ({
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                disabled={!brandName.trim() || !validationMessage.startsWith('✓')}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
               >
                 Create Brand
               </button>
