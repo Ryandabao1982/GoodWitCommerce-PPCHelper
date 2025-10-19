@@ -104,12 +104,12 @@ export const ASINDetailView: React.FC<ASINDetailViewProps> = ({
   };
 
   const handleUnassignSelected = () => {
-    const lowerCaseToUnassign = new Set(Array.from(selectedKeywords).map(k => (k as string).toLowerCase()));
+    const lowerCaseToUnassign = new Set(Array.from(selectedKeywords).map(k => k.toLowerCase()));
     const newCampaigns = campaigns.map(c => ({
       ...c,
       adGroups: c.adGroups.map(ag => ({
         ...ag,
-        keywords: ag.keywords.filter(kw => !lowerCaseToUnassign.has((kw as string).toLowerCase()))
+        keywords: ag.keywords.filter(kw => !lowerCaseToUnassign.has(kw.toLowerCase()))
       }))
     }));
     onUpdateASIN({ campaigns: newCampaigns });
