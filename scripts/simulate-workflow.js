@@ -433,11 +433,13 @@ class WorkflowSimulator {
   }
 }
 
-// Execute simulation
-const simulator = new WorkflowSimulator();
-simulator.run().catch((error) => {
-  console.error(`${colors.red}Fatal Error:${colors.reset}`, error);
-  process.exit(1);
-});
+// Execute simulation only if run directly as a script
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const simulator = new WorkflowSimulator();
+  simulator.run().catch((error) => {
+    console.error(`${colors.red}Fatal Error:${colors.reset}`, error);
+    process.exit(1);
+  });
+}
 
 export default WorkflowSimulator;
