@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS public.negative_keywords (
   
   -- Negative Keyword Details
   keyword TEXT NOT NULL,
-  match_type VARCHAR(50) DEFAULT 'Exact' CHECK (match_type IN ('Negative Exact', 'Negative Phrase')),
+  match_type VARCHAR(50) DEFAULT 'Negative Exact' CHECK (match_type IN ('Negative Exact', 'Negative Phrase')),
   
   -- Source Information
   source VARCHAR(50) CHECK (source IN ('manual', 'automated', 'cannibalization')),
