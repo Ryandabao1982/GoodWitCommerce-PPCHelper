@@ -78,7 +78,7 @@ export class KeywordPerformanceAPI {
         current_bid: performance.currentBid,
         suggested_bid: performance.suggestedBid,
         cpc_max: performance.cpcMax,
-      })
+      }, { onConflict: 'keyword_id,brand_id' })
       .select()
       .single();
 
