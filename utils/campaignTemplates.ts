@@ -172,10 +172,10 @@ export function createCampaignFromTemplate(
 ): Campaign {
   const timestamp = Date.now();
   const campaignName = customName || template.name;
-  const budget = dailyBudget || template.suggestedDailyBudget;
+  const budget = dailyBudget ?? template.suggestedDailyBudget;
 
   const adGroups: AdGroup[] = template.adGroups.map((agTemplate, index) => {
-    const adGroupBudget = budget && agTemplate.budgetPercent
+    const adGroupBudget = budget != null && agTemplate.budgetPercent != null
       ? (budget * agTemplate.budgetPercent) / 100
       : undefined;
 
