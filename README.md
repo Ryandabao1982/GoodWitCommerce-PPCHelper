@@ -77,15 +77,58 @@
 
 ### Quick Start Guide
 
-1. **Create a Brand** - Click the "+" button to create your first brand workspace
-2. **Enter a Seed Keyword** - Use the search interface to input a product or keyword
-3. **Review Results** - Analyze the generated keywords with AI-powered insights
-4. **Build Campaigns** - Navigate to Campaign Planner to structure your PPC campaigns
+**For First-Time Users:**
+
+The application includes an interactive Quick Start Guide that appears automatically on first use. Follow these steps:
+
+1. **Set Up API Key** - Configure your Google Gemini API key (required for AI features)
+   - Click "Configure Now" in the Quick Start Guide
+   - Follow the instructions to get your free API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
+   - Paste the key and save (stored locally in your browser)
+
+2. **Create a Brand** - Set up your first brand workspace
+   - Click "Create Brand" in the Quick Start Guide or header
+   - Enter a descriptive brand name
+   - Each brand maintains isolated keyword banks, campaigns, and search history
+
+3. **Start Researching** - Enter seed keywords to generate suggestions
+   - Type a product keyword (e.g., "wireless headphones")
+   - Click Search or press Enter
+   - AI generates comprehensive keyword variations with metrics
+
+4. **Organize & Plan** - Build your keyword bank and campaign structures
+   - Review keywords in the Keyword Bank view
+   - Use clustering to group by theme
+   - Navigate to Campaign Planner to structure your PPC campaigns
+
 5. **Export Data** - Download CSV files for use in Amazon Advertising Console
+   - Export complete keyword bank with all metrics
+   - Export campaign structures ready for Amazon bulk upload
+
+**Returning Users:**
+
+- Select your brand from the header dropdown
+- Start searching immediately - your previous work is automatically saved
+- Access all features through the view switcher: Dashboard, Keyword Bank, Campaign Planner, Settings
 
 ---
 
 ## ✨ Features in Detail
+
+### 🎯 Smart Onboarding
+
+**Quick Start Guide** - Interactive 3-step guide for first-time users
+- Visual progress tracking showing completion status
+- Contextual action buttons for each step
+- Automatically dismisses after first successful search
+- Can be revisited anytime from Settings
+
+**API Key Prompt** - Just-in-time setup assistant
+- Appears when you try to search without an API key
+- Step-by-step instructions with direct link to get a free key
+- Clear explanation of why it's needed
+- Privacy-focused: keys stored locally only
+- "Skip for Now" option to explore without searching
 
 ### 🏢 Brand Management
 
@@ -290,12 +333,12 @@ Following the **AI Vibe Coder Protocol v3.0**, this project maintains:
 
 ### Testing
 
-The application includes a comprehensive test suite with 73 tests covering utilities, services, and components. See [TEST_README.md](./TEST_README.md) for detailed test documentation.
+The application includes a comprehensive test suite with 111 tests covering utilities, services, and components. See [TEST_README.md](./TEST_README.md) for detailed test documentation.
 
 **Test Coverage:**
 - Utilities: 93.54% (storage, sorting)
 - Services: 91.54% (geminiService)
-- Components: 100% (LoadingSpinner, ErrorMessage, WelcomeMessage)
+- Components: 100% (LoadingSpinner, ErrorMessage, WelcomeMessage, QuickStartGuide, ApiKeyPrompt)
 
 **Quick Start:**
 ```bash
@@ -304,11 +347,27 @@ npm run test:run      # Run tests once
 npm run test:coverage # Generate coverage report
 ```
 
+### User Flow Documentation
+
+See [USER_FLOW.md](./USER_FLOW.md) for comprehensive documentation of:
+- First-time user experience and onboarding
+- Returning user workflows
+- UX principles and design decisions
+- Accessibility features
+- Future enhancement roadmap
+
 ---
 
 ## 📚 Documentation
 
 ### Core Documents
+
+- **[USER_FLOW.md](./USER_FLOW.md)** - User Journey Documentation
+  - First-time user onboarding flow
+  - Returning user workflows
+  - UX principles and patterns
+  - Accessibility considerations
+  - Future enhancements roadmap
 
 - **[PRO.md](./PRO.md)** - Product Requirements Document
   - Feature specifications
