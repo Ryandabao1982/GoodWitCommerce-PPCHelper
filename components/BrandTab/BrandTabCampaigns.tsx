@@ -209,11 +209,13 @@ export const BrandTabCampaigns: React.FC<BrandTabCampaignsProps> = ({ brandState
   );
 };
 
-interface CampaignData {
-  name: string;
+interface CampaignData extends Campaign {
   acosTrend: number[];
-  multiplier: number;
-  // Add other properties as needed
+  pacing: number;
+  topOfSearchMultiplier: number;
+  productPageMultiplier: number;
+  suggestedTopOfSearch: number[];
+  suggestedProductPage: number[];
 }
 
 const CampaignCard: React.FC<{ campaign: CampaignData }> = ({ campaign }) => {
