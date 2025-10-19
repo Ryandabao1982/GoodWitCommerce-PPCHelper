@@ -47,11 +47,11 @@ initializeSupabase();
 
 // Export the client getter
 export const supabase = new Proxy({} as SupabaseClient<Database>, {
-  get: (_, prop) => {
+  get: (_target, prop: keyof SupabaseClient<Database>) => {
     if (!supabaseInstance) {
       initializeSupabase();
     }
-    return supabaseInstance ? (supabaseInstance as any)[prop] : undefined;
+    return supabaseInstance ? supabaseInstance[prop] : undefined;
   }
 });
 
