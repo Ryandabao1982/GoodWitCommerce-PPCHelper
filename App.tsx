@@ -21,6 +21,8 @@ import { parseSearchVolume } from './utils/sorting';
 import { KeywordBank } from './components/KeywordBank';
 import { WelcomeMessage } from './components/WelcomeMessage';
 import { Settings } from './components/Settings';
+import { QuickStartGuide } from './components/QuickStartGuide';
+import { ApiKeyPrompt } from './components/ApiKeyPrompt';
 import { loadFromLocalStorage, saveToLocalStorage } from './utils/storage';
 
 const App: React.FC = () => {
@@ -46,6 +48,10 @@ const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isBrandModalOpen, setIsBrandModalOpen] = useState(false);
   const [isScrollButtonVisible, setIsScrollButtonVisible] = useState(false);
+  const [isApiKeyPromptOpen, setIsApiKeyPromptOpen] = useState(false);
+  const [hasSeenQuickStart, setHasSeenQuickStart] = useState<boolean>(() => 
+    loadFromLocalStorage<boolean>('ppcGeniusHasSeenQuickStart', false)
+  );
 
   const [selectedKeywords, setSelectedKeywords] = useState<Set<string>>(new Set());
 
@@ -69,7 +75,8 @@ const App: React.FC = () => {
     saveToLocalStorage('ppcGeniusActiveBrand', activeBrand);
     saveToLocalStorage('ppcGeniusBrandStates', brandStates);
     saveToLocalStorage('ppcGeniusDarkMode', isDarkMode);
-  }, [brands, activeBrand, brandStates, isDarkMode]);
+    saveToLocalStorage('ppcGeniusHasSeenQuickStart', hasSeenQuickStart);
+  }, [brands, activeBrand, brandStates, isDarkMode, hasSeenQuickStart]);
   
   // Handle dark mode class on html element
   useEffect(() => {
@@ -119,6 +126,12 @@ const App: React.FC = () => {
   const handleSearch = useCallback(async (searchOverride?: string) => {
     if (!activeBrand || !activeBrandState) return;
     
+    // Check if API key is configured
+    if (!apiSettings.geminiApiKey && !import.meta.env.VITE_GEMINI_API_KEY) {
+      setIsApiKeyPromptOpen(true);
+      return;
+    }
+    
     const searchSettings = activeBrandState.advancedSearchSettings;
     const seedKeyword = searchOverride ?? (searchSettings.advancedKeywords);
 
@@ -162,7 +175,7 @@ const App: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [activeBrand, activeBrandState, updateBrandState]);
+  }, [activeBrand, activeBrandState, updateBrandState, apiSettings.geminiApiKey]);
 
   const handleAdvancedSettingsChange = (settings: Partial<AdvancedSearchSettings>) => {
     if (!activeBrand) return;
@@ -371,6 +384,9 @@ const App: React.FC = () => {
     // Reinitialize services with new settings
     reinitializeGeminiService();
     reinitializeSupabaseClient();
+    
+    // Close API key prompt if it was open
+    setIsApiKeyPromptOpen(false);
   };
 
   const handleResetApiSettings = () => {
@@ -389,6 +405,22 @@ const App: React.FC = () => {
   };
   
   const allBrandKeywords = activeBrandState?.keywordResults || [];
+  const hasApiKey = !!(apiSettings.geminiApiKey || import.meta.env.VITE_GEMINI_API_KEY);
+  const shouldShowQuickStart = !hasSeenQuickStart && (!hasApiKey || brands.length === 0);
+
+  const handleDismissQuickStart = () => {
+    setHasSeenQuickStart(true);
+  };
+
+  const handleGoToSettings = () => {
+    setCurrentView('settings');
+    handleDismissQuickStart();
+  };
+
+  const handleApiKeySave = (apiKey: string) => {
+    handleApiSettingsChange({ geminiApiKey: apiKey });
+    handleSaveApiSettings();
+  };
 
   return (
     <div className={`flex min-h-screen bg-gray-50 dark:bg-gray-900 font-sans transition-colors duration-300`}>
@@ -430,6 +462,16 @@ const App: React.FC = () => {
             />
           ) : (
             <>
+              {/* Quick Start Guide for new users */}
+              {shouldShowQuickStart && !isLoading && (
+                <QuickStartGuide
+                  onCreateBrand={() => setIsBrandModalOpen(true)}
+                  onGoToSettings={handleGoToSettings}
+                  hasApiKey={hasApiKey}
+                  hasBrand={brands.length > 0}
+                />
+              )}
+
               {!isLoading && allBrandKeywords.length === 0 && (
                 <div className="mb-8">
                   <WelcomeMessage
@@ -545,6 +587,11 @@ const App: React.FC = () => {
       </div>
       <ScrollToTopButton isVisible={isScrollButtonVisible} onClick={scrollToTop} />
       <BrandCreationModal isOpen={isBrandModalOpen} onClose={() => setIsBrandModalOpen(false)} onCreate={handleCreateBrand} />
+      <ApiKeyPrompt 
+        isOpen={isApiKeyPromptOpen} 
+        onClose={() => setIsApiKeyPromptOpen(false)}
+        onSave={handleApiKeySave}
+      />
     </div>
   );
 };
