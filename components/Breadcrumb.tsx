@@ -14,7 +14,7 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({ items }) => {
   return (
     <nav aria-label="Breadcrumb" className="flex items-center space-x-2 text-sm">
       {items.map((item, index) => (
-        <React.Fragment key={index}>
+        <React.Fragment key={item.label}>
           {index > 0 && (
             <svg
               className="w-4 h-4 text-gray-400 dark:text-gray-500"
