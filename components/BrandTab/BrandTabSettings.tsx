@@ -149,7 +149,15 @@ export const BrandTabSettings: React.FC<BrandTabSettingsProps> = ({ settings, on
 
           {/* Guardrails Info */}
           <div className="p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-700">
-            <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-200 mb-2">💡 CPC Max Guardrail</h4>
+            <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-200 mb-2">
+              <span className="inline-block align-middle mr-1" aria-hidden="true" focusable="false">
+                {/* Lightbulb SVG icon */}
+                <svg width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor" className="inline" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M10 2a6 6 0 0 0-3.5 10.92V15a1 1 0 0 0 1 1h5a1 1 0 0 0 1-1v-2.08A6 6 0 0 0 10 2zm2.5 11.5V15h-5v-1.5a1 1 0 0 1 .5-.87A4 4 0 1 1 14 10a1 1 0 0 1 .5.87z" />
+                </svg>
+              </span>
+              CPC Max Guardrail
+            </h4>
             <p className="text-xs text-blue-800 dark:text-blue-300">
               CPC_max is automatically computed as: Price × Target ACOS × CVR
               <br />
