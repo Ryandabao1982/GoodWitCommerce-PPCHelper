@@ -36,12 +36,12 @@ export const BrandTabHeader: React.FC<BrandTabHeaderProps> = ({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4">
+    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-3 md:p-4">
       {/* Top Row: Controls */}
-      <div className="flex flex-wrap items-center gap-4 mb-4">
+      <div className="flex flex-wrap items-center gap-2 md:gap-4 mb-3 md:mb-4">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Brand:</span>
-          <span className="px-3 py-1.5 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-lg font-medium">
+          <span className="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300">Brand:</span>
+          <span className="px-2 md:px-3 py-1 md:py-1.5 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-lg font-medium text-xs md:text-sm">
             {activeBrand}
           </span>
         </div>
@@ -49,7 +49,7 @@ export const BrandTabHeader: React.FC<BrandTabHeaderProps> = ({
         <select
           value={marketplace}
           onChange={(e) => onMarketplaceChange(e.target.value)}
-          className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
+          className="px-2 md:px-3 py-1 md:py-1.5 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
         >
           <option value="US">🇺🇸 US</option>
           <option value="UK">🇬🇧 UK</option>
@@ -63,7 +63,7 @@ export const BrandTabHeader: React.FC<BrandTabHeaderProps> = ({
         <select
           value={dateRange}
           onChange={(e) => onDateRangeChange(e.target.value)}
-          className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
+          className="px-2 md:px-3 py-1 md:py-1.5 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
         >
           <option value="Last 7 days">Last 7 days</option>
           <option value="Last 30 days">Last 30 days</option>
@@ -75,15 +75,16 @@ export const BrandTabHeader: React.FC<BrandTabHeaderProps> = ({
         <div className="ml-auto">
           <button
             onClick={onSettingsClick}
-            className="px-4 py-1.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg text-sm font-medium transition-colors"
+            className="px-3 md:px-4 py-1 md:py-1.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg text-xs md:text-sm font-medium transition-colors"
           >
-            ⚙️ Settings
+            <span className="hidden sm:inline">⚙️ Settings</span>
+            <span className="sm:hidden">⚙️</span>
           </button>
         </div>
       </div>
 
       {/* KPIs Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 md:gap-3">
         <KPICard label="Spend" value={`$${kpiMetrics.spend.toFixed(2)}`} />
         <KPICard label="Sales" value={`$${kpiMetrics.sales.toFixed(2)}`} />
         <KPICard label="ACOS" value={`${kpiMetrics.acos.toFixed(1)}%`} />
@@ -127,8 +128,8 @@ export const BrandTabHeader: React.FC<BrandTabHeaderProps> = ({
 };
 
 const KPICard: React.FC<{ label: string; value: string }> = ({ label, value }) => (
-  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-2">
-    <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">{label}</div>
-    <div className="text-sm font-bold text-gray-900 dark:text-white">{value}</div>
+  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-1.5 md:p-2">
+    <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5 md:mb-1">{label}</div>
+    <div className="text-xs md:text-sm font-bold text-gray-900 dark:text-white truncate">{value}</div>
   </div>
 );
