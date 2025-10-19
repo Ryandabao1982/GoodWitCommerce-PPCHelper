@@ -327,9 +327,51 @@ export const CampaignManager: React.FC<CampaignManagerProps> = ({
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6">
+    <div className="space-y-6">
+      {/* Campaign Overview Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+          <div className="text-sm text-blue-800 dark:text-blue-300 font-medium">Total Campaigns</div>
+          <div className="text-2xl font-bold text-blue-900 dark:text-blue-100 mt-1">{campaigns.length}</div>
+        </div>
+        <div className="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
+          <div className="text-sm text-green-800 dark:text-green-300 font-medium">Ad Groups</div>
+          <div className="text-2xl font-bold text-green-900 dark:text-green-100 mt-1">
+            {campaigns.reduce((sum, c) => sum + c.adGroups.length, 0)}
+          </div>
+        </div>
+        <div className="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
+          <div className="text-sm text-purple-800 dark:text-purple-300 font-medium">Assigned Keywords</div>
+          <div className="text-2xl font-bold text-purple-900 dark:text-purple-100 mt-1">
+            {campaigns.reduce((sum, c) => sum + c.adGroups.reduce((s, ag) => s + ag.keywords.length, 0), 0)}
+          </div>
+        </div>
+        <div className="bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-lg p-4 border border-orange-200 dark:border-orange-800">
+          <div className="text-sm text-orange-800 dark:text-orange-300 font-medium">Available Keywords</div>
+          <div className="text-2xl font-bold text-orange-900 dark:text-orange-100 mt-1">{allKeywords.length}</div>
+        </div>
+      </div>
+
+      {/* Campaign Planner Tips */}
+      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+        <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-2">💡 Campaign Planner Tips</h3>
+        <ul className="text-xs text-blue-800 dark:text-blue-300 space-y-1">
+          <li>• Use templates to create optimized campaign structures based on Amazon best practices</li>
+          <li>• Drag keywords from the Keyword Bank directly onto ad groups</li>
+          <li>• Set different match types and bids for each ad group to test performance</li>
+          <li>• Export campaigns to CSV for easy bulk upload to Amazon</li>
+        </ul>
+      </div>
+
+      {/* Main Campaign Manager */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Campaign Manager</h2>
+        <div>
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Campaign Structure</h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            Build and organize your Amazon PPC campaigns
+          </p>
+        </div>
         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
           {campaigns.length > 0 && (
             <button
@@ -689,6 +731,7 @@ export const CampaignManager: React.FC<CampaignManagerProps> = ({
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };

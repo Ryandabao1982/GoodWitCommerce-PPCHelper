@@ -48,19 +48,21 @@ describe('Dashboard', () => {
     it('should render the dashboard heading', () => {
       render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} />);
       
-      expect(screen.getByText(/Keyword Research Dashboard/i)).toBeInTheDocument();
+      expect(screen.getByText(/Keyword Research Results/i)).toBeInTheDocument();
     });
 
-    it('should display keyword count with singular form', () => {
-      render(<Dashboard data={[mockKeywordData[0]]} parseVolume={mockParseVolume} />);
-      
-      expect(screen.getByText(/1 keyword found/i)).toBeInTheDocument();
-    });
-
-    it('should display keyword count with plural form', () => {
+    it('should display Total Keywords stat', () => {
       render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} />);
       
-      expect(screen.getByText(/3 keywords found/i)).toBeInTheDocument();
+      expect(screen.getByText(/Total Keywords/i)).toBeInTheDocument();
+      expect(screen.getByText('3')).toBeInTheDocument();
+    });
+
+    it('should display stats correctly for single keyword', () => {
+      render(<Dashboard data={[mockKeywordData[0]]} parseVolume={mockParseVolume} />);
+      
+      expect(screen.getByText(/Total Keywords/i)).toBeInTheDocument();
+      expect(screen.getByText('1')).toBeInTheDocument();
     });
 
     it('should render mobile card view on small screens', () => {
