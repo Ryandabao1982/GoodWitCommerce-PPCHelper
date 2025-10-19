@@ -14,8 +14,12 @@
  *   SIMULATION_MODE - Set to 'mock' to use mock data instead of real API calls
  */
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // ANSI color codes for terminal output
 const colors = {
@@ -430,12 +434,10 @@ class WorkflowSimulator {
 }
 
 // Execute simulation
-if (require.main === module) {
-  const simulator = new WorkflowSimulator();
-  simulator.run().catch((error) => {
-    console.error(`${colors.red}Fatal Error:${colors.reset}`, error);
-    process.exit(1);
-  });
-}
+const simulator = new WorkflowSimulator();
+simulator.run().catch((error) => {
+  console.error(`${colors.red}Fatal Error:${colors.reset}`, error);
+  process.exit(1);
+});
 
-module.exports = WorkflowSimulator;
+export default WorkflowSimulator;
