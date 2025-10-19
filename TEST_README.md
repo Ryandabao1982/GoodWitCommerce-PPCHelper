@@ -8,7 +8,7 @@ The application uses **Vitest** as the test runner, along with **React Testing L
 
 ## Test Structure
 
-```
+```text
 __tests__/
 ├── components/          # React component tests
 │   ├── ErrorMessage.test.tsx
@@ -295,3 +295,19 @@ When adding new features:
 - [React Testing Library](https://testing-library.com/react)
 - [Jest DOM Matchers](https://github.com/testing-library/jest-dom)
 - [User Event](https://testing-library.com/docs/user-event/intro)
+
+---
+
+## 2025-10-19 — Test Generation Note for copilot/fix-jest-dom-matchers
+
+No files differ between this ref and the base ref (main) for the purposes of scoped unit test generation.
+Per instructions to "only generate unit tests for those specific files within the diff," no new tests were added in this run.
+
+Details:
+- Current ref: fe10659 (Initial plan)
+- Base ref: main
+- Command used: `git diff --name-only --diff-filter=AM main..HEAD` → no changed files
+
+If new commits are pushed to this branch or the base ref changes, re-run the test generator to target the updated diff set.
+
+---
