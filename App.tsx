@@ -411,7 +411,7 @@ const App: React.FC = () => {
     if (activeBrand) {
       items.push({
         label: activeBrand,
-        onClick: brands.length > 1 ? () => setCurrentView('research') : undefined,
+        onClick: () => setCurrentView('research'),
         isActive: false,
       });
 
