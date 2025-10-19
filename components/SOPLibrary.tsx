@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import { SOP, SOPCategory } from '../types';
-import { EmptyState } from './EmptyState';
 import { LoadingSpinner } from './LoadingSpinner';
 import { aiAssistSOPCreation, generateCompleteSOP, suggestSOPCategory, generateSOPTags } from '../services/sopService';
 
@@ -378,13 +377,23 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
 
   if (sops.length === 0 && searchQuery === '' && selectedCategory === 'All') {
     return (
-      <EmptyState
-        type="no-data"
-        title="No SOPs Yet"
-        message="Create your first Standard Operating Procedure to get started. Build a comprehensive knowledge base for your team."
-        primaryActionLabel="Create First SOP"
-        onPrimaryAction={() => setShowCreateModal(true)}
-      />
+      <div className="flex items-center justify-center min-h-[400px] px-4">
+        <div className="max-w-md w-full text-center">
+          <div className="text-6xl mb-4">📚</div>
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+            No SOPs Yet
+          </h3>
+          <p className="text-base text-gray-600 dark:text-gray-400 mb-6">
+            Create your first Standard Operating Procedure to get started. Build a comprehensive knowledge base for your team.
+          </p>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
+          >
+            Create First SOP
+          </button>
+        </div>
+      </div>
     );
   }
 
