@@ -269,20 +269,24 @@ export function exportBrandReport(
   });
   
   lines.push('By Type:');
+  const totalKw = keywords.length;
   Object.entries(byType).forEach(([type, count]) => {
-    lines.push(`  ${type}: ${count} (${((count / keywords.length) * 100).toFixed(1)}%)`);
+    const pct = totalKw ? ((count / totalKw) * 100).toFixed(1) : '0.0';
+    lines.push(`  ${type}: ${count} (${pct}%)`);
   });
   
   lines.push('');
   lines.push('By Competition:');
   Object.entries(byCompetition).forEach(([comp, count]) => {
-    lines.push(`  ${comp}: ${count} (${((count / keywords.length) * 100).toFixed(1)}%)`);
+    const pct = totalKw ? ((count / totalKw) * 100).toFixed(1) : '0.0';
+    lines.push(`  ${comp}: ${count} (${pct}%)`);
   });
   
   lines.push('');
   lines.push('By Category:');
   Object.entries(byCategory).forEach(([cat, count]) => {
-    lines.push(`  ${cat}: ${count} (${((count / keywords.length) * 100).toFixed(1)}%)`);
+    const pct = totalKw ? ((count / totalKw) * 100).toFixed(1) : '0.0';
+    lines.push(`  ${cat}: ${count} (${pct}%)`);
   });
   
   lines.push('');
