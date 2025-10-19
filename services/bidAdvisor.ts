@@ -24,14 +24,9 @@ export function calculateCPCMax(
     return 0;
   }
 
-  // Base CPC max from ACoS
-  const baseCPCMax = (productPrice * targetAcos) / 100;
-  
-  // Adjust for conversion rate
-  // If CVR is known and different from baseline (10%), adjust accordingly
-  const cvrAdjustment = conversionRate / 10; // Normalize to 10% baseline
-  
-  return baseCPCMax * cvrAdjustment;
+  // Calculate CPC max using product price, target ACoS, and conversion rate as a fraction
+  // Use conversionRate as a percentage (e.g., 10 for 10%), defaulting to 10 if undefined
+  return productPrice * (targetAcos / 100) * ((conversionRate ?? 10) / 100);
 }
 
 /**
