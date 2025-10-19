@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrandState, Portfolio, KPIMetrics, RAGBadge, BrandTabSettings } from '../../types';
+import { BrandState, KPIMetrics, RAGBadge, BrandTabSettings } from '../../types';
 import { BrandTabHeader } from './BrandTabHeader';
 import { BrandTabLeftRail } from './BrandTabLeftRail';
 import { BrandTabOverview } from './BrandTabOverview';
