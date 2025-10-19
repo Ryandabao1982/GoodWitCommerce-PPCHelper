@@ -9,7 +9,13 @@ interface BrandTabOverviewProps {
 export const BrandTabOverview: React.FC<BrandTabOverviewProps> = ({ brandState, selectedPortfolio }) => {
   // Mock data for coverage map
   const campaignTypes = ['SP_EXACT', 'SP_BROAD', 'SP_PHRASE', 'SP_AUTO', 'SD', 'SB'];
-  const asins = ['B001', 'B002', 'B003', 'B004'];
+  // Extract ASINs from brandState.campaigns
+  const asins = Array.from(
+    new Set(
+      (brandState.campaigns || [])
+        .flatMap(campaign => campaign.asins || (campaign.asin ? [campaign.asin] : []))
+    )
+  );
   
   // Mock coverage data
   const coverageData: Record<string, Record<string, { hasCoverage: boolean; hasOverlap: boolean }>> = {};
