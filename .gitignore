@@ -32,3 +32,6 @@ coverage/
 .cache/
 temp/
 tmp/
+
+# Simulation reports
+simulation-report.json
