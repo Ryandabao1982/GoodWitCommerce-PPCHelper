@@ -39,7 +39,7 @@ export const BrandTabKeywords: React.FC<BrandTabKeywordsProps> = ({ brandState, 
         rag: acos > 30 ? 'Red' : acos > 20 ? 'Amber' : 'Green',
       };
     });
-  }, [brandState.keywordResults]);
+  }, [brandState.keywordResults, settings.price, settings.targetAcos]);
 
   // Harvest queue (keywords ready to promote)
   const harvestQueue = useMemo(() => {
