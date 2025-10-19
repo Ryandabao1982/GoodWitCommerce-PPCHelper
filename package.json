@@ -10,7 +10,8 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "simulate": "node scripts/simulate-workflow.js"
   },
   "dependencies": {
     "@google/genai": "^1.25.0",
