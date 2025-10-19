@@ -12,6 +12,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({ currentView,
     { id: 'bank', label: 'Keywords', icon: '🏦' },
     { id: 'planner', label: 'Campaigns', icon: '📋' },
     { id: 'brand', label: 'Brand', icon: '🎯' },
+    { id: 'sop', label: 'SOPs', icon: '📚' },
     { id: 'settings', label: 'Settings', icon: '⚙️' },
   ];
 
