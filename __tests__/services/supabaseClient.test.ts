@@ -4,6 +4,15 @@ describe('supabaseClient', () => {
   beforeEach(() => {
     vi.resetModules();
     localStorage.clear();
+    // Ensure import.meta.env is properly mocked for each test
+    vi.stubGlobal('import', {
+      meta: {
+        env: {
+          VITE_SUPABASE_URL: '',
+          VITE_SUPABASE_ANON_KEY: '',
+        },
+      },
+    });
   });
 
   it('reports not configured when no env or saved settings', async () => {
@@ -47,12 +56,15 @@ describe('supabaseClient', () => {
     const createClient = vi.fn(() => ({ auth: clientAuth }));
     vi.doMock('@supabase/supabase-js', () => ({ createClient }), { virtual: true });
 
-    // Set env via global import.meta stub provided in setup
-    // Note: setup.ts stubs import.meta.env; we override here
-    // @ts-ignore
-    global.import.meta.env.VITE_SUPABASE_URL = 'https://env.supabase.co';
-    // @ts-ignore
-    global.import.meta.env.VITE_SUPABASE_ANON_KEY = 'env-anon';
+    // Set env via global import.meta stub
+    vi.stubGlobal('import', {
+      meta: {
+        env: {
+          VITE_SUPABASE_URL: 'https://env.supabase.co',
+          VITE_SUPABASE_ANON_KEY: 'env-anon',
+        },
+      },
+    });
 
     const mod = await import('../../services/supabaseClient');
     expect(mod.isSupabaseConfigured()).toBe(true);

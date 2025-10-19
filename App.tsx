@@ -76,6 +76,9 @@ const App: React.FC = () => {
   const [searchResultCount, setSearchResultCount] = useState(0);
 
   const [selectedKeywords, setSelectedKeywords] = useState<Set<string>>(new Set());
+  
+  // SOP update trigger to force re-renders
+  const [sopUpdateTrigger, setSopUpdateTrigger] = useState(0);
 
   // API Settings state
   const [apiSettings, setApiSettings] = useState<ApiSettings>(() => ({
@@ -608,23 +611,24 @@ const App: React.FC = () => {
             />
           ) : currentView === 'sop' && activeBrand ? (
             <SOPLibrary
+              key={sopUpdateTrigger}
               sops={getSOPsForBrand(activeBrand)}
               onAddSOP={(sopData) => {
                 addSOP(activeBrand, sopData);
-                // Force re-render by updating state
-                setActiveBrand(activeBrand);
+                // Force re-render by incrementing trigger
+                setSopUpdateTrigger(prev => prev + 1);
               }}
               onUpdateSOP={(id, updates) => {
                 updateSOP(activeBrand, id, updates);
-                setActiveBrand(activeBrand);
+                setSopUpdateTrigger(prev => prev + 1);
               }}
               onDeleteSOP={(id) => {
                 deleteSOP(activeBrand, id);
-                setActiveBrand(activeBrand);
+                setSopUpdateTrigger(prev => prev + 1);
               }}
               onToggleFavorite={(id) => {
                 toggleSOPFavorite(activeBrand, id);
-                setActiveBrand(activeBrand);
+                setSopUpdateTrigger(prev => prev + 1);
               }}
               onSOPView={(id) => {
                 incrementSOPViewCount(activeBrand, id);

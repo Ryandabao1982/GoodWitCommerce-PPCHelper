@@ -17,6 +17,8 @@ describe('ViewSwitcher', () => {
       expect(screen.getByText(/Dashboard/i)).toBeInTheDocument();
       expect(screen.getByText(/Keyword Bank/i)).toBeInTheDocument();
       expect(screen.getByText(/Campaign Planner/i)).toBeInTheDocument();
+      expect(screen.getByText(/Brand Tab/i)).toBeInTheDocument();
+      expect(screen.getByText(/SOP Library/i)).toBeInTheDocument();
       expect(screen.getByText(/Settings/i)).toBeInTheDocument();
     });
 
@@ -26,20 +28,22 @@ describe('ViewSwitcher', () => {
       expect(screen.getByText('📊')).toBeInTheDocument();
       expect(screen.getByText('🏦')).toBeInTheDocument();
       expect(screen.getByText('📋')).toBeInTheDocument();
+      expect(screen.getByText('🎯')).toBeInTheDocument();
+      expect(screen.getByText('📚')).toBeInTheDocument();
       expect(screen.getByText('⚙️')).toBeInTheDocument();
     });
 
     it('should highlight the current view button', () => {
       render(<ViewSwitcher currentView="research" onViewChange={mockOnViewChange} />);
       
-      const researchButton = screen.getByRole('button', { name: /📊 Dashboard/i });
+      const researchButton = screen.getByRole('button', { name: /Dashboard/i });
       expect(researchButton).toHaveClass('bg-blue-600', 'text-white');
     });
 
     it('should not highlight non-current view buttons', () => {
       render(<ViewSwitcher currentView="research" onViewChange={mockOnViewChange} />);
       
-      const bankButton = screen.getByRole('button', { name: /🏦 Keyword Bank/i });
+      const bankButton = screen.getByRole('button', { name: /Keyword Bank/i });
       expect(bankButton).not.toHaveClass('bg-blue-600');
       expect(bankButton).toHaveClass('bg-gray-100');
     });
@@ -49,7 +53,7 @@ describe('ViewSwitcher', () => {
     it('should call onViewChange with correct view when Dashboard is clicked', () => {
       render(<ViewSwitcher currentView="bank" onViewChange={mockOnViewChange} />);
       
-      const dashboardButton = screen.getByRole('button', { name: /📊 Dashboard/i });
+      const dashboardButton = screen.getByRole('button', { name: /Dashboard/i });
       fireEvent.click(dashboardButton);
       
       expect(mockOnViewChange).toHaveBeenCalledWith('research');
@@ -58,7 +62,7 @@ describe('ViewSwitcher', () => {
     it('should call onViewChange with correct view when Keyword Bank is clicked', () => {
       render(<ViewSwitcher currentView="research" onViewChange={mockOnViewChange} />);
       
-      const bankButton = screen.getByRole('button', { name: /🏦 Keyword Bank/i });
+      const bankButton = screen.getByRole('button', { name: /Keyword Bank/i });
       fireEvent.click(bankButton);
       
       expect(mockOnViewChange).toHaveBeenCalledWith('bank');
@@ -67,7 +71,7 @@ describe('ViewSwitcher', () => {
     it('should call onViewChange with correct view when Campaign Planner is clicked', () => {
       render(<ViewSwitcher currentView="research" onViewChange={mockOnViewChange} />);
       
-      const plannerButton = screen.getByRole('button', { name: /📋 Campaign Planner/i });
+      const plannerButton = screen.getByRole('button', { name: /Campaign Planner/i });
       fireEvent.click(plannerButton);
       
       expect(mockOnViewChange).toHaveBeenCalledWith('planner');
@@ -76,7 +80,7 @@ describe('ViewSwitcher', () => {
     it('should call onViewChange with correct view when Settings is clicked', () => {
       render(<ViewSwitcher currentView="research" onViewChange={mockOnViewChange} />);
       
-      const settingsButton = screen.getByRole('button', { name: /⚙️ Settings/i });
+      const settingsButton = screen.getByRole('button', { name: /Settings/i });
       fireEvent.click(settingsButton);
       
       expect(mockOnViewChange).toHaveBeenCalledWith('settings');
@@ -84,7 +88,7 @@ describe('ViewSwitcher', () => {
   });
 
   describe('Different Current Views', () => {
-    const views: ViewType[] = ['research', 'bank', 'planner', 'settings'];
+    const views: ViewType[] = ['research', 'bank', 'planner', 'brand', 'sop', 'settings'];
 
     views.forEach(view => {
       it(`should highlight ${view} view when it is current`, () => {
