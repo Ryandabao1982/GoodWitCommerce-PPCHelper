@@ -122,11 +122,10 @@ export const BrandTab: React.FC<BrandTabProps> = ({ brandState, activeBrand, onU
 
   const handleSearchForASIN = async (asin: ASIN) => {
     const searchSettings = asin.advancedSearchSettings;
-    if (!searchSettings?.advancedKeywords.trim()) {
+    if (!searchSettings?.advancedKeywords?.trim()) {
       alert('Please enter at least one seed keyword.');
       return;
     }
-
     setIsSearching(true);
     try {
       const [newKeywords, related] = await fetchKeywords(
