@@ -87,16 +87,27 @@ export const KeywordBank: React.FC<KeywordBankProps> = ({
 
   const selectedCampaign = campaigns.find(c => c.id === selectedCampaignId);
 
-  // Show empty state if no keywords
+  // Show empty state if no keywords, but still show manual entry option
   if (keywords.length === 0) {
     return (
-      <EmptyState
-        type="no-keywords"
-        onPrimaryAction={() => {
-          // Scroll to top to show search input
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
-      />
+      <div className="space-y-6">
+        {/* Manual Keyword Entry - Available even with no keywords */}
+        {onAddManualKeywords && (
+          <ManualKeywordEntry
+            onAddKeywords={onAddManualKeywords}
+            isProcessing={isAnalyzingManualKeywords}
+            brandName={brandContextName}
+          />
+        )}
+        
+        <EmptyState
+          type="no-keywords"
+          onPrimaryAction={() => {
+            // Scroll to top to show search input
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+        />
+      </div>
     );
   }
 
