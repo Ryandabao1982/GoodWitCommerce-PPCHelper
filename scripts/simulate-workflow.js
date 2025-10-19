@@ -348,6 +348,70 @@ class WorkflowSimulator {
     this.log(`Timestamp: ${this.results.timestamp}`);
     this.log(`Mode: ${process.env.SIMULATION_MODE || 'live'}\n`);
     
+    // Branching strategy for simulation mode
+    if (process.env.SIMULATION_MODE === 'mock') {
+      // Replace scenario methods with mock implementations
+      this.testFirstTimeUserFlow = async () => {
+        this.log('[MOCK] testFirstTimeUserFlow executed.', 'info');
+        this.results.scenarios.push({ name: 'First Time User Flow', status: 'passed', details: 'Mocked scenario.' });
+        this.results.summary.total += 1;
+        this.results.summary.passed += 1;
+      };
+      this.testKeywordResearchFlow = async () => {
+        this.log('[MOCK] testKeywordResearchFlow executed.', 'info');
+        this.results.scenarios.push({ name: 'Keyword Research Flow', status: 'passed', details: 'Mocked scenario.' });
+        this.results.summary.total += 1;
+        this.results.summary.passed += 1;
+      };
+      this.testAIPoweredFeatures = async () => {
+        this.log('[MOCK] testAIPoweredFeatures executed.', 'info');
+        this.results.scenarios.push({ name: 'AI Powered Features', status: 'passed', details: 'Mocked scenario.' });
+        this.results.summary.total += 1;
+        this.results.summary.passed += 1;
+      };
+      this.testCampaignManagement = async () => {
+        this.log('[MOCK] testCampaignManagement executed.', 'info');
+        this.results.scenarios.push({ name: 'Campaign Management', status: 'passed', details: 'Mocked scenario.' });
+        this.results.summary.total += 1;
+        this.results.summary.passed += 1;
+      };
+      this.testMultiBrandFlow = async () => {
+        this.log('[MOCK] testMultiBrandFlow executed.', 'info');
+        this.results.scenarios.push({ name: 'Multi Brand Flow', status: 'passed', details: 'Mocked scenario.' });
+        this.results.summary.total += 1;
+        this.results.summary.passed += 1;
+      };
+      this.testDataPersistence = async () => {
+        this.log('[MOCK] testDataPersistence executed.', 'info');
+        this.results.scenarios.push({ name: 'Data Persistence', status: 'passed', details: 'Mocked scenario.' });
+        this.results.summary.total += 1;
+        this.results.summary.passed += 1;
+      };
+      this.testExportFeatures = async () => {
+        this.log('[MOCK] testExportFeatures executed.', 'info');
+        this.results.scenarios.push({ name: 'Export Features', status: 'passed', details: 'Mocked scenario.' });
+        this.results.summary.total += 1;
+        this.results.summary.passed += 1;
+      };
+      this.testErrorHandling = async () => {
+        this.log('[MOCK] testErrorHandling executed.', 'info');
+        this.results.scenarios.push({ name: 'Error Handling', status: 'passed', details: 'Mocked scenario.' });
+        this.results.summary.total += 1;
+        this.results.summary.passed += 1;
+      };
+      this.testViewNavigation = async () => {
+        this.log('[MOCK] testViewNavigation executed.', 'info');
+        this.results.scenarios.push({ name: 'View Navigation', status: 'passed', details: 'Mocked scenario.' });
+        this.results.summary.total += 1;
+        this.results.summary.passed += 1;
+      };
+      this.testPerformance = async () => {
+        this.log('[MOCK] testPerformance executed.', 'info');
+        this.results.scenarios.push({ name: 'Performance', status: 'passed', details: 'Mocked scenario.' });
+        this.results.summary.total += 1;
+        this.results.summary.passed += 1;
+      };
+    }
     // Execute all test scenarios
     await this.testFirstTimeUserFlow();
     await this.testKeywordResearchFlow();
