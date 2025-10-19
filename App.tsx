@@ -25,6 +25,7 @@ import { BrandTab } from './components/BrandTab';
 import { QuickStartGuide } from './components/QuickStartGuide';
 import { ApiKeyPrompt } from './components/ApiKeyPrompt';
 import { SearchFeedback, SearchSuccessToast } from './components/SearchFeedback';
+import { BottomNavigation } from './components/BottomNavigation';
 import { loadFromLocalStorage, saveToLocalStorage } from './utils/storage';
 
 const App: React.FC = () => {
@@ -450,6 +451,8 @@ const App: React.FC = () => {
         onDeleteBrand={handleDeleteBrand}
         onCreateBrandClick={() => setIsBrandModalOpen(true)}
         isLoading={isLoading || isClustering}
+        currentView={currentView}
+        onViewChange={setCurrentView}
       />
       <div className="flex-1 flex flex-col min-w-0">
         <Header
@@ -461,10 +464,10 @@ const App: React.FC = () => {
           isDarkMode={isDarkMode}
           onToggleDarkMode={handleToggleDarkMode}
         />
-        <main className="container mx-auto p-4 md:p-6 lg:p-8 flex-1">
-          {/* Show ViewSwitcher when brand is active and not in clusters view */}
+        <main className="container mx-auto p-4 md:p-6 lg:p-8 flex-1 pb-20 md:pb-6">
+          {/* Show ViewSwitcher when brand is active and not in clusters view - Hidden on mobile */}
           {activeBrand && !activeBrandState?.keywordClusters && (
-            <div className="mb-6">
+            <div className="mb-6 hidden md:block">
               <ViewSwitcher currentView={currentView} onViewChange={setCurrentView} />
             </div>
           )}
@@ -659,6 +662,11 @@ const App: React.FC = () => {
           resultCount={searchResultCount}
           onDismiss={() => setShowSuccessToast(false)}
         />
+      )}
+      
+      {/* Bottom Navigation for Mobile */}
+      {activeBrand && (
+        <BottomNavigation currentView={currentView} onViewChange={setCurrentView} />
       )}
     </div>
   );

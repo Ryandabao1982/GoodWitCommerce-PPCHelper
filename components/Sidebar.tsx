@@ -1,4 +1,5 @@
 import React from 'react';
+import type { ViewType } from './ViewSwitcher';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -10,6 +11,8 @@ interface SidebarProps {
   onDeleteBrand: (brand: string) => void;
   onCreateBrandClick: () => void;
   isLoading: boolean;
+  currentView?: ViewType;
+  onViewChange?: (view: ViewType) => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -22,8 +25,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onDeleteBrand,
   onCreateBrandClick,
   isLoading,
+  currentView,
+  onViewChange,
 }) => {
   if (!isOpen) return null;
+
+  const navigationItems = [
+    { id: 'research' as ViewType, label: 'Dashboard', icon: '📊' },
+    { id: 'bank' as ViewType, label: 'Keyword Bank', icon: '🏦' },
+    { id: 'planner' as ViewType, label: 'Campaign Planner', icon: '📋' },
+    { id: 'brand' as ViewType, label: 'Brand Tab', icon: '🎯' },
+    { id: 'settings' as ViewType, label: 'Settings', icon: '⚙️' },
+  ];
 
   return (
     <>
@@ -51,6 +64,33 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </svg>
             </button>
           </div>
+
+          {/* Navigation Section */}
+          {onViewChange && (
+            <div className="mb-8">
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase mb-3">Navigation</h3>
+              <ul className="space-y-2">
+                {navigationItems.map((item) => (
+                  <li key={item.id}>
+                    <button
+                      onClick={() => {
+                        onViewChange(item.id);
+                        onClose();
+                      }}
+                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                        currentView === item.id
+                          ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
+                          : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
+                      }`}
+                    >
+                      <span className="text-xl">{item.icon}</span>
+                      <span className="text-sm font-medium">{item.label}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {/* Brands Section */}
           <div className="mb-8">

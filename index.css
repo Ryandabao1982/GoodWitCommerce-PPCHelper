@@ -156,3 +156,15 @@ body {
     min-height: 44px;
   }
 }
+
+/* Safe area support for iOS notch */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Prevent content from being hidden behind bottom navigation on mobile */
+@media (max-width: 768px) {
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
