@@ -22,6 +22,7 @@ import { KeywordBank } from './components/KeywordBank';
 import { WelcomeMessage } from './components/WelcomeMessage';
 import { Settings } from './components/Settings';
 import { loadFromLocalStorage, saveToLocalStorage } from './utils/storage';
+import type { BreadcrumbItem } from './components/Breadcrumb';
 
 const App: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {

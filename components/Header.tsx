@@ -1,4 +1,5 @@
 import React from 'react';
+import { Breadcrumb, BreadcrumbItem } from './Breadcrumb';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -8,6 +9,7 @@ interface HeaderProps {
   onOpenCreateBrandModal: () => void;
   isDarkMode: boolean;
   onToggleDarkMode: () => void;
+  breadcrumbItems?: BreadcrumbItem[];
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -18,6 +20,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenCreateBrandModal,
   isDarkMode,
   onToggleDarkMode,
+  breadcrumbItems,
 }) => {
   return (
     <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
@@ -89,6 +92,13 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           </div>
         </div>
+        
+        {/* Breadcrumb Navigation */}
+        {breadcrumbItems && breadcrumbItems.length > 0 && (
+          <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+            <Breadcrumb items={breadcrumbItems} />
+          </div>
+        )}
       </div>
     </header>
   );
