@@ -144,21 +144,21 @@ export const CampaignManager: React.FC<CampaignManagerProps> = ({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Campaign Manager</h2>
-        <div className="flex gap-2">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Campaign Manager</h2>
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
           {campaigns.length > 0 && (
             <button
               onClick={handleExportCampaign}
-              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm font-medium"
+              className="flex-1 sm:flex-initial px-3 md:px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm font-medium whitespace-nowrap"
             >
-              📥 Export Plan
+              📥 Export
             </button>
           )}
           <button
             onClick={() => setShowCreateModal(true)}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
+            className="flex-1 sm:flex-initial px-3 md:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium whitespace-nowrap"
           >
             ➕ New Campaign
           </button>

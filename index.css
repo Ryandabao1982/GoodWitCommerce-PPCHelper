@@ -71,3 +71,15 @@ body {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
+
+/* Improved scrolling on mobile */
+@media (max-width: 768px) {
+  html, body, .overflow-auto, .scrollable {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Ensure adequate spacing for touch targets */
+  button:not(.p-1):not(.p-2) {
+    min-height: 44px;
+  }
+}

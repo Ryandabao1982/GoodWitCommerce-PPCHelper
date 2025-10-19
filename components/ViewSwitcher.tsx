@@ -20,14 +20,15 @@ export const ViewSwitcher: React.FC<ViewSwitcherProps> = ({ currentView, onViewC
         <button
           key={view.id}
           onClick={() => onViewChange(view.id)}
-          className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
+          className={`flex-1 min-w-[100px] px-4 md:px-6 py-2.5 md:py-3 rounded-lg font-medium transition-all duration-200 text-sm md:text-base ${
             currentView === view.id
               ? 'bg-blue-600 text-white shadow-md'
               : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
           }`}
         >
-          <span className="mr-2">{view.icon}</span>
-          {view.label}
+          <span className="mr-1 md:mr-2">{view.icon}</span>
+          <span className="hidden sm:inline">{view.label}</span>
+          <span className="sm:hidden">{view.label.split(' ')[0]}</span>
         </button>
       ))}
     </div>
