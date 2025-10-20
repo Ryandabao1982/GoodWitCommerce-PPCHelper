@@ -39,15 +39,19 @@ export const useKeyboardShortcuts = ({
         },
         '5': () => {
           event.preventDefault();
+          onViewChange('sop');
+        },
+        '6': () => {
+          event.preventDefault();
           onViewChange('settings');
         },
-        'b': () => {
+        b: () => {
           if (onCreateBrand) {
             event.preventDefault();
             onCreateBrand();
           }
         },
-        'k': () => {
+        k: () => {
           if (onSearch) {
             event.preventDefault();
             onSearch();
@@ -72,7 +76,8 @@ export const KEYBOARD_SHORTCUTS = [
   { keys: ['⌘', '2'], description: 'Go to Keyword Bank' },
   { keys: ['⌘', '3'], description: 'Go to Campaign Planner' },
   { keys: ['⌘', '4'], description: 'Go to Brand Analytics' },
-  { keys: ['⌘', '5'], description: 'Go to Settings' },
+  { keys: ['⌘', '5'], description: 'Go to SOP Library' },
+  { keys: ['⌘', '6'], description: 'Go to Settings' },
   { keys: ['⌘', 'B'], description: 'Create New Brand' },
   { keys: ['⌘', 'K'], description: 'Quick Search' },
 ] as const;
