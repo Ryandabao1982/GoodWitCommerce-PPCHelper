@@ -128,8 +128,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const stats = useMemo(() => {
     const totalKeywords = data.length;
     const avgRelevance = totalKeywords > 0 
-      ? (data.reduce((sum, kw) => sum + kw.relevance, 0) / totalKeywords).toFixed(1)
-      : '0';
+      ? data.reduce((sum, kw) => sum + kw.relevance, 0) / totalKeywords
+      : 0;
     const highVolumeCount = data.filter(kw => parseVolume(kw.searchVolume) > 10000).length;
     const lowCompetitionCount = data.filter(kw => kw.competition === 'Low').length;
     const exactMatchCount = data.filter(kw => kw.type === 'Exact').length;
@@ -494,7 +494,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     💡 <strong>Great opportunity!</strong> You have {stats.lowCompetitionCount} low-competition keywords with {stats.highVolumeCount} high-volume terms. Consider prioritizing these in your campaigns.
                   </p>
                 )}
-                {parseFloat(stats.avgRelevance) < 5 && (
+                {stats.avgRelevance < 5 && (
                   <p className="text-sm text-gray-700 dark:text-gray-300">
                     ⚠️ <strong>Action needed:</strong> Your average relevance score is below 5. Try refining your seed keywords for better-targeted results.
                   </p>

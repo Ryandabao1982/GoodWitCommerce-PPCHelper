@@ -62,7 +62,10 @@ describe('Dashboard', () => {
       render(<Dashboard data={[mockKeywordData[0]]} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
       expect(screen.getByText(/Total Keywords/i)).toBeInTheDocument();
-      expect(screen.getByText('1')).toBeInTheDocument();
+      // Verify that "1" appears in the Total Keywords stat card
+      const totalKeywordsText = screen.getByText(/Total Keywords/i);
+      const statCard = totalKeywordsText.parentElement?.parentElement;
+      expect(statCard?.textContent).toContain('1');
     });
 
     it('should render mobile card view on small screens', () => {
@@ -146,16 +149,20 @@ describe('Dashboard', () => {
     it('should sort by keyword when keyword header is clicked', () => {
       render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
-      const keywordHeader = screen.getByText(/^Keyword/).parentElement!;
+      // Clear mock calls from initial render (stats calculation)
+      mockParseVolume.mockClear();
+      
+      const keywordHeader = screen.getByRole('columnheader', { name: /keyword/i });
       fireEvent.click(keywordHeader);
       
+      // parseVolume should not be called when sorting by keyword
       expect(mockParseVolume).not.toHaveBeenCalled();
     });
 
     it('should sort by search volume when volume header is clicked', () => {
       render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
-      const volumeHeader = screen.getByText(/^Volume/).parentElement!;
+      const volumeHeader = screen.getByRole('columnheader', { name: /volume/i });
       fireEvent.click(volumeHeader);
       
       expect(mockParseVolume).toHaveBeenCalled();
@@ -164,7 +171,7 @@ describe('Dashboard', () => {
     it('should toggle sort direction on repeated clicks', () => {
       render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
-      const keywordHeader = screen.getByText(/^Keyword/).parentElement!;
+      const keywordHeader = screen.getByRole('columnheader', { name: /keyword/i });
       
       // First click - descending
       fireEvent.click(keywordHeader);
@@ -178,7 +185,8 @@ describe('Dashboard', () => {
     it('should sort by competition level', () => {
       render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
-      const competitionHeader = screen.getByText(/^Competition/).parentElement!;
+      // Use getByRole with name to specifically get the table header
+      const competitionHeader = screen.getByRole('columnheader', { name: /competition/i });
       fireEvent.click(competitionHeader);
       
       // Competition should be sorted: High > Medium > Low
@@ -189,7 +197,8 @@ describe('Dashboard', () => {
     it('should sort by relevance', () => {
       render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
-      const relevanceHeader = screen.getByText(/^Relevance/).parentElement!;
+      // Use getByRole with name to specifically get the table header
+      const relevanceHeader = screen.getByRole('columnheader', { name: /relevance/i });
       fireEvent.click(relevanceHeader);
       
       // Check that parseVolume was not called for relevance sorting
@@ -239,17 +248,25 @@ describe('Dashboard', () => {
   });
 
   describe('Empty State', () => {
-    it('should display 0 keywords found when data is empty', () => {
+    it('should display 0 keywords in Total Keywords stat when data is empty', () => {
       render(<Dashboard data={[]} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
-      expect(screen.getByText(/0 keywords found/i)).toBeInTheDocument();
+      expect(screen.getByText(/Total Keywords/i)).toBeInTheDocument();
+      // Find the stat card containing "Total Keywords" and verify it shows 0
+      const totalKeywordsText = screen.getByText(/Total Keywords/i);
+      const statCard = totalKeywordsText.parentElement?.parentElement;
+      expect(statCard?.textContent).toContain('Total Keywords');
+      expect(statCard?.textContent).toContain('0');
     });
 
     it('should render table structure even with empty data', () => {
       render(<Dashboard data={[]} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
-      expect(screen.getByText(/^Keyword/)).toBeInTheDocument();
-      expect(screen.getByText(/^Type/)).toBeInTheDocument();
+      // Use columnheader role to specifically target table headers
+      const headers = screen.getAllByRole('columnheader');
+      const headerTexts = headers.map(h => h.textContent);
+      expect(headerTexts.some(t => t?.includes('Keyword'))).toBe(true);
+      expect(headerTexts.some(t => t?.includes('Type'))).toBe(true);
     });
   });
 

@@ -39,7 +39,9 @@ describe('KeywordClusters', () => {
     it('should display keyword count badges for each cluster', () => {
       render(<KeywordClusters clusters={mockClusters} onClear={mockOnClear} />);
       
-      expect(screen.getByText('3')).toBeInTheDocument();
+      // Each cluster has 3 keywords, so there should be three badges showing "3"
+      const badges = screen.getAllByText('3');
+      expect(badges.length).toBe(3);
     });
 
     it('should render keywords in each cluster', () => {
@@ -70,9 +72,14 @@ describe('KeywordClusters', () => {
       
       render(<KeywordClusters clusters={largeCluster} onClear={mockOnClear} />);
       
-      expect(screen.getByText(/• keyword 1/i)).toBeInTheDocument();
-      expect(screen.getByText(/• keyword 10/i)).toBeInTheDocument();
-      expect(screen.queryByText(/• keyword 11/i)).not.toBeInTheDocument();
+      // Check for exact keyword text to avoid matching "keyword 10" when looking for "keyword 1"
+      const allItems = screen.getAllByRole('listitem');
+      const itemTexts = allItems.map(item => item.textContent);
+      
+      // Should show keyword 1 through 10
+      expect(itemTexts.some(text => text?.includes('keyword 1') && !text?.includes('keyword 10'))).toBe(true);
+      expect(itemTexts.some(text => text?.includes('keyword 10'))).toBe(true);
+      expect(itemTexts.some(text => text?.includes('keyword 11'))).toBe(false);
       expect(screen.getByText(/\+5 more\.\.\./i)).toBeInTheDocument();
     });
 
