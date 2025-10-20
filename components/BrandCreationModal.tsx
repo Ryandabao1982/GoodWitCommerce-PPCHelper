@@ -97,7 +97,7 @@ export const BrandCreationModal: React.FC<BrandCreationModalProps> = ({
     }
 
     const budgetValue = budget ? parseFloat(budget) : undefined;
-    if (budget && (isNaN(budgetValue!) || budgetValue! <= 0)) {
+    if (budget && (isNaN(budgetValue) || budgetValue <= 0)) {
       setError('Budget must be a positive number');
       return;
     }
