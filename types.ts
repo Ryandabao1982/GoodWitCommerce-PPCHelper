@@ -148,6 +148,12 @@ export interface BrandTabSettings {
   // targetAcos?: number; // Removed: not exposed in modal
 }
 
+// Brand metadata
+export interface BrandMetadata {
+  budget?: number;
+  asins?: string[]; // List of ASINs for this brand
+}
+
 // Brand/Session state
 export interface BrandState {
   keywordResults: KeywordData[];
@@ -163,6 +169,7 @@ export interface BrandState {
   rolloutTasks?: RolloutTask[];
   sops?: SOP[];
   sopStats?: SOPStats;
+  metadata?: BrandMetadata;
 }
 
 // Lifecycle Management Types

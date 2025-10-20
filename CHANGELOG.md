@@ -11,6 +11,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Documentation Organization**: Created `/docs` folder and moved 29 technical documents from root to improve project navigation and maintainability. Added comprehensive `docs/README.md` index.
+- **CODE_REVIEW_SUMMARY.md**: Comprehensive code review document in `/docs` covering architecture analysis, improvements made, code quality metrics, and future optimization recommendations.
+- **SOP Service Test**: Added `__tests__/services/sopService.test.ts` to validate service initialization and reinitialization functionality.
+
+### Fixed
+
+- **SOP Creation Bug**: Fixed critical initialization bug in `services/sopService.ts` that prevented SOP creation from working:
+  - Changed conditional initialization from `if (apiKey && !genAI)` to `if (apiKey)` to allow proper reinitialization
+  - Added module-level initialization call
+  - Exported `reinitializeSOPService()` function for when API settings change
+  - Integrated reinitialization into App.tsx when API settings are saved/reset
+  - Now matches the proven pattern used in `geminiService.ts`
+
+### Changed
+
+- **README.md**: Updated documentation section to reference new `/docs` folder structure with clear navigation to technical documentation.
+- **Root Directory**: Cleaned up root from 32 markdown files to just 3 essential files (README.md, CHANGELOG.md, GEMINI.md), improving project organization by 90.6%.
+
+### Technical Improvements
+
+- **Service Consistency**: All AI services (geminiService, sopService) now follow the same initialization pattern
+- **Better Integration**: SOP service properly reinitializes when API key is configured or changed
+- **Code Quality**: Improved maintainability with organized documentation structure
+
+---
+
+## [Previous Releases]
+
+### Added
+
 -   **BACKEND_PLAN.md**: Comprehensive backend implementation architecture document covering database schema design, API endpoints specification, technology stack recommendations, migration strategy from localStorage to backend, security considerations, deployment architecture, performance optimization, cost estimation, and 16-week implementation timeline. This establishes the foundation for transitioning from browser-based localStorage to a scalable cloud backend system.
 -   **Sprint 7 in PLAN.md**: Added new sprint "Backend Infrastructure & Database" with 5 tasks tracking the backend implementation journey from initial planning through MVP, API development, frontend integration, and production launch.
 -   **METRICS.md**: Created comprehensive project metrics dashboard tracking development velocity, code quality, documentation health, sprint progress, and technical debt. This fulfills the requirements of the AI Vibe Coder Protocol v3.0.

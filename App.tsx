@@ -42,7 +42,7 @@ import {
   incrementSOPViewCount,
   trackSOPView 
 } from './utils/sopStorage';
-import { aiSearchSOPs, getAIRecommendedSOPs } from './services/sopService';
+import { aiSearchSOPs, getAIRecommendedSOPs, reinitializeSOPService } from './services/sopService';
 
 const App: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
@@ -439,7 +439,7 @@ const App: React.FC = () => {
   }, [activeBrand, activeBrandState, updateBrandState, apiSettings.geminiApiKey]);
 
   // --- Brand Management ---
-  const handleCreateBrand = async (brandName: string): Promise<boolean> => {
+  const handleCreateBrand = async (brandName: string, budget?: number, asins?: string[]): Promise<boolean> => {
     if (brands.includes(brandName)) {
       alert(`Brand "${brandName}" already exists.`);
       return false;
@@ -458,7 +458,11 @@ const App: React.FC = () => {
           searchedKeywords: [],
           advancedSearchSettings: { advancedKeywords: '', minVolume: '', maxVolume: '', isWebAnalysisEnabled: false, brandName: '', asin: '' },
           keywordClusters: null,
-          campaigns: []
+          campaigns: [],
+          metadata: {
+            budget,
+            asins
+          }
         }
       }));
       setActiveBrand(brandName);
@@ -547,6 +551,7 @@ const App: React.FC = () => {
     saveToLocalStorage('ppcGeniusApiSettings.supabaseAnonKey', apiSettings.supabaseAnonKey);
     // Reinitialize services with new settings
     reinitializeGeminiService();
+    reinitializeSOPService();
     reinitializeSupabaseClient();
     
     // Close API key prompt if it was open
@@ -565,6 +570,7 @@ const App: React.FC = () => {
     saveToLocalStorage('ppcGeniusApiSettings.supabaseAnonKey', defaultSettings.supabaseAnonKey);
     // Reinitialize services with default settings
     reinitializeGeminiService();
+    reinitializeSOPService();
     reinitializeSupabaseClient();
   };
   
