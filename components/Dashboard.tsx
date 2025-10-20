@@ -220,16 +220,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3">
               {lastActiveBrand ? (
                 <>Welcome back to {lastActiveBrand}! 👋</>
-              ) : activeBrand ? (
-                <>Welcome to {activeBrand}! 🎉</>
               ) : (
                 <>Welcome to Amazon PPC Keyword Genius! 🚀</>
               )}
             </h1>
             <p className="text-lg text-gray-700 dark:text-gray-300 mb-4">
-              {activeBrand 
-                ? "Your AI-powered keyword research and campaign planning workspace is ready. Start by searching for keywords below."
-                : lastActiveBrand
+              {lastActiveBrand
                 ? `You were last working on ${lastActiveBrand}. Select a brand to continue or create a new one.`
                 : "Get started by creating your first brand workspace to organize your keyword research and campaigns."}
             </p>
