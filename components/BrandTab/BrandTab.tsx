@@ -113,18 +113,39 @@ export const BrandTab: React.FC<BrandTabProps> = ({ brandState, activeBrand, onU
 
       {/* Main Content Area */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left Rail */}
-        <BrandTabLeftRail
-          portfolios={portfolios}
-          selectedPortfolio={selectedPortfolio}
-          onPortfolioClick={handlePortfolioClick}
-        />
+        {/* Left Rail - Hidden on mobile */}
+        <div className="hidden md:block">
+          <BrandTabLeftRail
+            portfolios={portfolios}
+            selectedPortfolio={selectedPortfolio}
+            onPortfolioClick={handlePortfolioClick}
+          />
+        </div>
 
         {/* Main Canvas */}
         <div className="flex-1 overflow-auto">
+          {/* Mobile Portfolio Selector */}
+          <div className="md:hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Portfolio Filter
+            </label>
+            <select
+              value={selectedPortfolio || ''}
+              onChange={(e) => handlePortfolioClick(e.target.value)}
+              className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">All Portfolios</option>
+              {portfolios.map((portfolio) => (
+                <option key={portfolio.id} value={portfolio.id}>
+                  {portfolio.name} (${portfolio.budget.toLocaleString()})
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Tab Navigation */}
           <div className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 sticky top-0 z-10">
-            <div className="flex gap-2 px-6 pt-4">
+            <div className="flex gap-1 md:gap-2 px-2 md:px-6 pt-2 md:pt-4">
               {[
                 { id: 'overview', label: 'Overview', icon: '📋' },
                 { id: 'keywords', label: 'Keywords', icon: '🔑' },
@@ -133,21 +154,22 @@ export const BrandTab: React.FC<BrandTabProps> = ({ brandState, activeBrand, onU
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as BrandTabView)}
-                  className={`px-4 py-2 font-medium rounded-t-lg transition-colors ${
+                  className={`flex-1 md:flex-none px-2 md:px-4 py-2.5 md:py-2 font-medium rounded-t-lg transition-colors text-sm md:text-base ${
                     activeTab === tab.id
                       ? 'bg-blue-600 text-white'
                       : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                   }`}
                 >
-                  <span className="mr-2">{tab.icon}</span>
-                  {tab.label}
+                  <span className="mr-1 md:mr-2">{tab.icon}</span>
+                  <span className="hidden sm:inline">{tab.label}</span>
+                  <span className="sm:hidden">{tab.label.slice(0, 4)}</span>
                 </button>
               ))}
             </div>
           </div>
 
           {/* Tab Content */}
-          <div className="p-6">
+          <div className="p-3 md:p-6">
             {activeTab === 'overview' && (
               <BrandTabOverview
                 brandState={brandState}
