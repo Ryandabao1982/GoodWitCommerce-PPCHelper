@@ -71,7 +71,7 @@ export const Settings: React.FC<SettingsProps> = ({
 
       {/* API Configuration Section */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">🔧 API Configuration</h2>
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">🔧 API Settings</h2>
         <p className="text-gray-600 dark:text-gray-400 mb-6">
           Configure your API keys for AI-powered features and data persistence
         </p>
@@ -101,7 +101,7 @@ export const Settings: React.FC<SettingsProps> = ({
                   type="button"
                   onClick={() => setShowGeminiKey(!showGeminiKey)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                  aria-label={showGeminiKey ? 'Hide API key' : 'Show API key'}
+                  aria-label="Toggle Gemini API key visibility"
                 >
                   {showGeminiKey ? '🙈' : '👁️'}
                 </button>
@@ -160,7 +160,7 @@ export const Settings: React.FC<SettingsProps> = ({
                   type="button"
                   onClick={() => setShowSupabaseKey(!showSupabaseKey)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                  aria-label={showSupabaseKey ? 'Hide API key' : 'Show API key'}
+                  aria-label="Toggle Supabase API key visibility"
                 >
                   {showSupabaseKey ? '🙈' : '👁️'}
                 </button>
