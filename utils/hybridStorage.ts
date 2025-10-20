@@ -2,7 +2,7 @@
  * Hybrid Storage Service
  * Provides unified storage interface with Supabase as the default storage
  * and localStorage as fallback only.
- * 
+ *
  * Pattern: Supabase-first (default) with localStorage fallback
  * - Default: Always use Supabase database when configured and authenticated
  * - Fallback: localStorage used only when:
@@ -15,7 +15,7 @@
 import { api } from '../services/databaseService';
 import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
 import { loadFromLocalStorage, saveToLocalStorage } from './storage';
-import type { BrandState, KeywordData, Campaign } from '../types';
+import type { BrandState } from '../types';
 
 /**
  * Check if Supabase database is available (configured and user authenticated)
@@ -26,10 +26,12 @@ export async function isDatabaseAvailable(): Promise<boolean> {
   if (!isSupabaseConfigured()) {
     return false;
   }
-  
+
   try {
     // Use Supabase as default when user is authenticated
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     return user !== null;
   } catch (error) {
     // Fallback to localStorage on error
@@ -48,12 +50,12 @@ export const brandStorage = {
    */
   async list(): Promise<string[]> {
     const dbAvailable = await isDatabaseAvailable();
-    
+
     // Default: Use Supabase when available
     if (dbAvailable) {
       try {
         const brands = await api.brands.list();
-        const brandNames = brands.map(b => b.name);
+        const brandNames = brands.map((b) => b.name);
         // Cache in localStorage for performance and offline access
         saveToLocalStorage('ppcGeniusBrands', brandNames);
         return brandNames;
@@ -61,7 +63,7 @@ export const brandStorage = {
         console.warn('Supabase unavailable, falling back to localStorage:', error);
       }
     }
-    
+
     // Fallback: localStorage when Supabase not available
     return loadFromLocalStorage<string[]>('ppcGeniusBrands', []);
   },
@@ -87,14 +89,14 @@ export const brandStorage = {
    */
   async create(brandName: string): Promise<void> {
     const dbAvailable = await isDatabaseAvailable();
-    
+
     // Optimistic update to localStorage (cache/fallback)
     const brands = loadFromLocalStorage<string[]>('ppcGeniusBrands', []);
     if (!brands.includes(brandName)) {
       brands.push(brandName);
       saveToLocalStorage('ppcGeniusBrands', brands);
     }
-    
+
     // Default: Save to Supabase when available
     if (dbAvailable) {
       try {
@@ -111,22 +113,25 @@ export const brandStorage = {
    */
   async delete(brandName: string): Promise<void> {
     const dbAvailable = await isDatabaseAvailable();
-    
+
     // Update localStorage (cache/fallback)
     const brands = loadFromLocalStorage<string[]>('ppcGeniusBrands', []);
-    const filteredBrands = brands.filter(b => b !== brandName);
+    const filteredBrands = brands.filter((b) => b !== brandName);
     saveToLocalStorage('ppcGeniusBrands', filteredBrands);
-    
+
     // Remove brand state from localStorage
-    const brandStates = loadFromLocalStorage<Record<string, BrandState>>('ppcGeniusBrandStates', {});
+    const brandStates = loadFromLocalStorage<Record<string, BrandState>>(
+      'ppcGeniusBrandStates',
+      {}
+    );
     delete brandStates[brandName];
     saveToLocalStorage('ppcGeniusBrandStates', brandStates);
-    
+
     // Default: Delete from Supabase when available
     if (dbAvailable) {
       try {
         const dbBrands = await api.brands.list();
-        const dbBrand = dbBrands.find(b => b.name === brandName);
+        const dbBrand = dbBrands.find((b) => b.name === brandName);
         if (dbBrand) {
           await api.brands.delete(dbBrand.id);
         }
@@ -134,7 +139,7 @@ export const brandStorage = {
         console.warn('Failed to delete brand from database:', error);
       }
     }
-  }
+  },
 };
 
 /**
@@ -148,22 +153,23 @@ export const brandStateStorage = {
    */
   async getAll(): Promise<Record<string, BrandState>> {
     const dbAvailable = await isDatabaseAvailable();
-    
+
     // Default: Use Supabase when available
     if (dbAvailable) {
       try {
         // Fetch all brands from Supabase database
         const dbBrands = await api.brands.list();
         const brandStates: Record<string, BrandState> = {};
-        
+
         for (const brand of dbBrands) {
           // Fetch keywords for this brand
           const keywords = await api.keywords.list(brand.id);
           // Fetch campaigns for this brand
           const campaigns = await api.campaigns.list(brand.id);
-          
+
           brandStates[brand.name] = {
-            keywordResults: keywords.map(k => ({
+            keywordResults: keywords.map((k) => ({
+              id: k.id,
               keyword: k.keyword,
               type: k.type as any,
               category: k.category as any,
@@ -181,20 +187,21 @@ export const brandStateStorage = {
               brandName: brand.name,
             },
             keywordClusters: null, // TODO: Implement cluster loading
-            campaigns: campaigns.map(c => ({
+            campaigns: campaigns.map((c) => ({
               id: c.id,
               name: c.name,
-              adGroups: c.ad_groups?.map((ag: any) => ({
-                id: ag.id,
-                name: ag.name,
-                keywords: ag.ad_group_keywords?.map((agk: any) => agk.keyword.keyword) || [],
-              })) || [],
+              adGroups:
+                c.ad_groups?.map((ag: any) => ({
+                  id: ag.id,
+                  name: ag.name,
+                  keywords: ag.ad_group_keywords?.map((agk: any) => agk.keyword.keyword) || [],
+                })) || [],
               totalBudget: c.total_budget ? Number(c.total_budget) : undefined,
               projections: c.projections as any,
             })),
           };
         }
-        
+
         // Cache in localStorage for performance
         saveToLocalStorage('ppcGeniusBrandStates', brandStates);
         return brandStates;
@@ -202,7 +209,7 @@ export const brandStateStorage = {
         console.warn('Supabase unavailable, falling back to localStorage:', error);
       }
     }
-    
+
     // Fallback: localStorage when Supabase not available
     return loadFromLocalStorage<Record<string, BrandState>>('ppcGeniusBrandStates', {});
   },
@@ -222,27 +229,36 @@ export const brandStateStorage = {
    */
   async update(brandName: string, updates: Partial<BrandState>): Promise<void> {
     const dbAvailable = await isDatabaseAvailable();
-    
+
     // Optimistic update to localStorage (cache/fallback)
-    const brandStates = loadFromLocalStorage<Record<string, BrandState>>('ppcGeniusBrandStates', {});
+    const brandStates = loadFromLocalStorage<Record<string, BrandState>>(
+      'ppcGeniusBrandStates',
+      {}
+    );
     const currentState = brandStates[brandName] || {
       keywordResults: [],
       searchedKeywords: [],
-      advancedSearchSettings: { advancedKeywords: '', minVolume: '', maxVolume: '', isWebAnalysisEnabled: false, brandName },
+      advancedSearchSettings: {
+        advancedKeywords: '',
+        minVolume: '',
+        maxVolume: '',
+        isWebAnalysisEnabled: false,
+        brandName,
+      },
       keywordClusters: null,
       campaigns: [],
     };
-    
+
     brandStates[brandName] = { ...currentState, ...updates };
     saveToLocalStorage('ppcGeniusBrandStates', brandStates);
-    
+
     // Default: Sync to Supabase when available
     if (dbAvailable) {
       try {
         // Find brand in Supabase database
         const dbBrands = await api.brands.list();
-        const dbBrand = dbBrands.find(b => b.name === brandName);
-        
+        const dbBrand = dbBrands.find((b) => b.name === brandName);
+
         if (!dbBrand) {
           // Brand doesn't exist in Supabase, create it
           const newBrand = await api.brands.create(brandName);
@@ -266,11 +282,13 @@ export const brandStateStorage = {
       try {
         // Get existing keywords from Supabase to avoid duplicates
         const existingKeywords = await api.keywords.list(brandId);
-        const existingKeywordTexts = new Set(existingKeywords.map(k => k.keyword));
-        
+        const existingKeywordTexts = new Set(existingKeywords.map((k) => k.keyword));
+
         // Only create keywords that don't exist in Supabase yet
-        const newKeywords = state.keywordResults.filter(k => !existingKeywordTexts.has(k.keyword));
-        
+        const newKeywords = state.keywordResults.filter(
+          (k) => !existingKeywordTexts.has(k.keyword)
+        );
+
         if (newKeywords.length > 0) {
           await api.keywords.createBulk(brandId, newKeywords);
         }
@@ -278,13 +296,13 @@ export const brandStateStorage = {
         console.warn('Failed to sync keywords to Supabase:', error);
       }
     }
-    
+
     // Sync campaigns to Supabase if they exist
     if (state.campaigns && state.campaigns.length > 0) {
       try {
         const existingCampaigns = await api.campaigns.list(brandId);
-        const existingCampaignNames = new Set(existingCampaigns.map(c => c.name));
-        
+        const existingCampaignNames = new Set(existingCampaigns.map((c) => c.name));
+
         for (const campaign of state.campaigns) {
           if (!existingCampaignNames.has(campaign.name)) {
             await api.campaigns.create(brandId, campaign);
@@ -294,7 +312,7 @@ export const brandStateStorage = {
         console.warn('Failed to sync campaigns to Supabase:', error);
       }
     }
-  }
+  },
 };
 
 /**
@@ -328,7 +346,7 @@ export const settingsStorage = {
    */
   setQuickStartSeen(seen: boolean): void {
     saveToLocalStorage('ppcGeniusHasSeenQuickStart', seen);
-  }
+  },
 };
 
 /**
@@ -341,7 +359,7 @@ export async function getConnectionStatus(): Promise<{
   usingLocalStorage: boolean;
 }> {
   const isConfigured = isSupabaseConfigured();
-  
+
   if (!isConfigured) {
     return {
       isConnected: false,
@@ -350,18 +368,20 @@ export async function getConnectionStatus(): Promise<{
       usingLocalStorage: true,
     };
   }
-  
+
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     const isAuthenticated = user !== null;
-    
+
     return {
       isConnected: true,
       isAuthenticated,
       usingDatabase: isAuthenticated,
       usingLocalStorage: true, // Always used as cache/fallback
     };
-  } catch (error) {
+  } catch {
     return {
       isConnected: false,
       isAuthenticated: false,

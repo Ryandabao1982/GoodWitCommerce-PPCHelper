@@ -1,6 +1,6 @@
 /**
  * Cannibalization Detector Service
- * 
+ *
  * Detects when keywords are competing with each other and cannibalizing performance.
  * This includes:
  * - Keywords in multiple campaigns
@@ -8,11 +8,42 @@
  * - Similar keywords with poor combined performance
  */
 
-import type {
-  KeywordPerformance,
-  KeywordData,
-  CannibalizationAlert,
-} from '../types';
+import type { KeywordPerformance, KeywordData } from '../types';
+
+function normalizeIdentifier(value: unknown): string | null {
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (trimmed.length > 0) {
+      return trimmed;
+    }
+  }
+  return null;
+}
+
+function getKeywordIdentifier(keyword: KeywordData): string {
+  return normalizeIdentifier(keyword.id) ?? keyword.keyword.trim();
+}
+
+function getPerformanceIdentifier(performance: KeywordPerformance): string | null {
+  return (
+    normalizeIdentifier(performance.keywordId) ?? normalizeIdentifier(performance.keyword) ?? null
+  );
+}
+
+function pickDistinctCampaigns(
+  campaigns1: string[],
+  campaigns2: string[]
+): [string | undefined, string | undefined] {
+  for (const campaign1 of campaigns1) {
+    for (const campaign2 of campaigns2) {
+      if (campaign1 !== campaign2) {
+        return [campaign1, campaign2];
+      }
+    }
+  }
+
+  return [campaigns1[0], campaigns2[0]];
+}
 
 /**
  * Cannibalization detection result
@@ -35,12 +66,16 @@ export interface CannibalizationResult {
 export function detectCannibalization(
   performances: KeywordPerformance[],
   keywords: KeywordData[],
-  campaignAssignments: Map<string, string> // keywordId -> campaignId
+  campaignAssignments: Map<string, string> // keyword identifier -> campaignId
 ): CannibalizationResult[] {
   const results: CannibalizationResult[] = [];
 
   // Create keyword lookup
-  const keywordLookup = new Map(keywords.map((k) => [k.id, k]));
+  const keywordLookup = new Map<string, KeywordData>();
+  for (const keyword of keywords) {
+    const identifier = getKeywordIdentifier(keyword);
+    keywordLookup.set(identifier, keyword);
+  }
 
   // Check each pair of keywords
   for (let i = 0; i < performances.length; i++) {
@@ -48,8 +83,13 @@ export function detectCannibalization(
       const perf1 = performances[i];
       const perf2 = performances[j];
 
-      const kw1 = keywordLookup.get(perf1.keywordId);
-      const kw2 = keywordLookup.get(perf2.keywordId);
+      const perf1Identifier = getPerformanceIdentifier(perf1);
+      const perf2Identifier = getPerformanceIdentifier(perf2);
+
+      if (!perf1Identifier || !perf2Identifier) continue;
+
+      const kw1 = keywordLookup.get(perf1Identifier);
+      const kw2 = keywordLookup.get(perf2Identifier);
 
       if (!kw1 || !kw2) continue;
 
@@ -59,8 +99,10 @@ export function detectCannibalization(
         perf2,
         kw1,
         kw2,
-        campaignAssignments.get(perf1.keywordId),
-        campaignAssignments.get(perf2.keywordId)
+        perf1Identifier,
+        perf2Identifier,
+        campaignAssignments.get(perf1Identifier),
+        campaignAssignments.get(perf2Identifier)
       );
 
       if (cannibalization) {
@@ -81,6 +123,8 @@ function checkPairCannibalization(
   perf2: KeywordPerformance,
   kw1: KeywordData,
   kw2: KeywordData,
+  identifier1: string,
+  identifier2: string,
   campaign1Id?: string,
   campaign2Id?: string
 ): CannibalizationResult | null {
@@ -109,7 +153,7 @@ function checkPairCannibalization(
     // Check if combined performance is worse than expected
     const combinedAcos = ((perf1.spend + perf2.spend) / (perf1.sales + perf2.sales)) * 100;
     const avgIndividualAcos = (perf1.acos + perf2.acos) / 2;
-    
+
     if (combinedAcos > avgIndividualAcos * 1.2) {
       score += 20;
       reasons.push('Combined performance worse than individual');
@@ -133,8 +177,8 @@ function checkPairCannibalization(
     return {
       keyword1: kw1.keyword,
       keyword2: kw2.keyword,
-      keyword1Id: perf1.keywordId,
-      keyword2Id: perf2.keywordId,
+      keyword1Id: identifier1,
+      keyword2Id: identifier2,
       campaign1Id,
       campaign2Id,
       score: Math.min(100, score),
@@ -261,7 +305,7 @@ function generateSuggestedAction(
  */
 export function findSelfCannibalization(
   keywords: KeywordData[],
-  campaignAssignments: Map<string, string[]> // keywordId -> campaignIds[]
+  campaignAssignments: Map<string, string[]> // keyword identifier -> campaignIds[]
 ): CannibalizationResult[] {
   const results: CannibalizationResult[] = [];
   const keywordMap = new Map<string, KeywordData[]>();
@@ -276,29 +320,30 @@ export function findSelfCannibalization(
   }
 
   // Check for duplicates
-  for (const [keywordText, kwList] of keywordMap.entries()) {
+  for (const [_keywordText, kwList] of keywordMap.entries()) {
     if (kwList.length > 1) {
       // Check if in different campaigns
       for (let i = 0; i < kwList.length; i++) {
         for (let j = i + 1; j < kwList.length; j++) {
           const kw1 = kwList[i];
           const kw2 = kwList[j];
-          const campaigns1 = campaignAssignments.get(kw1.keyword) || [];
-          const campaigns2 = campaignAssignments.get(kw2.keyword) || [];
+          const identifier1 = getKeywordIdentifier(kw1);
+          const identifier2 = getKeywordIdentifier(kw2);
+          const campaigns1 = campaignAssignments.get(identifier1) || [];
+          const campaigns2 = campaignAssignments.get(identifier2) || [];
 
           // Check if in different campaigns
-          const differentCampaigns = campaigns1.some((c1) => 
-            campaigns2.some((c2) => c1 !== c2)
-          );
+          const differentCampaigns = campaigns1.some((c1) => campaigns2.some((c2) => c1 !== c2));
 
           if (differentCampaigns) {
+            const [campaign1Id, campaign2Id] = pickDistinctCampaigns(campaigns1, campaigns2);
             results.push({
               keyword1: kw1.keyword,
               keyword2: kw2.keyword,
-              keyword1Id: kw1.keyword,
-              keyword2Id: kw2.keyword,
-              campaign1Id: campaigns1[0],
-              campaign2Id: campaigns2[0],
+              keyword1Id: identifier1,
+              keyword2Id: identifier2,
+              campaign1Id,
+              campaign2Id,
               score: 100,
               reason: 'Exact duplicate keyword in multiple campaigns',
               suggestedAction: 'Remove from lower-performing campaign and add as negative',
@@ -321,6 +366,14 @@ export function detectBroadMatchCannibalization(
 ): CannibalizationResult[] {
   const results: CannibalizationResult[] = [];
   const broadKeywords = keywords.filter((k) => k.type === 'Broad');
+  const performanceLookup = new Map<string, KeywordPerformance>();
+
+  for (const performance of performances) {
+    const identifier = getPerformanceIdentifier(performance);
+    if (identifier && !performanceLookup.has(identifier)) {
+      performanceLookup.set(identifier, performance);
+    }
+  }
 
   for (const broad of broadKeywords) {
     // Find more specific keywords that might be cannibalized by this broad match
@@ -331,19 +384,27 @@ export function detectBroadMatchCannibalization(
         k.keyword.toLowerCase().includes(broad.keyword.toLowerCase())
     );
 
+    const broadIdentifier = getKeywordIdentifier(broad);
+    const broadPerf = performanceLookup.get(broadIdentifier);
+
+    if (!broadPerf) continue;
+
     for (const specific of moreSpecific) {
-      const broadPerf = performances.find((p) => p.keywordId === broad.keyword);
-      const specificPerf = performances.find((p) => p.keywordId === specific.keyword);
+      const specificIdentifier = getKeywordIdentifier(specific);
+      const specificPerf = performanceLookup.get(specificIdentifier);
 
       if (!broadPerf || !specificPerf) continue;
 
       // Check if broad match is stealing impressions from more specific match
-      if (broadPerf.impressions > specificPerf.impressions * 2 && broadPerf.ctr < specificPerf.ctr) {
+      if (
+        broadPerf.impressions > specificPerf.impressions * 2 &&
+        broadPerf.ctr < specificPerf.ctr
+      ) {
         results.push({
           keyword1: broad.keyword,
           keyword2: specific.keyword,
-          keyword1Id: broad.keyword,
-          keyword2Id: specific.keyword,
+          keyword1Id: broadIdentifier,
+          keyword2Id: specificIdentifier,
           score: 70,
           reason: 'Broad match may be stealing impressions from more specific match',
           suggestedAction: `Add "${specific.keyword}" as negative exact to broad match campaign`,
