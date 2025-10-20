@@ -128,8 +128,7 @@ const App: React.FC = () => {
 
       setActiveBrand(resolvedActiveBrand);
 
-      const storedView =
-        typeof window !== 'undefined' ? settingsStorage.getLastView() : ('research' as ViewType);
+      const storedView = settingsStorage.getLastView();
       setCurrentView(storedView);
 
       return resolvedActiveBrand;
