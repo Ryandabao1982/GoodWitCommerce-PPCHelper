@@ -83,6 +83,7 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [relatedKeywords, setRelatedKeywords] = useState<string[]>([]);
 
+  const [currentView, setCurrentView] = useState<ViewType>('research');
   const [currentView, setCurrentView] = useState<ViewType>(() => {
     if (typeof window !== 'undefined') {
       return settingsStorage.getLastView();
@@ -365,6 +366,7 @@ const App: React.FC = () => {
         });
 
         const newSearchedKeywords = new Set(activeBrandState.searchedKeywords);
+        splitSeedKeywords(seedKeyword).forEach((k) => newSearchedKeywords.add(k));
         seedKeyword
           .split(/, |\n/)
           .map((k) => k.trim())
@@ -979,6 +981,20 @@ const App: React.FC = () => {
               key={sopUpdateTrigger}
               sops={activeBrandSOPs}
               onAddSOP={async (sopData) => {
+                if (!activeBrand) {
+                  throw new Error('No active brand selected');
+                }
+
+                try {
+                  const createdSOP = await addSOP(activeBrand, sopData);
+                  setActiveBrandSOPs((prev) => [...prev, createdSOP]);
+
+                  // Force re-render by incrementing trigger so remote data stays in sync
+                  setSopUpdateTrigger((prev) => prev + 1);
+                } catch (error) {
+                  console.error('Error creating SOP:', error);
+                  throw error;
+                }
                 await addSOP(activeBrand, sopData);
                 // Force re-render by incrementing trigger
                 setSopUpdateTrigger((prev) => prev + 1);
