@@ -13,7 +13,7 @@ export const ViewSwitcher: React.FC<ViewSwitcherProps> = ({ currentView, onViewC
     { id: 'bank', label: 'Keyword Bank', icon: '🏦' },
     { id: 'planner', label: 'Campaign Planner', icon: '📋' },
     { id: 'brand', label: 'Brand Tab', icon: '🎯' },
-    { id: 'sop', label: 'SOP Library', icon: '📚' },
+    { id: 'sop', label: 'Knowledge Base', icon: '📚' },
     { id: 'settings', label: 'Settings', icon: '⚙️' },
   ];
 

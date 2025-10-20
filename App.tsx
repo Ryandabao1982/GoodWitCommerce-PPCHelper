@@ -34,7 +34,7 @@ import { loadFromLocalStorage, saveToLocalStorage } from './utils/storage';
 import { brandStorage, brandStateStorage, settingsStorage } from './utils/hybridStorage';
 import { SOPLibrary } from './components/SOPLibrary';
 import { 
-  getSOPsForBrand, 
+  getSOPs, 
   addSOP, 
   updateSOP, 
   deleteSOP, 
@@ -683,37 +683,37 @@ const App: React.FC = () => {
               onSaveSettings={handleSaveApiSettings}
               onResetSettings={handleResetApiSettings}
             />
-          ) : currentView === 'sop' && activeBrand ? (
+          ) : currentView === 'sop' ? (
             <SOPLibrary
               key={sopUpdateTrigger}
-              sops={getSOPsForBrand(activeBrand)}
+              sops={getSOPs()}
               onAddSOP={(sopData) => {
-                addSOP(activeBrand, sopData);
+                addSOP(sopData);
                 // Force re-render by incrementing trigger
                 setSopUpdateTrigger(prev => prev + 1);
               }}
               onUpdateSOP={(id, updates) => {
-                updateSOP(activeBrand, id, updates);
+                updateSOP(id, updates);
                 setSopUpdateTrigger(prev => prev + 1);
               }}
               onDeleteSOP={(id) => {
-                deleteSOP(activeBrand, id);
+                deleteSOP(id);
                 setSopUpdateTrigger(prev => prev + 1);
               }}
               onToggleFavorite={(id) => {
-                toggleSOPFavorite(activeBrand, id);
+                toggleSOPFavorite(id);
                 setSopUpdateTrigger(prev => prev + 1);
               }}
               onSOPView={(id) => {
-                incrementSOPViewCount(activeBrand, id);
-                trackSOPView(activeBrand, id);
+                incrementSOPViewCount(id);
+                trackSOPView(id);
               }}
               onAISearch={async (query) => {
-                const sops = getSOPsForBrand(activeBrand);
+                const sops = getSOPs();
                 return await aiSearchSOPs(query, sops);
               }}
               onAIRecommend={async () => {
-                const sops = getSOPsForBrand(activeBrand);
+                const sops = getSOPs();
                 return await getAIRecommendedSOPs(sops, {
                   recentSearches: activeBrandState?.searchedKeywords.slice(-5),
                   currentView,

@@ -1,7 +1,8 @@
 import { SOP, SOPStats } from '../types';
 import { loadFromLocalStorage, saveToLocalStorage } from './storage';
 
-const STORAGE_KEY_PREFIX = 'ppcGeniusSOP_';
+const GLOBAL_STORAGE_KEY = 'ppcGeniusGlobalSOPs';
+const RECENTLY_VIEWED_KEY = 'ppcGeniusGlobalSOPs_recentlyViewed';
 
 /**
  * Generate a unique ID for a SOP
@@ -11,29 +12,42 @@ export const generateSOPId = (): string => {
 };
 
 /**
- * Get all SOPs for a brand
+ * Get all SOPs (global, not brand-specific)
  */
-export const getSOPsForBrand = (brandName: string): SOP[] => {
-  const key = `${STORAGE_KEY_PREFIX}${brandName}`;
-  return loadFromLocalStorage<SOP[]>(key, []);
+export const getSOPs = (): SOP[] => {
+  return loadFromLocalStorage<SOP[]>(GLOBAL_STORAGE_KEY, []);
 };
 
 /**
- * Save SOPs for a brand
+ * Save SOPs (global)
+ */
+export const saveSOPs = (sops: SOP[]): void => {
+  saveToLocalStorage(GLOBAL_STORAGE_KEY, sops);
+};
+
+/**
+ * Legacy function for backward compatibility - now returns global SOPs
+ * @deprecated Use getSOPs() instead
+ */
+export const getSOPsForBrand = (brandName?: string): SOP[] => {
+  return getSOPs();
+};
+
+/**
+ * Legacy function for backward compatibility - now saves to global storage
+ * @deprecated Use saveSOPs() instead
  */
 export const saveSOPsForBrand = (brandName: string, sops: SOP[]): void => {
-  const key = `${STORAGE_KEY_PREFIX}${brandName}`;
-  saveToLocalStorage(key, sops);
+  saveSOPs(sops);
 };
 
 /**
- * Add a new SOP for a brand
+ * Add a new SOP to global library
  */
 export const addSOP = (
-  brandName: string,
   sopData: Omit<SOP, 'id' | 'createdAt' | 'updatedAt'>
 ): SOP => {
-  const sops = getSOPsForBrand(brandName);
+  const sops = getSOPs();
   const now = new Date().toISOString();
   
   const newSOP: SOP = {
@@ -46,7 +60,7 @@ export const addSOP = (
   };
 
   sops.push(newSOP);
-  saveSOPsForBrand(brandName, sops);
+  saveSOPs(sops);
   
   return newSOP;
 };
@@ -55,11 +69,10 @@ export const addSOP = (
  * Update an existing SOP
  */
 export const updateSOP = (
-  brandName: string,
   sopId: string,
   updates: Partial<SOP>
 ): SOP | null => {
-  const sops = getSOPsForBrand(brandName);
+  const sops = getSOPs();
   const index = sops.findIndex(sop => sop.id === sopId);
   
   if (index === -1) return null;
@@ -73,7 +86,7 @@ export const updateSOP = (
   };
 
   sops[index] = updatedSOP;
-  saveSOPsForBrand(brandName, sops);
+  saveSOPs(sops);
   
   return updatedSOP;
 };
@@ -81,48 +94,48 @@ export const updateSOP = (
 /**
  * Delete a SOP
  */
-export const deleteSOP = (brandName: string, sopId: string): boolean => {
-  const sops = getSOPsForBrand(brandName);
+export const deleteSOP = (sopId: string): boolean => {
+  const sops = getSOPs();
   const filteredSOPs = sops.filter(sop => sop.id !== sopId);
   
   if (filteredSOPs.length === sops.length) {
     return false; // SOP not found
   }
 
-  saveSOPsForBrand(brandName, filteredSOPs);
+  saveSOPs(filteredSOPs);
   return true;
 };
 
 /**
  * Toggle favorite status for a SOP
  */
-export const toggleSOPFavorite = (brandName: string, sopId: string): boolean => {
-  const sops = getSOPsForBrand(brandName);
+export const toggleSOPFavorite = (sopId: string): boolean => {
+  const sops = getSOPs();
   const sop = sops.find(s => s.id === sopId);
   
   if (!sop) return false;
 
-  updateSOP(brandName, sopId, { isFavorite: !sop.isFavorite });
+  updateSOP(sopId, { isFavorite: !sop.isFavorite });
   return true;
 };
 
 /**
  * Increment view count for a SOP
  */
-export const incrementSOPViewCount = (brandName: string, sopId: string): void => {
-  const sops = getSOPsForBrand(brandName);
+export const incrementSOPViewCount = (sopId: string): void => {
+  const sops = getSOPs();
   const sop = sops.find(s => s.id === sopId);
   
   if (!sop) return;
 
-  updateSOP(brandName, sopId, { viewCount: (sop.viewCount || 0) + 1 });
+  updateSOP(sopId, { viewCount: (sop.viewCount || 0) + 1 });
 };
 
 /**
  * Get SOP statistics
  */
-export const getSOPStats = (brandName: string): SOPStats => {
-  const sops = getSOPsForBrand(brandName);
+export const getSOPStats = (): SOPStats => {
+  const sops = getSOPs();
   
   const categoryCounts: Record<string, number> = {
     'Campaign Management': 0,
@@ -145,8 +158,7 @@ export const getSOPStats = (brandName: string): SOPStats => {
     .map(sop => sop.id);
 
   // Get recently viewed from localStorage
-  const recentlyViewedKey = `${STORAGE_KEY_PREFIX}${brandName}_recentlyViewed`;
-  const recentlyViewed = loadFromLocalStorage<string[]>(recentlyViewedKey, []).slice(0, 5);
+  const recentlyViewed = loadFromLocalStorage<string[]>(RECENTLY_VIEWED_KEY, []).slice(0, 5);
 
   return {
     totalSOPs: sops.length,
@@ -159,9 +171,8 @@ export const getSOPStats = (brandName: string): SOPStats => {
 /**
  * Track a SOP view for recently viewed list
  */
-export const trackSOPView = (brandName: string, sopId: string): void => {
-  const recentlyViewedKey = `${STORAGE_KEY_PREFIX}${brandName}_recentlyViewed`;
-  const recentlyViewed = loadFromLocalStorage<string[]>(recentlyViewedKey, []);
+export const trackSOPView = (sopId: string): void => {
+  const recentlyViewed = loadFromLocalStorage<string[]>(RECENTLY_VIEWED_KEY, []);
   
   // Remove if already exists
   const filtered = recentlyViewed.filter(id => id !== sopId);
@@ -172,18 +183,17 @@ export const trackSOPView = (brandName: string, sopId: string): void => {
   // Keep only last 10
   const updated = filtered.slice(0, 10);
   
-  saveToLocalStorage(recentlyViewedKey, updated);
+  saveToLocalStorage(RECENTLY_VIEWED_KEY, updated);
 };
 
 /**
  * Search SOPs by query
  */
 export const searchSOPs = (
-  brandName: string,
   query: string,
   category?: string
 ): SOP[] => {
-  const sops = getSOPsForBrand(brandName);
+  const sops = getSOPs();
   const lowerQuery = query.toLowerCase();
 
   return sops.filter(sop => {

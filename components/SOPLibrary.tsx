@@ -381,10 +381,10 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
         <div className="max-w-md w-full text-center">
           <div className="text-6xl mb-4">📚</div>
           <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-            No SOPs Yet
+            Welcome to the Knowledge Base
           </h3>
           <p className="text-base text-gray-600 dark:text-gray-400 mb-6">
-            Create your first Standard Operating Procedure to get started. Build a comprehensive knowledge base for your team.
+            Create your first Standard Operating Procedure. This is a shared wiki accessible to everyone, regardless of brand or workspace.
           </p>
           <button
             onClick={() => setShowCreateModal(true)}
@@ -404,13 +404,13 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              📚 SOP Library
+              📚 Knowledge Base
               <span className="text-sm font-normal text-gray-600 dark:text-gray-400">
                 ({sops.length} {sops.length === 1 ? 'document' : 'documents'})
               </span>
             </h2>
             <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Your team's knowledge base for processes, guides, and best practices
+              Shared wiki of processes, guides, and best practices - available to everyone
             </p>
           </div>
           <div className="flex gap-2 flex-wrap">
