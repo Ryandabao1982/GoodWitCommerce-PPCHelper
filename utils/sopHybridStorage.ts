@@ -242,16 +242,13 @@ export const sopHybridStorage = {
    * Updates in Supabase (default) with localStorage as fallback
    */
   async toggleFavorite(brandName: string, sopId: string): Promise<boolean> {
-    const sops = loadFromLocalStorage<SOP[]>(`${STORAGE_KEY_PREFIX}${brandName}`, []);
-    const index = sops.findIndex(sop => sop.id === sopId);
-    
-    if (index === -1) return false;
+    const sop = await this.get(brandName, sopId);
+    if (!sop) return false;
 
-    const newFavoriteStatus = !sops[index].isFavorite;
-    
+    const newFavoriteStatus = !sop.isFavorite;
+
     // Update using the update method which handles both storage layers
     await this.update(brandName, sopId, { isFavorite: newFavoriteStatus });
-    
     return true;
   },
 
