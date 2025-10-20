@@ -67,6 +67,7 @@
      VITE_SUPABASE_URL=https://your-project.supabase.co
      VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
      ```
+   - ⚠️ **Security**: Never commit `.env` files to version control. See [SECURITY.md](./docs/SECURITY.md) for details.
    - See [Database Setup Guide](supabase/README.md) for detailed instructions
 
 4. **Start the development server**
@@ -415,6 +416,11 @@ Comprehensive technical documentation has been organized in the `/docs` director
 - [DATABASE_IMPLEMENTATION.md](./docs/DATABASE_IMPLEMENTATION.md) - Database setup and configuration
 - [IMPLEMENTATION_SUMMARY.md](./docs/IMPLEMENTATION_SUMMARY.md) - Feature implementation summary
 - [UI_UX_IMPLEMENTATION.md](./docs/UI_UX_IMPLEMENTATION.md) - UI/UX implementation guide
+
+**Security & Architecture:**
+- [SECURITY.md](./docs/SECURITY.md) - Security and privacy policy
+- [ARCHITECTURE.md](./docs/ARCHITECTURE.md) - Technical architecture and data flow
+- [AUDIT_IMPLEMENTATION.md](./docs/AUDIT_IMPLEMENTATION.md) - Repository audit implementation summary
 
 **User Experience:**
 - [USER_FLOW.md](./docs/USER_FLOW.md) - User journey documentation
