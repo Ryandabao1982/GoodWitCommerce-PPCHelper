@@ -560,6 +560,7 @@ const App: React.FC = () => {
       if (!hasSeenQuickStart && (hasApiKey || hasSkippedApiStep)) {
         setHasSeenQuickStart(true);
         setHasSkippedApiStep(false);
+        setQuickStartStep(3); // Advance to completion step when guide is dismissed
       }
       return true;
     } catch (error) {
