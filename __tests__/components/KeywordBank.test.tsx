@@ -1,3 +1,4 @@
+import React from 'react';
 import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
@@ -37,9 +38,33 @@ describe('KeywordBank', () => {
   const mockOnDragStart = vi.fn();
 
   const keywords: KeywordData[] = [
-    { keyword: 'wireless headphones', type: 'Broad', category: 'Core', searchVolume: '10,000', competition: 'High', relevance: 9, source: 'AI' },
-    { keyword: 'gaming mouse', type: 'Exact', category: 'Opportunity', searchVolume: '2,000', competition: 'Low', relevance: 7, source: 'Web' },
-    { keyword: 'bluetooth speaker', type: 'Phrase', category: 'Core', searchVolume: '5,000', competition: 'Medium', relevance: 8, source: 'AI' },
+    {
+      keyword: 'wireless headphones',
+      type: 'Broad',
+      category: 'Core',
+      searchVolume: '10,000',
+      competition: 'High',
+      relevance: 9,
+      source: 'AI',
+    },
+    {
+      keyword: 'gaming mouse',
+      type: 'Exact',
+      category: 'Opportunity',
+      searchVolume: '2,000',
+      competition: 'Low',
+      relevance: 7,
+      source: 'Web',
+    },
+    {
+      keyword: 'bluetooth speaker',
+      type: 'Phrase',
+      category: 'Core',
+      searchVolume: '5,000',
+      competition: 'Medium',
+      relevance: 8,
+      source: 'AI',
+    },
   ];
 
   const campaigns: Campaign[] = [
@@ -47,7 +72,14 @@ describe('KeywordBank', () => {
       id: 'c1',
       name: 'Campaign 1',
       adGroups: [
-        { id: 'ag1', name: 'Ad Group 1', keywords: [], defaultBid: 1, defaultMatchType: 'Broad', bidModifiers: { topOfSearch: 0, productPages: 0 } },
+        {
+          id: 'ag1',
+          name: 'Ad Group 1',
+          keywords: [],
+          defaultBid: 1,
+          defaultMatchType: 'Broad',
+          bidModifiers: { topOfSearch: 0, productPages: 0 },
+        },
       ],
     },
   ];
@@ -152,20 +184,27 @@ describe('KeywordBank', () => {
       const assignButtons = screen.getAllByRole('button', { name: /Assign \(2\)/i });
       fireEvent.click(assignButtons[0]);
 
+      const modalHeading = screen.getByRole('heading', { name: /Assign Keywords/i });
+      const modal = modalHeading.closest('div');
+      expect(modal).not.toBeNull();
+
       // Select campaign
-      const selects = screen.getAllByRole('combobox');
-      const campaignSelect = selects[0];
+      const campaignSelect = within(modal as HTMLElement).getByLabelText(/Campaign/i);
       fireEvent.change(campaignSelect, { target: { value: 'c1' } });
 
       // Select ad group
-      const adGroupSelect = screen.getAllByRole('combobox')[1];
+      const adGroupSelect = within(modal as HTMLElement).getByLabelText(/Ad Group/i);
       fireEvent.change(adGroupSelect, { target: { value: 'ag1' } });
 
       // Confirm
       const confirmBtn = screen.getByRole('button', { name: /^Assign$/i });
       fireEvent.click(confirmBtn);
 
-      expect(mockOnAssignKeywords).toHaveBeenCalledWith('c1', 'ag1', expect.arrayContaining(['wireless headphones', 'gaming mouse']));
+      expect(mockOnAssignKeywords).toHaveBeenCalledWith(
+        'c1',
+        'ag1',
+        expect.arrayContaining(['wireless headphones', 'gaming mouse'])
+      );
     });
   });
 
@@ -174,12 +213,15 @@ describe('KeywordBank', () => {
       renderKB();
       // Find all elements with this text, then get the one that's in a table row
       const elements = screen.getAllByText(/wireless headphones/i);
-      const row = elements.find(el => el.closest('tr'))?.closest('tr');
+      const row = elements.find((el) => el.closest('tr'))?.closest('tr');
       expect(row).toBeDefined();
       expect(row).toHaveAttribute('draggable', 'true');
 
-      const dataTransfer = { setData: vi.fn(), dropEffect: '' };
-      fireEvent.dragStart(row!, { dataTransfer: dataTransfer as any });
+      const dataTransfer = {
+        setData: vi.fn(),
+        dropEffect: '',
+      } as unknown as globalThis.DataTransfer;
+      fireEvent.dragStart(row!, { dataTransfer });
 
       expect(mockOnDragStart).toHaveBeenCalled();
     });
@@ -189,23 +231,18 @@ describe('KeywordBank', () => {
     it('exports keyword CSV when export button is clicked', () => {
       const urlSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:fake');
       const revokeSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
-      
+
       // Mock the anchor click
       let downloadedFile = '';
+      let createdAnchor: globalThis.HTMLAnchorElement | null = null;
       const originalCreateElement = document.createElement.bind(document);
-      const createElSpy = vi.spyOn(document, 'createElement').mockImplementation((tag: any) => {
+      const createElSpy = vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
         if (tag === 'a') {
-          const mockAnchor = {
-            href: '',
-            download: '',
-            click: vi.fn(),
-          } as any;
-          // Capture the download filename
-          Object.defineProperty(mockAnchor, 'download', {
-            get() { return this._download; },
-            set(v) { downloadedFile = v; this._download = v; }
+          createdAnchor = originalCreateElement(tag) as globalThis.HTMLAnchorElement;
+          vi.spyOn(createdAnchor, 'click').mockImplementation(() => {
+            downloadedFile = createdAnchor?.download ?? '';
           });
-          return mockAnchor;
+          return createdAnchor;
         }
         return originalCreateElement(tag);
       });
@@ -215,6 +252,7 @@ describe('KeywordBank', () => {
       fireEvent.click(exportButtons[0]);
 
       // Verify the CSV was created with correct filename
+      expect(createdAnchor).not.toBeNull();
       expect(downloadedFile).toBe('BrandX_keywords.csv');
       expect(urlSpy).toHaveBeenCalled();
 
