@@ -393,7 +393,7 @@ export function detectBroadMatchCannibalization(
       const specificIdentifier = getKeywordIdentifier(specific);
       const specificPerf = performanceLookup.get(specificIdentifier);
 
-      if (!broadPerf || !specificPerf) continue;
+      if (!specificPerf) continue;
 
       // Check if broad match is stealing impressions from more specific match
       if (
