@@ -34,8 +34,9 @@ export const CampaignManager: React.FC<CampaignManagerProps> = ({
       return;
     }
 
-    if (!dailyBudget) {
-      alert('Please enter a daily budget');
+    const budgetValue = parseFloat(dailyBudget);
+    if (!dailyBudget || isNaN(budgetValue) || budgetValue <= 0) {
+      alert('Please enter a valid positive number for daily budget');
       return;
     }
 
