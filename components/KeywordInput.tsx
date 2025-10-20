@@ -23,8 +23,8 @@ interface KeywordInputProps {
 }
 
 export const KeywordInput: React.FC<KeywordInputProps> = ({
-  seedKeyword,
-  setSeedKeyword,
+  seedKeyword: _seedKeyword,
+  setSeedKeyword: _setSeedKeyword,
   onSearch,
   isLoading,
   isBrandActive,
@@ -51,11 +51,17 @@ export const KeywordInput: React.FC<KeywordInputProps> = ({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6 mb-6">
+    <div
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6 mb-6"
+      data-tour="keyword-input"
+    >
       <form onSubmit={handleSubmit}>
         <div className="flex flex-col gap-4">
           <div>
-            <label htmlFor="keyword-input" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label
+              htmlFor="keyword-input"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
               Seed Keyword
             </label>
             <div className="flex flex-col sm:flex-row gap-2">
@@ -64,7 +70,11 @@ export const KeywordInput: React.FC<KeywordInputProps> = ({
                 type="text"
                 value={advancedKeywords}
                 onChange={(e) => setAdvancedKeywords(e.target.value)}
-                placeholder={isBrandActive ? "Enter keyword (e.g., wireless headphones)" : "Create a brand first..."}
+                placeholder={
+                  isBrandActive
+                    ? 'Enter keyword (e.g., wireless headphones)'
+                    : 'Create a brand first...'
+                }
                 disabled={!isBrandActive || isLoading}
                 className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 dark:disabled:bg-gray-700 dark:bg-gray-700 dark:text-white"
               />
@@ -75,9 +85,24 @@ export const KeywordInput: React.FC<KeywordInputProps> = ({
               >
                 {isLoading ? (
                   <span className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <svg
+                      className="animate-spin -ml-1 mr-2 h-5 w-5 text-white"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
                     </svg>
                     Searching...
                   </span>
@@ -94,7 +119,12 @@ export const KeywordInput: React.FC<KeywordInputProps> = ({
             onClick={onToggleAdvancedSearch}
             className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline"
           >
-            <svg className={`w-4 h-4 transition-transform ${isAdvancedSearchOpen ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              className={`w-4 h-4 transition-transform ${isAdvancedSearchOpen ? 'rotate-90' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
             Advanced Options
@@ -104,7 +134,10 @@ export const KeywordInput: React.FC<KeywordInputProps> = ({
           {isAdvancedSearchOpen && (
             <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-4">
               <div>
-                <label htmlFor="asin-input" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label
+                  htmlFor="asin-input"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
                   ASIN (Amazon Product ID)
                 </label>
                 <input
@@ -135,7 +168,10 @@ export const KeywordInput: React.FC<KeywordInputProps> = ({
               </div>
 
               <div>
-                <label htmlFor="brand-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label
+                  htmlFor="brand-name"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
                   Brand Context (optional)
                 </label>
                 <input
@@ -151,7 +187,10 @@ export const KeywordInput: React.FC<KeywordInputProps> = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="min-volume" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label
+                    htmlFor="min-volume"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                  >
                     Min Volume (optional)
                   </label>
                   <input
@@ -165,7 +204,10 @@ export const KeywordInput: React.FC<KeywordInputProps> = ({
                   />
                 </div>
                 <div>
-                  <label htmlFor="max-volume" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label
+                    htmlFor="max-volume"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                  >
                     Max Volume (optional)
                   </label>
                   <input

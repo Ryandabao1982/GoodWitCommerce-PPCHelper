@@ -51,25 +51,19 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5l7 7-7 7"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           )}
           {item.onClick ? (
             <button
               onClick={item.onClick}
               className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              data-tour={index === 1 && activeBrand ? 'brand-selector' : undefined}
             >
               {item.label}
             </button>
           ) : (
-            <span className="font-medium text-gray-900 dark:text-white">
-              {item.label}
-            </span>
+            <span className="font-medium text-gray-900 dark:text-white">{item.label}</span>
           )}
         </React.Fragment>
       ))}

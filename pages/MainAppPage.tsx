@@ -14,6 +14,7 @@ import { BrandCreationModal } from '../components/BrandCreationModal';
 import { ApiKeyPrompt } from '../components/ApiKeyPrompt';
 import { SearchFeedback, SearchSuccessToast } from '../components/SearchFeedback';
 import { KeywordWorkspace } from '../components/views/KeywordWorkspace';
+import { GuidedTour } from '../components/GuidedTour';
 import type { ViewType } from '../components/ViewSwitcher';
 import {
   fetchKeywords,
@@ -21,6 +22,7 @@ import {
   analyzeKeywordsBatch,
 } from '../services/geminiService';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
+import { useTour } from '../hooks/useTour';
 import { settingsStorage } from '../utils/hybridStorage';
 import type { AdvancedSearchSettings } from '../types';
 
@@ -78,6 +80,15 @@ export const MainAppPage: React.FC<MainAppPageProps> = ({
   } = sopManager;
 
   const allBrandKeywords = activeBrandState?.keywordResults || [];
+
+  const { isTourOpen, steps, handleCompleteTour, handleCloseTour } = useTour(
+    () => setIsBrandModalOpen(true),
+    handleGoToSettings,
+    (view: string) => setCurrentView(view as ViewType),
+    hasApiKey,
+    brands.length > 0,
+    allBrandKeywords.length > 0
+  );
 
   useEffect(() => {
     if (isDarkMode) {
@@ -680,6 +691,13 @@ export const MainAppPage: React.FC<MainAppPageProps> = ({
           onDismiss={() => setShowSuccessToast(false)}
         />
       )}
+
+      <GuidedTour
+        steps={steps}
+        isOpen={isTourOpen}
+        onClose={handleCloseTour}
+        onComplete={handleCompleteTour}
+      />
     </>
   );
 };
