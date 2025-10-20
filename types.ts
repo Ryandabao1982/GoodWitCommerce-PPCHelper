@@ -160,6 +160,167 @@ export interface BrandMetadata {
   asins?: string[]; // List of ASINs for this brand
 }
 
+// =============================================================================
+// KEYWORD BANK TOOL TYPES
+// =============================================================================
+
+// Campaign naming convention components
+export type LifecycleStageCode = 'L' | 'O' | 'S' | 'M'; // Launch, Optimize, Scale, Maintain
+export type CampaignType = 'SP' | 'SB' | 'SD'; // Sponsored Products, Brands, Display
+export type CampaignMatchType = 'AUTO' | 'BROAD' | 'PHRASE' | 'EXACT' | 'PT' | 'VIDEO';
+export type CampaignTheme =
+  | 'RESEARCH'
+  | 'PERFORMANCE'
+  | 'BRANDED'
+  | 'COMP'
+  | 'CATEGORY'
+  | 'CROSSSELL'
+  | 'AWARENESS'
+  | 'REMARKETING';
+
+// Keyword intent classification
+export type KeywordIntent = 'Branded' | 'Competitor' | 'Generic' | 'Category';
+
+// Campaign naming convention format: [BRAND]_[COUNTRY]_[STAGE]_[TYPE]_[MATCH]_[THEME]_[YYYYMM]
+export interface CampaignNamingComponents {
+  brand: string;
+  country: string;
+  stage: LifecycleStageCode;
+  type: CampaignType;
+  match: CampaignMatchType;
+  theme: CampaignTheme;
+  dateCode: string; // YYYYMM format
+}
+
+export interface CampaignNamingValidation {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+  components?: CampaignNamingComponents;
+}
+
+// Product/ASIN
+export interface Product {
+  id: string;
+  brandId: string;
+  asin: string;
+  title: string;
+  imageUrl?: string;
+  price?: number;
+  metadata?: Record<string, any>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Naming Rule
+export interface NamingRule {
+  id: string;
+  brandId: string;
+  pattern: string;
+  transforms: Record<string, any>;
+  validationStatus: 'active' | 'inactive';
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Plan status
+export type PlanStatus = 'draft' | 'approved' | 'frozen' | 'exported';
+
+// Plan
+export interface Plan {
+  id: string;
+  brandId: string;
+  name: string;
+  status: PlanStatus;
+  notes?: string;
+  createdBy?: string;
+  approvedBy?: string;
+  createdAt: string;
+  approvedAt?: string;
+  frozenAt?: string;
+  exportedAt?: string;
+  items?: PlanItem[];
+}
+
+// Plan Item
+export interface PlanItem {
+  id: string;
+  planId: string;
+  campaignId?: string;
+  mappingData: Record<string, any>;
+  createdAt: string;
+}
+
+// Audit
+export interface Audit {
+  id: string;
+  entity: string;
+  entityId?: string;
+  action: string;
+  payload: Record<string, any>;
+  userId?: string;
+  createdAt: string;
+}
+
+// Extended Keyword Data with new fields
+export interface KeywordDataExtended extends KeywordData {
+  normalized?: string;
+  lifecycleStage?: LifecycleStageCode;
+  intent?: KeywordIntent;
+  theme?: CampaignTheme;
+  owner?: string;
+}
+
+// Keyword import result
+export interface KeywordImportResult {
+  success: boolean;
+  imported: number;
+  duplicates: number;
+  conflicts: number;
+  errors: string[];
+  keywords: KeywordDataExtended[];
+}
+
+// Deduplication decision
+export type DeduplicationAction = 'keep' | 'merge' | 'redirect';
+
+export interface DuplicateKeyword {
+  id: string;
+  keyword: string;
+  normalized: string;
+  matchType: 'exact' | 'variant' | 'cross-campaign';
+  similarity: number; // 0-1
+  existingKeyword?: KeywordDataExtended;
+}
+
+export interface DeduplicationDecision {
+  keyword: DuplicateKeyword;
+  action: DeduplicationAction;
+  targetId?: string; // For merge/redirect
+}
+
+// Conflict detection
+export interface KeywordConflict {
+  keyword: string;
+  conflictType: 'negative' | 'cannibalization' | 'duplicate';
+  conflictWith: string;
+  campaignId?: string;
+  severity: 'high' | 'medium' | 'low';
+  recommendation: string;
+}
+
+// Mapping recommendation
+export interface MappingRecommendation {
+  keywordId: string;
+  productId: string;
+  campaignId: string;
+  adGroupId?: string;
+  score: number; // 0-100
+  reasons: string[];
+  suggestedBid?: number;
+  suggestedMatchType?: MatchType;
+}
+
 // Brand/Session state
 export interface BrandState {
   keywordResults: KeywordData[];
