@@ -18,7 +18,10 @@ export const ViewSwitcher: React.FC<ViewSwitcherProps> = ({ currentView, onViewC
   ];
 
   return (
-    <div className="flex flex-wrap gap-2 border-b border-gray-200 dark:border-gray-700 pb-4">
+    <div
+      className="flex flex-wrap gap-2 border-b border-gray-200 dark:border-gray-700 pb-4"
+      data-tour="view-switcher"
+    >
       {views.map((view) => (
         <button
           key={view.id}

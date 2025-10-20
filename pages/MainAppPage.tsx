@@ -14,9 +14,15 @@ import { BrandCreationModal } from '../components/BrandCreationModal';
 import { ApiKeyPrompt } from '../components/ApiKeyPrompt';
 import { SearchFeedback, SearchSuccessToast } from '../components/SearchFeedback';
 import { KeywordWorkspace } from '../components/views/KeywordWorkspace';
+import { GuidedTour } from '../components/GuidedTour';
 import type { ViewType } from '../components/ViewSwitcher';
-import { fetchKeywords, fetchKeywordClusters, analyzeKeywordsBatch } from '../services/geminiService';
+import {
+  fetchKeywords,
+  fetchKeywordClusters,
+  analyzeKeywordsBatch,
+} from '../services/geminiService';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
+import { useTour } from '../hooks/useTour';
 import { settingsStorage } from '../utils/hybridStorage';
 import type { AdvancedSearchSettings } from '../types';
 
@@ -55,6 +61,7 @@ export const MainAppPage: React.FC<MainAppPageProps> = ({
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [lastSearchKeyword, setLastSearchKeyword] = useState('');
   const [searchResultCount, setSearchResultCount] = useState(0);
+  const [activeClusterFilter, setActiveClusterFilter] = useState<string[] | null>(null);
 
   const { brands, activeBrand, activeBrandState, brandStates, lastActiveBrand, updateBrandState } =
     brandManager;
@@ -141,9 +148,9 @@ export const MainAppPage: React.FC<MainAppPageProps> = ({
         );
 
         const uniqueNewKeywords = new Map(
-          activeBrandState.keywordResults.map(kw => [kw.keyword.toLowerCase(), kw])
+          activeBrandState.keywordResults.map((kw) => [kw.keyword.toLowerCase(), kw])
         );
-        newKeywords.forEach(kw => {
+        newKeywords.forEach((kw) => {
           if (!uniqueNewKeywords.has(kw.keyword.toLowerCase())) {
             uniqueNewKeywords.set(kw.keyword.toLowerCase(), kw);
           }
@@ -152,9 +159,9 @@ export const MainAppPage: React.FC<MainAppPageProps> = ({
         const newSearchedKeywords = new Set(activeBrandState.searchedKeywords);
         seedKeyword
           .split(/, |\n/)
-          .map(k => k.trim())
+          .map((k) => k.trim())
           .filter(Boolean)
-          .forEach(k => newSearchedKeywords.add(k));
+          .forEach((k) => newSearchedKeywords.add(k));
 
         updateBrandState(activeBrand, {
           keywordResults: Array.from(uniqueNewKeywords.values()),
@@ -189,7 +196,7 @@ export const MainAppPage: React.FC<MainAppPageProps> = ({
   );
 
   const handleToggleSelect = useCallback((keyword: string, isSelected: boolean) => {
-    setSelectedKeywords(prev => {
+    setSelectedKeywords((prev) => {
       const next = new Set(prev);
       if (isSelected) {
         next.add(keyword);
@@ -203,7 +210,7 @@ export const MainAppPage: React.FC<MainAppPageProps> = ({
   const handleToggleSelectAll = useCallback(
     (isSelected: boolean) => {
       if (isSelected && activeBrandState) {
-        setSelectedKeywords(new Set(activeBrandState.keywordResults.map(kw => kw.keyword)));
+        setSelectedKeywords(new Set(activeBrandState.keywordResults.map((kw) => kw.keyword)));
       } else {
         setSelectedKeywords(new Set());
       }
@@ -214,19 +221,19 @@ export const MainAppPage: React.FC<MainAppPageProps> = ({
   const handleDeleteSelected = useCallback(() => {
     if (!activeBrand || !activeBrandState) return;
 
-    const lowerCaseToDelete = new Set(Array.from(selectedKeywords).map(k => k.toLowerCase()));
+    const lowerCaseToDelete = new Set(Array.from(selectedKeywords).map((k) => k.toLowerCase()));
 
-    const updatedCampaigns = activeBrandState.campaigns.map(c => ({
+    const updatedCampaigns = activeBrandState.campaigns.map((c) => ({
       ...c,
-      adGroups: c.adGroups.map(ag => ({
+      adGroups: c.adGroups.map((ag) => ({
         ...ag,
-        keywords: ag.keywords.filter(kw => !lowerCaseToDelete.has(kw.toLowerCase())),
+        keywords: ag.keywords.filter((kw) => !lowerCaseToDelete.has(kw.toLowerCase())),
       })),
     }));
 
     updateBrandState(activeBrand, {
       keywordResults: activeBrandState.keywordResults.filter(
-        kw => !lowerCaseToDelete.has(kw.keyword.toLowerCase())
+        (kw) => !lowerCaseToDelete.has(kw.keyword.toLowerCase())
       ),
       campaigns: updatedCampaigns,
     });
@@ -238,14 +245,14 @@ export const MainAppPage: React.FC<MainAppPageProps> = ({
     if (!activeBrand || !activeBrandState) return;
 
     const lowerCaseToUnassign = new Set(
-      Array.from(selectedKeywords).map(k => (k as string).toLowerCase())
+      Array.from(selectedKeywords).map((k) => (k as string).toLowerCase())
     );
 
-    const newCampaigns = activeBrandState.campaigns.map(c => ({
+    const newCampaigns = activeBrandState.campaigns.map((c) => ({
       ...c,
-      adGroups: c.adGroups.map(ag => ({
+      adGroups: c.adGroups.map((ag) => ({
         ...ag,
-        keywords: ag.keywords.filter(kw => !lowerCaseToUnassign.has(kw.toLowerCase())),
+        keywords: ag.keywords.filter((kw) => !lowerCaseToUnassign.has(kw.toLowerCase())),
       })),
     }));
 
@@ -257,17 +264,17 @@ export const MainAppPage: React.FC<MainAppPageProps> = ({
     (targetCampaignId: string, targetAdGroupId: string, keywordsToAssign: string[]) => {
       if (!activeBrand || !activeBrandState) return;
 
-      const keywordsToAssignLowerCase = new Set(keywordsToAssign.map(k => k.toLowerCase()));
+      const keywordsToAssignLowerCase = new Set(keywordsToAssign.map((k) => k.toLowerCase()));
 
-      const newCampaigns = activeBrandState.campaigns.map(campaign => {
+      const newCampaigns = activeBrandState.campaigns.map((campaign) => {
         const isTargetCampaign = campaign.id === targetCampaignId;
-        const newAdGroups = campaign.adGroups.map(adGroup => {
+        const newAdGroups = campaign.adGroups.map((adGroup) => {
           let updatedKeywords = adGroup.keywords.filter(
-            kw => !keywordsToAssignLowerCase.has(kw.toLowerCase())
+            (kw) => !keywordsToAssignLowerCase.has(kw.toLowerCase())
           );
           if (isTargetCampaign && adGroup.id === targetAdGroupId) {
-            const existingKeywords = new Set(updatedKeywords.map(k => k.toLowerCase()));
-            keywordsToAssign.forEach(kw => {
+            const existingKeywords = new Set(updatedKeywords.map((k) => k.toLowerCase()));
+            keywordsToAssign.forEach((kw) => {
               if (!existingKeywords.has(kw.toLowerCase())) {
                 updatedKeywords.push(kw);
               }
@@ -315,9 +322,9 @@ export const MainAppPage: React.FC<MainAppPageProps> = ({
         const brandName = activeBrandState.advancedSearchSettings.brandName || '';
 
         const existingKeywordsLower = new Set(
-          activeBrandState.keywordResults.map(kw => kw.keyword.toLowerCase())
+          activeBrandState.keywordResults.map((kw) => kw.keyword.toLowerCase())
         );
-        const newKeywords = keywords.filter(kw => !existingKeywordsLower.has(kw.toLowerCase()));
+        const newKeywords = keywords.filter((kw) => !existingKeywordsLower.has(kw.toLowerCase()));
 
         if (newKeywords.length === 0) {
           alert('All keywords already exist in your keyword bank.');
@@ -330,9 +337,9 @@ export const MainAppPage: React.FC<MainAppPageProps> = ({
 
         if (result.successful.length > 0) {
           const uniqueKeywords = new Map(
-            activeBrandState.keywordResults.map(kw => [kw.keyword.toLowerCase(), kw])
+            activeBrandState.keywordResults.map((kw) => [kw.keyword.toLowerCase(), kw])
           );
-          result.successful.forEach(kw => {
+          result.successful.forEach((kw) => {
             if (!uniqueKeywords.has(kw.keyword.toLowerCase())) {
               uniqueKeywords.set(kw.keyword.toLowerCase(), kw);
             }
@@ -442,20 +449,29 @@ export const MainAppPage: React.FC<MainAppPageProps> = ({
     }
   }, [activeBrand, activeBrandState, updateBrandState]);
 
-  const handleToggleDarkMode = () => setIsDarkMode(prev => !prev);
+  const handleClusterClick = useCallback((clusterName: string, keywords: string[]) => {
+    setActiveClusterFilter(keywords);
+    // Switch to bank view to show filtered keywords
+    setCurrentView('bank');
+  }, []);
+
+  const handleClearClusterFilter = useCallback(() => {
+    setActiveClusterFilter(null);
+  }, []);
+
+  const handleToggleDarkMode = () => setIsDarkMode((prev) => !prev);
 
   const handleHistoryItemClick = useCallback(
     (keyword: string) => {
       if (!activeBrand) return;
-      const currentSettings =
-        activeBrandState?.advancedSearchSettings ?? {
-          advancedKeywords: '',
-          minVolume: '',
-          maxVolume: '',
-          isWebAnalysisEnabled: false,
-          brandName: '',
-          asin: '',
-        };
+      const currentSettings = activeBrandState?.advancedSearchSettings ?? {
+        advancedKeywords: '',
+        minVolume: '',
+        maxVolume: '',
+        isWebAnalysisEnabled: false,
+        brandName: '',
+        asin: '',
+      };
 
       handleAdvancedSettingsChange({
         ...currentSettings,
@@ -464,7 +480,12 @@ export const MainAppPage: React.FC<MainAppPageProps> = ({
       });
       void handleSearch(keyword);
     },
-    [activeBrand, activeBrandState?.advancedSearchSettings, handleAdvancedSettingsChange, handleSearch]
+    [
+      activeBrand,
+      activeBrandState?.advancedSearchSettings,
+      handleAdvancedSettingsChange,
+      handleSearch,
+    ]
   );
 
   const handleApiSettingsChange = (settings: Partial<ApiSettings>) => {
@@ -485,6 +506,15 @@ export const MainAppPage: React.FC<MainAppPageProps> = ({
     setHasSeenQuickStart(true);
   };
 
+  const { isTourOpen, steps, handleCompleteTour, handleCloseTour } = useTour(
+    () => setIsBrandModalOpen(true),
+    handleGoToSettings,
+    (view: string) => setCurrentView(view as ViewType),
+    hasApiKey,
+    brands.length > 0,
+    allBrandKeywords.length > 0
+  );
+
   const handleApiKeySave = (apiKey: string) => {
     saveApiSettings({ geminiApiKey: apiKey });
     setIsApiKeyPromptOpen(false);
@@ -498,7 +528,9 @@ export const MainAppPage: React.FC<MainAppPageProps> = ({
     onViewChange: setCurrentView,
     onCreateBrand: () => setIsBrandModalOpen(true),
     onSearch: () => {
-      const searchInput = document.querySelector('input[placeholder*="keyword"]') as HTMLInputElement;
+      const searchInput = document.querySelector(
+        'input[placeholder*="keyword"]'
+      ) as HTMLInputElement;
       if (searchInput) searchInput.focus();
     },
   });
@@ -555,22 +587,22 @@ export const MainAppPage: React.FC<MainAppPageProps> = ({
         ) : currentView === 'sop' && activeBrand ? (
           <SOPLibrary
             sops={sops}
-            onAddSOP={async sopData => {
+            onAddSOP={async (sopData) => {
               await addSOP(activeBrand, sopData);
             }}
             onUpdateSOP={async (id, updates) => {
               await updateSOP(activeBrand, id, updates);
             }}
-            onDeleteSOP={async id => {
+            onDeleteSOP={async (id) => {
               await deleteSOP(activeBrand, id);
             }}
-            onToggleFavorite={async id => {
+            onToggleFavorite={async (id) => {
               await toggleFavorite(activeBrand, id);
             }}
-            onSOPView={async id => {
+            onSOPView={async (id) => {
               await recordView(activeBrand, id);
             }}
-            onAISearch={async query => {
+            onAISearch={async (query) => {
               return aiSearch(query, sops);
             }}
             onAIRecommend={async () => {
@@ -580,7 +612,7 @@ export const MainAppPage: React.FC<MainAppPageProps> = ({
                 activeBrand,
               });
             }}
-            onTrackView={async id => {
+            onTrackView={async (id) => {
               await recordViewAnalytics(activeBrand, id);
             }}
           />
@@ -588,7 +620,7 @@ export const MainAppPage: React.FC<MainAppPageProps> = ({
           <BrandTab
             brandState={activeBrandState}
             activeBrand={activeBrand}
-            onUpdateBrandState={updates => updateBrandState(activeBrand, updates)}
+            onUpdateBrandState={(updates) => updateBrandState(activeBrand, updates)}
           />
         ) : (
           <KeywordWorkspace
@@ -607,6 +639,7 @@ export const MainAppPage: React.FC<MainAppPageProps> = ({
             isAnalyzingManualKeywords={isAnalyzingManualKeywords}
             shouldShowQuickStart={shouldShowQuickStart}
             hasApiKey={hasApiKey}
+            activeClusterFilter={activeClusterFilter}
             onCreateBrand={() => setIsBrandModalOpen(true)}
             onGoToSettings={handleGoToSettings}
             onAdvancedSettingsChange={handleAdvancedSettingsChange}
@@ -624,7 +657,11 @@ export const MainAppPage: React.FC<MainAppPageProps> = ({
             onClusterKeywords={handleClusterKeywords}
             onSelectBrand={handleSelectBrand}
             onCreateBrandFromDashboard={() => setIsBrandModalOpen(true)}
-            onClearClusters={() => activeBrand && updateBrandState(activeBrand, { keywordClusters: null })}
+            onClearClusters={() =>
+              activeBrand && updateBrandState(activeBrand, { keywordClusters: null })
+            }
+            onClusterClick={handleClusterClick}
+            onClearClusterFilter={handleClearClusterFilter}
           />
         )}
       </AppLayout>
@@ -654,6 +691,13 @@ export const MainAppPage: React.FC<MainAppPageProps> = ({
           onDismiss={() => setShowSuccessToast(false)}
         />
       )}
+
+      <GuidedTour
+        steps={steps}
+        isOpen={isTourOpen}
+        onClose={handleCloseTour}
+        onComplete={handleCompleteTour}
+      />
     </>
   );
 };
