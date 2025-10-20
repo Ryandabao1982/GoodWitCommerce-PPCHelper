@@ -46,12 +46,14 @@
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/Ryandabao1982/GoodWitCommerce-PPCHelper.git
    cd GoodWitCommerce-PPCHelper
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
@@ -71,6 +73,7 @@
    - See [Database Setup Guide](supabase/README.md) for detailed instructions
 
 4. **Start the development server**
+
    ```bash
    npm run dev
    ```
@@ -121,12 +124,14 @@ The application includes an interactive Quick Start Guide that appears automatic
 ### 🎯 Smart Onboarding
 
 **Quick Start Guide** - Interactive 3-step guide for first-time users
+
 - Visual progress tracking showing completion status
 - Contextual action buttons for each step
 - Automatically dismisses after first successful search
 - Can be revisited anytime from Settings
 
 **API Key Prompt** - Just-in-time setup assistant
+
 - Appears when you try to search without an API key
 - Step-by-step instructions with direct link to get a free key
 - Clear explanation of why it's needed
@@ -136,27 +141,32 @@ The application includes an interactive Quick Start Guide that appears automatic
 ### 🏢 Brand Management
 
 Organize your keyword research by creating separate brand workspaces. Each brand maintains its own:
+
 - Keyword bank
 - Search history
 - Campaign structures
 - Analytics data
 
 **User Stories:**
-- *As a PPC manager, I want to create separate brands for each client to keep work isolated*
-- *As a seller, I want to switch between brands to manage different product lines*
+
+- _As a PPC manager, I want to create separate brands for each client to keep work isolated_
+- _As a seller, I want to switch between brands to manage different product lines_
 
 ### 🔎 Keyword Research Engine
 
 #### Simple Search
+
 Enter a single seed keyword to generate a comprehensive list of related keywords with detailed metrics.
 
 #### Advanced Search
+
 - **Multi-keyword input** - Research multiple seeds simultaneously
 - **Volume filters** - Focus on high-volume opportunities
 - **Brand context** - Generate branded keyword variations
 - **Web analysis** - Ground results in real-time Google Search data
 
 #### Manual Keyword Entry (NEW!)
+
 - **Add your own keywords** - Manually enter up to 50 keywords at once
 - **AI Analysis** - Each keyword is automatically analyzed by AI for metrics
 - **Batch Processing** - Keywords are processed with rate limiting for API safety
@@ -164,6 +174,7 @@ Enter a single seed keyword to generate a comprehensive list of related keywords
 - **Seamless Integration** - Manual keywords are added to your keyword bank with full AI analysis
 
 **Data Points for Each Keyword:**
+
 - **Keyword** - The keyword phrase
 - **Source** - AI or Web-derived
 - **Type** - Broad, Phrase, Exact, or Long-tail
@@ -175,13 +186,17 @@ Enter a single seed keyword to generate a comprehensive list of related keywords
 ### 🤖 AI-Powered Insights
 
 #### Related Ideas
+
 Discover alternative search angles and expand your keyword universe with AI-suggested research directions.
 
 #### Keyword Clustering
+
 Automatically group keywords by theme and user intent for strategic organization.
 
 #### Keyword Deep Dive
+
 Get in-depth analysis for individual keywords including:
+
 - Suggested ad copy angles
 - Recommended bid strategies
 - Potential negative keywords
@@ -189,17 +204,22 @@ Get in-depth analysis for individual keywords including:
 ### 📊 Campaign Planning & Management
 
 #### Expert Campaign Templates
+
 Choose from 15+ pre-configured campaign structures based on Amazon PPC taxonomy:
+
 - **Sponsored Products** - Auto, Manual Broad, Exact Match, Branded Defense
 - **Sponsored Brands** - Video Awareness, Headline Search
 - **Sponsored Display** - Remarketing, Audience Targeting
 
 #### Unified Workspace
+
 Two-column layout combining:
+
 - **Campaign Manager** (left) - Build and organize campaign hierarchy
 - **Keyword Bank** (right) - View and assign keywords to ad groups
 
 #### Bulk Operations
+
 - Assign keywords to campaigns/ad groups in bulk
 - Delete multiple keywords simultaneously
 - Manage ad group structures efficiently
@@ -207,10 +227,13 @@ Two-column layout combining:
 ### 💾 Data Management & Export
 
 #### Export Keyword Bank
+
 Download your complete keyword library with all metrics and campaign assignments.
 
 #### Export Campaign Plan
+
 Generate Amazon-compatible CSV files for bulk upload:
+
 - Campaign Name
 - Ad Group Name
 - Keyword Text
@@ -281,6 +304,7 @@ Generate Amazon-compatible CSV files for bulk upload:
 The application supports two storage modes with seamless switching:
 
 **1. Local Storage (Default - No Sign In)**
+
 - Data stored in browser `localStorage`
 - No authentication required
 - Works offline
@@ -288,6 +312,7 @@ The application supports two storage modes with seamless switching:
 - Fast and private
 
 **2. Cloud Database (Sign In with Supabase)**
+
 - Persistent cloud storage with PostgreSQL
 - Multi-device synchronization
 - User authentication and authorization
@@ -296,12 +321,14 @@ The application supports two storage modes with seamless switching:
 - See [Supabase Migration Guide](docs/SUPABASE_MIGRATION_GUIDE.md) for details
 
 **Hybrid Storage Pattern:**
+
 - When signed in: Database-first with localStorage cache
 - When not signed in: localStorage only
 - Automatic fallback if connection lost
 - No data loss when switching modes
 
 Both modes store:
+
 - Brand configurations
 - Keyword banks and search history
 - Campaign structures and ad groups
@@ -309,6 +336,7 @@ Both modes store:
 - Keyword clusters and analytics
 
 **Getting Started with Cloud Sync:**
+
 1. Click "Sign In" button in the header
 2. Create a free account or sign in
 3. Your data automatically syncs to the cloud
@@ -342,6 +370,7 @@ npm run test:coverage     # Generate coverage report
 ### Development Workflow
 
 Following the **AI Vibe Coder Protocol v3.0**, this project maintains:
+
 - Atomic, versioned changes
 - Comprehensive documentation
 - Quality gates and metrics tracking
@@ -360,20 +389,52 @@ Following the **AI Vibe Coder Protocol v3.0**, this project maintains:
 The application includes a comprehensive test suite with 111 tests covering utilities, services, and components. See [TEST_README.md](./TEST_README.md) for detailed test documentation.
 
 **Test Coverage:**
+
 - Utilities: 93.54% (storage, sorting)
 - Services: 91.54% (geminiService)
 - Components: 100% (LoadingSpinner, ErrorMessage, WelcomeMessage, QuickStartGuide, ApiKeyPrompt)
 
 **Quick Start:**
+
 ```bash
 npm test              # Run tests in watch mode
 npm run test:run      # Run tests once
 npm run test:coverage # Generate coverage report
 ```
 
+### Developer Experience (DX) Tools
+
+This project uses modern development tools to ensure code quality and consistency:
+
+**Linting & Formatting:**
+
+```bash
+npm run lint          # Check for code issues
+npm run lint:fix      # Auto-fix linting issues
+npm run format        # Format all files with Prettier
+npm run format:check  # Check formatting without changes
+```
+
+**Git Hooks:**
+
+- Pre-commit hooks automatically run linting and formatting on staged files
+- Powered by Husky and lint-staged for fast, focused checks
+
+**Release Management:**
+
+```bash
+npm run release        # Create a new release (auto-detects version bump)
+npm run release:patch  # Bump patch version (0.0.x)
+npm run release:minor  # Bump minor version (0.x.0)
+npm run release:major  # Bump major version (x.0.0)
+```
+
+Releases use [standard-version](https://github.com/conventional-changelog/standard-version) with conventional commits to automatically generate changelogs.
+
 ### User Flow Documentation
 
 See [USER_FLOW.md](./USER_FLOW.md) for comprehensive documentation of:
+
 - First-time user experience and onboarding
 - Returning user workflows
 - UX principles and design decisions
@@ -383,12 +444,14 @@ See [USER_FLOW.md](./USER_FLOW.md) for comprehensive documentation of:
 ### UI/UX Analysis & Implementation
 
 See [USER_PATH_SIMULATION.md](./USER_PATH_SIMULATION.md) for detailed user journey analysis:
+
 - Complete user path simulations from root
 - Identified UX friction points
 - Prioritized improvement recommendations
 - Visual mockups and examples
 
 See [UI_UX_IMPLEMENTATION.md](./UI_UX_IMPLEMENTATION.md) for technical implementation guide:
+
 - EmptyState component documentation
 - SearchFeedback component usage
 - Integration guidelines and examples
@@ -408,29 +471,35 @@ See [UI_UX_IMPLEMENTATION.md](./UI_UX_IMPLEMENTATION.md) for technical implement
 Comprehensive technical documentation has been organized in the `/docs` directory:
 
 **Product & Planning:**
+
 - [PRO.md](./docs/PRO.md) - Product Requirements Document
 - [PLAN.md](./docs/PLAN.md) - Development Roadmap
 - [PROTOCOL.md](./docs/PROTOCOL.md) - Development Framework
 
 **Implementation Guides:**
+
 - [DATABASE_IMPLEMENTATION.md](./docs/DATABASE_IMPLEMENTATION.md) - Database setup and configuration
 - [IMPLEMENTATION_SUMMARY.md](./docs/IMPLEMENTATION_SUMMARY.md) - Feature implementation summary
 - [UI_UX_IMPLEMENTATION.md](./docs/UI_UX_IMPLEMENTATION.md) - UI/UX implementation guide
 
 **Security & Architecture:**
+
 - [SECURITY.md](./docs/SECURITY.md) - Security and privacy policy
 - [ARCHITECTURE.md](./docs/ARCHITECTURE.md) - Technical architecture and data flow
 - [AUDIT_IMPLEMENTATION.md](./docs/AUDIT_IMPLEMENTATION.md) - Repository audit implementation summary
 
 **User Experience:**
+
 - [USER_FLOW.md](./docs/USER_FLOW.md) - User journey documentation
 - [USER_PATH_SIMULATION.md](./docs/USER_PATH_SIMULATION.md) - User path analysis
 
 **Testing & Quality:**
+
 - [TEST_README.md](./docs/TEST_README.md) - Testing documentation
 - [TEST_COVERAGE_SUMMARY.md](./docs/TEST_COVERAGE_SUMMARY.md) - Test coverage report
 
 **Project Management:**
+
 - [BUILD_LOG.md](./docs/BUILD_LOG.md) - Technical build log
 - [METRICS.md](./docs/METRICS.md) - Project health metrics
 
@@ -449,6 +518,7 @@ Comprehensive technical documentation has been organized in the `/docs` director
 ### 🔄 In Progress (v1.4)
 
 **Sprint 4: Visualization & Usability**
+
 - ✅ Export Campaign Plan
 - ⏳ Data Visualization for Keyword Clusters
 - ⏳ User Onboarding & Guided Tour
@@ -457,11 +527,13 @@ Comprehensive technical documentation has been organized in the `/docs` director
 ### 📋 Planned (v2.0+)
 
 **Sprint 5: Advanced Features & Integrations**
+
 - ⏳ Negative Keyword Management
 - ⏳ Performance Metrics Integration (Amazon Advertising API)
 - ⏳ AI-Powered Bid Suggestions
 
 **Sprint 7: Backend Infrastructure & Database** (Planning Phase)
+
 - ✅ Backend Architecture Planning & Documentation
 - ⏳ Backend MVP Implementation (Supabase + PostgreSQL)
 - ⏳ Core API Development (RESTful endpoints)
@@ -510,6 +582,7 @@ This project is proprietary software. All rights reserved.
 ## 📞 Support
 
 For issues, questions, or feature requests:
+
 - Review existing documentation in [docs/PRO.md](./docs/PRO.md) and [docs/PLAN.md](./docs/PLAN.md)
 - Check [docs/BUILD_LOG.md](./docs/BUILD_LOG.md) for known issues and solutions
 - Open an issue on GitHub with detailed context
