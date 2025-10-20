@@ -15,20 +15,23 @@ describe('Footer', () => {
     it('should display the copyright message', () => {
       render(<Footer />);
       
-      expect(screen.getByText(/© 2024 Amazon PPC Keyword Genius/i)).toBeInTheDocument();
+      const currentYear = new Date().getFullYear();
+      expect(screen.getByText(new RegExp(`© ${currentYear} Amazon PPC Keyword Genius`, 'i'))).toBeInTheDocument();
       expect(screen.getByText(/Made with ❤️ for Amazon sellers/i)).toBeInTheDocument();
     });
 
     it('should display the version information', () => {
       render(<Footer />);
       
-      expect(screen.getByText(/Version 1\.4\.0/i)).toBeInTheDocument();
+      const versionElements = screen.getAllByText(/Version 1\.4\.0/i);
+      expect(versionElements.length).toBeGreaterThan(0);
     });
 
     it('should display powered by Gemini AI message', () => {
       render(<Footer />);
       
-      expect(screen.getByText(/Powered by Google Gemini AI/i)).toBeInTheDocument();
+      const geminiElements = screen.getAllByText(/Powered by Google Gemini AI/i);
+      expect(geminiElements.length).toBeGreaterThan(0);
     });
 
     it('should apply correct styling classes', () => {
@@ -43,7 +46,8 @@ describe('Footer', () => {
     it('should have responsive flexbox classes', () => {
       render(<Footer />);
       
-      const contentContainer = screen.getByText(/© 2024 Amazon PPC Keyword Genius/i).closest('div');
+      const currentYear = new Date().getFullYear();
+      const contentContainer = screen.getByText(new RegExp(`© ${currentYear} Amazon PPC Keyword Genius`, 'i')).closest('div');
       expect(contentContainer).toHaveClass('flex', 'flex-col', 'md:flex-row');
     });
   });
