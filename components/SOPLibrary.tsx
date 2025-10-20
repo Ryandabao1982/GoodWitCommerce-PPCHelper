@@ -874,6 +874,7 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
           <div className="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full my-2 sm:my-4 max-h-[95vh] sm:max-h-[90vh] flex flex-col">
             <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
               <div className="flex justify-between items-start gap-4">
+                {/* min-w-0 prevents this flex item from overflowing its container when text is too long; works with break-words on the heading below */}
                 <div className="flex-1 min-w-0">
                   <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-2 break-words">
                     {selectedSOP.title}
