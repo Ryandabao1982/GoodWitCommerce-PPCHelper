@@ -386,13 +386,14 @@ Following the **AI Vibe Coder Protocol v3.0**, this project maintains:
 
 ### Testing
 
-The application includes a comprehensive test suite with 111 tests covering utilities, services, and components. See [TEST_README.md](./TEST_README.md) for detailed test documentation.
+The application includes a comprehensive test suite with 524 tests covering utilities, services, components, and complete user path simulations. See [TEST_README.md](./TEST_README.md) for detailed test documentation.
 
 **Test Coverage:**
 
 - Utilities: 93.54% (storage, sorting)
 - Services: 91.54% (geminiService)
 - Components: 100% (LoadingSpinner, ErrorMessage, WelcomeMessage, QuickStartGuide, ApiKeyPrompt)
+- **User Path Simulations**: 10 comprehensive end-to-end tests tracing complete user journeys
 
 **Quick Start:**
 
@@ -400,7 +401,24 @@ The application includes a comprehensive test suite with 111 tests covering util
 npm test              # Run tests in watch mode
 npm run test:run      # Run tests once
 npm run test:coverage # Generate coverage report
+
+# Run user path simulation tests
+npm run test:run __tests__/e2e/userPath.simulation.test.tsx
+./scripts/run-user-path-tests.sh  # Dedicated script with detailed output
 ```
+
+**User Path Testing:**
+
+User path tests simulate complete user journeys from root, including:
+
+- First-time user onboarding flow
+- Keyword research workflow
+- View navigation and state persistence
+- Multi-brand workflow and data isolation
+- Error handling and edge cases
+- Function tracing during user interactions
+
+See [USER_PATH_TESTING.md](./docs/USER_PATH_TESTING.md) for detailed documentation.
 
 ### Developer Experience (DX) Tools
 
