@@ -460,9 +460,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer">
           <div className="text-sm text-gray-600 dark:text-gray-400">Avg Relevance</div>
-          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">{stats.avgRelevance}/10</div>
+          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">{stats.avgRelevance.toFixed(1)}/10</div>
           <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            {parseFloat(stats.avgRelevance) >= 7 ? '✓ Excellent' : parseFloat(stats.avgRelevance) >= 5 ? '◐ Good' : '⚠ Needs work'}
+            {stats.avgRelevance >= 7 ? '✓ Excellent' : stats.avgRelevance >= 5 ? '◐ Good' : '⚠ Needs work'}
           </div>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer">
