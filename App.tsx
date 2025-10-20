@@ -18,6 +18,7 @@ import { ViewSwitcher } from './components/ViewSwitcher';
 import type { ViewType } from './components/ViewSwitcher';
 import { CampaignManager } from './components/CampaignManager';
 import { parseSearchVolume } from './utils/sorting';
+import { splitSeedKeywords } from './utils/keywordParsing';
 import { KeywordBank } from './components/KeywordBank';
 import { WelcomeMessage } from './components/WelcomeMessage';
 import { Settings } from './components/Settings';
@@ -252,7 +253,7 @@ const App: React.FC = () => {
       });
       
       const newSearchedKeywords = new Set(activeBrandState.searchedKeywords);
-      seedKeyword.split(/, |\n/).map(k => k.trim()).filter(Boolean).forEach(k => newSearchedKeywords.add(k));
+      splitSeedKeywords(seedKeyword).forEach(k => newSearchedKeywords.add(k));
 
       updateBrandState(activeBrand, {
         keywordResults: Array.from(uniqueNewKeywords.values()),
