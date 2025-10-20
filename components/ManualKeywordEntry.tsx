@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { splitSeedKeywords } from '../utils/keywordParsing';
 
 interface ManualKeywordEntryProps {
   onAddKeywords: (keywords: string[]) => void;
@@ -22,10 +23,8 @@ export const ManualKeywordEntry: React.FC<ManualKeywordEntryProps> = ({
     }
 
     // Parse keywords - split by newline or comma
-    const keywords = keywordInput
-      .split(/[\n,]/)
-      .map(k => k.trim())
-      .filter(k => k.length > 0 && k.length <= 200);
+    const keywords = splitSeedKeywords(keywordInput)
+      .filter(k => k.length <= 200);
 
     if (keywords.length === 0) {
       alert('Please enter at least one valid keyword (max 200 characters each)');

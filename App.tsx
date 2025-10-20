@@ -1,3 +1,13 @@
+import React from 'react';
+import { useBrandManager } from './src/hooks/useBrandManager';
+import { useApiSettings } from './src/hooks/useApiSettings';
+import { useSOPManager } from './src/hooks/useSOPManager';
+import { MainAppPage } from './pages/MainAppPage';
+
+const App: React.FC = () => {
+  const brandManager = useBrandManager();
+  const apiSettingsManager = useApiSettings();
+  const sopManager = useSOPManager(brandManager.activeBrand);
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
@@ -23,6 +33,7 @@ import { ViewSwitcher } from './components/ViewSwitcher';
 import type { ViewType } from './components/ViewSwitcher';
 import { CampaignManager } from './components/CampaignManager';
 import { parseSearchVolume } from './utils/sorting';
+import { splitSeedKeywords } from './utils/keywordParsing';
 import { KeywordBank } from './components/KeywordBank';
 import { WelcomeMessage } from './components/WelcomeMessage';
 import { Settings } from './components/Settings';
@@ -89,6 +100,12 @@ const App: React.FC = () => {
   const [lastSearchKeyword, setLastSearchKeyword] = useState('');
   const [searchResultCount, setSearchResultCount] = useState(0);
 
+  const [quickStartStep, setQuickStartStep] = useState<number>(() => {
+    const storedApiKey = loadFromLocalStorage<string>('ppcGeniusApiSettings.geminiApiKey', '');
+    return storedApiKey?.trim() ? 1 : 0;
+  });
+  const [hasSkippedApiStep, setHasSkippedApiStep] = useState(false);
+
   const [selectedKeywords, setSelectedKeywords] = useState<Set<string>>(new Set());
 
   // SOP update trigger to force re-renders
@@ -135,6 +152,7 @@ const App: React.FC = () => {
     },
     []
   );
+  const hasApiKey = Boolean(apiSettings.geminiApiKey?.trim());
 
   // Load from hybrid storage on initial render
   useEffect(() => {
@@ -160,6 +178,17 @@ const App: React.FC = () => {
           {}
         );
         applyLoadedData(fallbackBrands, fallbackActiveBrand, fallbackBrandStates);
+        setBrands(loadedBrands);
+        setActiveBrand(loadedActiveBrand);
+        setBrandStates(loadedBrandStates);
+      } catch (error) {
+        console.error('Error loading data:', error);
+        // Fall back to localStorage directly if hybrid storage fails
+        setBrands(loadFromLocalStorage<string[]>('ppcGeniusBrands', []));
+        setActiveBrand(loadFromLocalStorage<string | null>('ppcGeniusActiveBrand', null));
+        setBrandStates(
+          loadFromLocalStorage<Record<string, BrandState>>('ppcGeniusBrandStates', {})
+        );
       }
     };
     loadData();
@@ -196,6 +225,7 @@ const App: React.FC = () => {
     };
     saveData();
   }, [brands, activeBrand, brandStates, currentView, isDarkMode, hasSeenQuickStart]);
+  }, [brands, activeBrand, brandStates, isDarkMode, hasSeenQuickStart]);
 
   // Handle dark mode class on html element
   useEffect(() => {
@@ -287,6 +317,23 @@ const App: React.FC = () => {
 
       const searchSettings = activeBrandState.advancedSearchSettings;
       const seedKeyword = searchOverride ?? searchSettings.advancedKeywords;
+    try {
+      const [newKeywords, related] = await fetchKeywords(
+        seedKeyword,
+        searchSettings.isWebAnalysisEnabled,
+        searchSettings.brandName,
+        searchSettings.asin || ''
+      );
+      
+      const uniqueNewKeywords = new Map(activeBrandState.keywordResults.map(kw => [kw.keyword.toLowerCase(), kw]));
+      newKeywords.forEach(kw => {
+        if (!uniqueNewKeywords.has(kw.keyword.toLowerCase())) {
+          uniqueNewKeywords.set(kw.keyword.toLowerCase(), kw);
+        }
+      });
+      
+      const newSearchedKeywords = new Set(activeBrandState.searchedKeywords);
+      splitSeedKeywords(seedKeyword).forEach(k => newSearchedKeywords.add(k));
 
       if (!seedKeyword.trim()) {
         setError('Please enter at least one seed keyword.');
@@ -594,6 +641,11 @@ const App: React.FC = () => {
       }));
       setActiveBrand(brandName);
       setIsBrandModalOpen(false);
+      if (!hasSeenQuickStart && (hasApiKey || hasSkippedApiStep)) {
+        setHasSeenQuickStart(true);
+        setHasSkippedApiStep(false);
+        setQuickStartStep(3); // Advance to completion step when guide is dismissed
+      }
       return true;
     } catch (error) {
       console.error('Error creating brand:', error);
@@ -691,10 +743,12 @@ const App: React.FC = () => {
     setApiSettings((prev) => ({ ...prev, ...settings }));
   };
 
-  const handleSaveApiSettings = () => {
-    saveToLocalStorage('ppcGeniusApiSettings.geminiApiKey', apiSettings.geminiApiKey);
-    saveToLocalStorage('ppcGeniusApiSettings.supabaseUrl', apiSettings.supabaseUrl);
-    saveToLocalStorage('ppcGeniusApiSettings.supabaseAnonKey', apiSettings.supabaseAnonKey);
+  const handleSaveApiSettings = (nextSettings: ApiSettings) => {
+    setApiSettings(nextSettings);
+
+    saveToLocalStorage('ppcGeniusApiSettings.geminiApiKey', nextSettings.geminiApiKey);
+    saveToLocalStorage('ppcGeniusApiSettings.supabaseUrl', nextSettings.supabaseUrl);
+    saveToLocalStorage('ppcGeniusApiSettings.supabaseAnonKey', nextSettings.supabaseAnonKey);
     // Reinitialize services with new settings
     reinitializeGeminiService();
     reinitializeSOPService();
@@ -702,6 +756,14 @@ const App: React.FC = () => {
 
     // Close API key prompt if it was open
     setIsApiKeyPromptOpen(false);
+
+    if (!hasSeenQuickStart) {
+      setHasSeenQuickStart(true);
+      setHasSkippedApiStep(false);
+      if (!quickStartStep || quickStartStep < 1) {
+        setQuickStartStep(1);
+      }
+    }
   };
 
   const handleResetApiSettings = () => {
@@ -721,21 +783,45 @@ const App: React.FC = () => {
   };
 
   const allBrandKeywords = activeBrandState?.keywordResults || [];
-  const hasApiKey = !!apiSettings.geminiApiKey;
-  const shouldShowQuickStart = !hasSeenQuickStart && (!hasApiKey || brands.length === 0);
+  const hasBrand = brands.length > 0;
+  const shouldShowQuickStart =
+    !hasSeenQuickStart && ((!hasApiKey && !hasSkippedApiStep) || brands.length === 0);
+  const canDismissQuickStart = hasApiKey || (hasSkippedApiStep && hasBrand);
 
   const handleDismissQuickStart = () => {
     setHasSeenQuickStart(true);
+    setHasSkippedApiStep(false);
+    if (hasApiKey && hasBrand) {
+      setQuickStartStep(STEP_TITLES.length);
+    } else {
+      setQuickStartStep(hasApiKey ? 1 : 0);
+    }
   };
 
   const handleGoToSettings = () => {
     setCurrentView('settings');
-    handleDismissQuickStart();
   };
 
   const handleApiKeySave = (apiKey: string) => {
-    handleApiSettingsChange({ geminiApiKey: apiKey });
-    handleSaveApiSettings();
+    const nextSettings = {
+      ...apiSettings,
+      geminiApiKey: apiKey,
+    };
+
+    handleSaveApiSettings(nextSettings);
+  };
+
+  const handleSkipApiStep = () => {
+    setHasSkippedApiStep(true);
+    setQuickStartStep(1);
+  };
+
+  const handleContinueToBrandStep = () => {
+    setQuickStartStep(1);
+  };
+
+  const handleBackToApiStep = () => {
+    setQuickStartStep(0);
   };
 
   // Keyboard shortcuts
@@ -744,6 +830,31 @@ const App: React.FC = () => {
     async (user: any) => {
       const context = user ? 'sign in' : 'sign out';
 
+  const handleAuthChange = useCallback(async (user: any) => {
+    if (user) {
+      // User signed in - reload all data from database
+      try {
+        const [loadedBrands, loadedActiveBrand, loadedBrandStates] = await Promise.all([
+          brandStorage.list(),
+          brandStorage.getActive(),
+          brandStateStorage.getAll(),
+        ]);
+
+        setBrands(loadedBrands);
+        setActiveBrand(loadedActiveBrand);
+        setBrandStates(loadedBrandStates);
+
+        // Reload SOPs if there's an active brand
+        if (loadedActiveBrand) {
+          const sops = await getSOPsForBrand(loadedActiveBrand);
+          setActiveBrandSOPs(sops);
+        }
+      } catch (error) {
+        console.error('Error reloading data after sign in:', error);
+      }
+    } else {
+      // User signed out - data will fall back to localStorage automatically
+      // Reload data from localStorage
       try {
         const [loadedBrands, loadedActiveBrand, loadedBrandStates] = await Promise.all([
           brandStorage.list(),
@@ -759,6 +870,13 @@ const App: React.FC = () => {
 
         if (resolvedActiveBrand) {
           const sops = await getSOPsForBrand(resolvedActiveBrand);
+        setBrands(loadedBrands);
+        setActiveBrand(loadedActiveBrand);
+        setBrandStates(loadedBrandStates);
+
+        // Reload SOPs if there's an active brand
+        if (loadedActiveBrand) {
+          const sops = await getSOPsForBrand(loadedActiveBrand);
           setActiveBrandSOPs(sops);
         } else {
           setActiveBrandSOPs([]);
@@ -902,10 +1020,17 @@ const App: React.FC = () => {
               {/* Quick Start Guide for new users */}
               {shouldShowQuickStart && !isLoading && (
                 <QuickStartGuide
-                  onCreateBrand={() => setIsBrandModalOpen(true)}
-                  onGoToSettings={handleGoToSettings}
+                  step={quickStartStep}
                   hasApiKey={hasApiKey}
-                  hasBrand={brands.length > 0}
+                  hasBrand={hasBrand}
+                  hasSkippedApiStep={hasSkippedApiStep}
+                  onConfigureApiKey={handleGoToSettings}
+                  onContinue={handleContinueToBrandStep}
+                  onSkip={handleSkipApiStep}
+                  onCreateBrand={() => setIsBrandModalOpen(true)}
+                  onBack={quickStartStep > 0 ? handleBackToApiStep : undefined}
+                  onClose={handleDismissQuickStart}
+                  canClose={canDismissQuickStart}
                 />
               )}
 
@@ -1143,6 +1268,11 @@ const App: React.FC = () => {
       {/* Bottom Navigation for Mobile */}
       {activeBrand && <BottomNavigation currentView={currentView} onViewChange={setCurrentView} />}
     </div>
+    <MainAppPage
+      brandManager={brandManager}
+      apiSettingsManager={apiSettingsManager}
+      sopManager={sopManager}
+    />
   );
 };
 

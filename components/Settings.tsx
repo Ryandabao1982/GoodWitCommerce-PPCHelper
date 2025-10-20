@@ -4,7 +4,7 @@ import { ApiSettings } from '../types';
 interface SettingsProps {
   apiSettings: ApiSettings;
   onApiSettingsChange: (settings: Partial<ApiSettings>) => void;
-  onSaveSettings: () => void;
+  onSaveSettings: (settings: ApiSettings) => void;
   onResetSettings: () => void;
 }
 
@@ -19,7 +19,7 @@ export const Settings: React.FC<SettingsProps> = ({
   const [isSaved, setIsSaved] = useState(false);
 
   const handleSave = () => {
-    onSaveSettings();
+    onSaveSettings(apiSettings);
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 2000);
   };
