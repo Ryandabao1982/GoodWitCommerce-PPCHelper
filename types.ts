@@ -1,12 +1,18 @@
 export type KeywordType = 'Broad' | 'Phrase' | 'Exact' | 'Long-tail';
 export type MatchType = 'Broad' | 'Phrase' | 'Exact';
 export type CompetitionLevel = 'Low' | 'Medium' | 'High';
-export type KeywordCategory = 'Core' | 'Opportunity' | 'Branded' | 'Low-hanging Fruit' | 'Complementary';
+export type KeywordCategory =
+  | 'Core'
+  | 'Opportunity'
+  | 'Branded'
+  | 'Low-hanging Fruit'
+  | 'Complementary';
 export type KeywordSource = 'AI' | 'Web';
 
 export type BadgeType = KeywordType | CompetitionLevel | KeywordCategory | KeywordSource | 'New';
 
 export interface KeywordData {
+  id?: string; // Supabase identifier when available
   keyword: string;
   type: KeywordType;
   category: KeywordCategory;
@@ -177,6 +183,7 @@ export interface BrandState {
 export interface KeywordPerformance {
   id: string;
   keywordId: string;
+  keyword?: string; // Present when performance data is keyed by keyword text
   brandId: string;
   impressions: number;
   clicks: number;
@@ -200,7 +207,13 @@ export interface KeywordPerformance {
   createdAt: string;
 }
 
-export type LifecycleEventType = 'promoted' | 'negated' | 'paused' | 'activated' | 'bid_changed' | 'stage_changed';
+export type LifecycleEventType =
+  | 'promoted'
+  | 'negated'
+  | 'paused'
+  | 'activated'
+  | 'bid_changed'
+  | 'stage_changed';
 
 export interface LifecycleEvent {
   id: string;
@@ -367,7 +380,7 @@ export interface ParsedKeywordData {
 }
 
 // SOP Library Types
-export type SOPCategory = 
+export type SOPCategory =
   | 'Campaign Management'
   | 'Keyword Research'
   | 'Brand Setup'
