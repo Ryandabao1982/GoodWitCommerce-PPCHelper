@@ -17,6 +17,7 @@ This document summarizes the mobile UI/UX improvements implemented to address na
 **Original Issue**: Fix UI/UX on Mobile based on UI/UX implementation plan, build smart navigation structure
 
 **Identified Problems**:
+
 1. Navigation buttons wrapped to 2 rows on mobile screens
 2. Button labels were truncated (e.g., "Keyword" instead of "Keyword Bank")
 3. Sidebar only showed brands/searches, not main navigation
@@ -33,26 +34,33 @@ This document summarizes the mobile UI/UX improvements implemented to address na
 **File**: `components/BottomNavigation.tsx`
 
 **Features**:
+
 - Sticky bottom navigation bar for mobile devices (< 768px)
 - 5 main navigation items with icons and labels
 - Active state indication (blue highlight)
 - Touch-friendly 44px minimum height
 - ARIA labels for accessibility
+- Disabled states and tooltips when prerequisites (brand/keywords) are missing
 - Semantic `<nav>` element
 - Auto-hidden on tablet/desktop (≥ 768px)
 
 **Navigation Items**:
+
 - 📊 Dashboard
-- 🏦 Keywords  
+- 🏦 Keywords
 - 📋 Campaigns
 - 🎯 Brand
+- 📚 SOPs
 - ⚙️ Settings
 
 **Code Example**:
+
 ```tsx
-<BottomNavigation 
-  currentView={currentView} 
-  onViewChange={setCurrentView} 
+<BottomNavigation
+  currentView={currentView}
+  onViewChange={handleViewChange}
+  hasActiveBrand={Boolean(activeBrand)}
+  hasKeywords={allBrandKeywords.length > 0}
 />
 ```
 
@@ -63,6 +71,7 @@ This document summarizes the mobile UI/UX improvements implemented to address na
 **File**: `components/Sidebar.tsx`
 
 **Improvements**:
+
 - Added Navigation section at the top
 - Full navigation menu with all 5 views
 - Active view highlighting
@@ -71,6 +80,7 @@ This document summarizes the mobile UI/UX improvements implemented to address na
 - Better organization and hierarchy
 
 **Structure**:
+
 1. **Navigation** (new)
    - Dashboard
    - Keyword Bank
@@ -87,6 +97,7 @@ This document summarizes the mobile UI/UX improvements implemented to address na
 **File**: `components/Header.tsx`
 
 **Improvements**:
+
 - Reduced padding on mobile (py-2 instead of py-4)
 - Responsive text sizes (text-base → md → xl → 2xl)
 - Hidden subtitle on small screens (sm:block)
@@ -102,9 +113,10 @@ This document summarizes the mobile UI/UX improvements implemented to address na
 **File**: `App.tsx`
 
 **Changes**:
+
 - Added BottomNavigation component
-- Conditionally render based on brand existence
-- Hide ViewSwitcher on mobile (hidden md:block)
+- Always render navigation and gate view changes through shared logic
+- Removed the legacy ViewSwitcher in favor of sidebar/bottom navigation
 - Added bottom padding for content (pb-20 md:pb-6)
 - Pass currentView and onViewChange to Sidebar
 
@@ -115,6 +127,7 @@ This document summarizes the mobile UI/UX improvements implemented to address na
 **File**: `index.css`
 
 **Added**:
+
 - Safe area support for iOS notch
 - Bottom padding for mobile devices
 - Touch-friendly minimum heights (44px)
@@ -140,6 +153,7 @@ This document summarizes the mobile UI/UX improvements implemented to address na
 **File**: `__tests__/components/BottomNavigation.test.tsx`
 
 **Coverage**:
+
 - ✅ Renders all navigation items
 - ✅ Highlights current active view
 - ✅ Calls onViewChange on button click
@@ -153,28 +167,31 @@ This document summarizes the mobile UI/UX improvements implemented to address na
 
 ## Responsive Breakpoints
 
-| Screen Size | Behavior |
-|-------------|----------|
-| < 768px (Mobile) | Bottom navigation visible, ViewSwitcher hidden |
-| ≥ 768px (Tablet) | Bottom navigation hidden, ViewSwitcher visible |
-| ≥ 1024px (Desktop) | Full ViewSwitcher with labels, no bottom nav |
+| Screen Size        | Behavior                                                  |
+| ------------------ | --------------------------------------------------------- |
+| < 768px (Mobile)   | Bottom navigation visible with contextual disabled states |
+| ≥ 768px (Tablet)   | Bottom navigation hidden, DesktopSidebar visible          |
+| ≥ 1024px (Desktop) | DesktopSidebar expanded with labels; bottom nav hidden    |
 
 ---
 
 ## Accessibility Features
 
 ### ARIA Support
+
 - `role="navigation"` with `aria-label="Main navigation"`
 - `aria-current="page"` for active items
 - `aria-label` on all buttons
 - `aria-hidden="true"` on decorative icons
 
 ### Keyboard Navigation
+
 - All buttons focusable via Tab
 - Enter/Space to activate
 - Proper focus indicators
 
 ### Screen Reader Support
+
 - Descriptive button labels
 - Semantic HTML structure
 - Status announcements for view changes
@@ -184,16 +201,19 @@ This document summarizes the mobile UI/UX improvements implemented to address na
 ## Mobile-First Best Practices
 
 ### Touch Targets
+
 - ✅ Minimum 44px height (iOS guidelines)
 - ✅ Adequate spacing between items
 - ✅ Full-width clickable areas
 
 ### iOS Support
+
 - ✅ Safe area insets for notch
 - ✅ Smooth transitions
 - ✅ Native-like feel
 
 ### Performance
+
 - ✅ CSS transforms for animations
 - ✅ Minimal re-renders
 - ✅ Optimized bundle size
@@ -203,12 +223,14 @@ This document summarizes the mobile UI/UX improvements implemented to address na
 ## Visual Comparison
 
 ### Before
+
 - Navigation wrapped to 2 rows
 - Truncated labels
 - Crowded interface
 - Poor space utilization
 
 ### After
+
 - Clean bottom navigation bar
 - Full labels visible
 - Optimized header
@@ -224,7 +246,7 @@ This document summarizes the mobile UI/UX improvements implemented to address na
 3. **components/Header.tsx** (optimized)
 4. **App.tsx** (integrated)
 5. **index.css** (safe areas)
-6. **__tests__/components/BottomNavigation.test.tsx** (new)
+6. ****tests**/components/BottomNavigation.test.tsx** (new)
 
 ---
 
@@ -242,6 +264,7 @@ This document summarizes the mobile UI/UX improvements implemented to address na
 ## Browser Compatibility
 
 Tested and working on:
+
 - ✅ iOS Safari 14+
 - ✅ Chrome Mobile 90+
 - ✅ Firefox Mobile 88+
@@ -252,6 +275,7 @@ Tested and working on:
 ## Future Enhancements
 
 Potential improvements for Phase 2:
+
 1. Gesture-based navigation (swipe between views)
 2. Bottom sheet for quick actions
 3. Haptic feedback on iOS
@@ -263,15 +287,18 @@ Potential improvements for Phase 2:
 ## Maintenance Notes
 
 ### Adding New Views
+
 To add a new view to the navigation:
 
-1. Update `ViewType` in `ViewSwitcher.tsx`
-2. Add item to `navItems` in `BottomNavigation.tsx`
-3. Add item to `navigationItems` in `Sidebar.tsx`
+1. Update `ViewType` in `types.ts`
+2. Add the entry to `NAVIGATION_ITEMS` in `utils/navigation.ts`
+3. Verify contextual requirements (`requiresBrand`, `requiresKeywords`) are set appropriately
 4. Update tests in `BottomNavigation.test.tsx`
 
 ### Modifying Breakpoints
+
 Current breakpoint is `md` (768px). To change:
+
 - Update `className` from `md:hidden` to desired breakpoint
 - Update CSS media queries in `index.css`
 - Test thoroughly on target devices

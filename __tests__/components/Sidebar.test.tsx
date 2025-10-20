@@ -9,7 +9,7 @@ describe('Sidebar', () => {
   const mockOnSelectBrand = vi.fn();
   const mockOnDeleteBrand = vi.fn();
   const mockOnCreateBrandClick = vi.fn();
-  
+
   const mockBrands = ['Brand A', 'Brand B', 'Brand C'];
   const mockRecentSearches = ['wireless headphones', 'bluetooth speakers', 'gaming mouse'];
 
@@ -29,10 +29,12 @@ describe('Sidebar', () => {
           onSelectBrand={mockOnSelectBrand}
           onDeleteBrand={mockOnDeleteBrand}
           onCreateBrandClick={mockOnCreateBrandClick}
+          hasActiveBrand={true}
+          hasKeywords={true}
           isLoading={false}
         />
       );
-      
+
       expect(container.firstChild).toBeNull();
     });
 
@@ -47,10 +49,12 @@ describe('Sidebar', () => {
           onSelectBrand={mockOnSelectBrand}
           onDeleteBrand={mockOnDeleteBrand}
           onCreateBrandClick={mockOnCreateBrandClick}
+          hasActiveBrand={true}
+          hasKeywords={true}
           isLoading={false}
         />
       );
-      
+
       expect(screen.getByText(/Menu/i)).toBeInTheDocument();
     });
 
@@ -65,10 +69,12 @@ describe('Sidebar', () => {
           onSelectBrand={mockOnSelectBrand}
           onDeleteBrand={mockOnDeleteBrand}
           onCreateBrandClick={mockOnCreateBrandClick}
+          hasActiveBrand={true}
+          hasKeywords={true}
           isLoading={false}
         />
       );
-      
+
       expect(screen.getByRole('button', { name: /Close menu/i })).toBeInTheDocument();
     });
   });
@@ -85,10 +91,12 @@ describe('Sidebar', () => {
           onSelectBrand={mockOnSelectBrand}
           onDeleteBrand={mockOnDeleteBrand}
           onCreateBrandClick={mockOnCreateBrandClick}
+          hasActiveBrand={true}
+          hasKeywords={true}
           isLoading={false}
         />
       );
-      
+
       expect(screen.getByText(/Brands/i)).toBeInTheDocument();
     });
 
@@ -103,11 +111,13 @@ describe('Sidebar', () => {
           onSelectBrand={mockOnSelectBrand}
           onDeleteBrand={mockOnDeleteBrand}
           onCreateBrandClick={mockOnCreateBrandClick}
+          hasActiveBrand={true}
+          hasKeywords={true}
           isLoading={false}
         />
       );
-      
-      mockBrands.forEach(brand => {
+
+      mockBrands.forEach((brand) => {
         expect(screen.getByText(brand)).toBeInTheDocument();
       });
     });
@@ -123,10 +133,12 @@ describe('Sidebar', () => {
           onSelectBrand={mockOnSelectBrand}
           onDeleteBrand={mockOnDeleteBrand}
           onCreateBrandClick={mockOnCreateBrandClick}
+          hasActiveBrand={false}
+          hasKeywords={true}
           isLoading={false}
         />
       );
-      
+
       expect(screen.getByText(/No brands yet/i)).toBeInTheDocument();
     });
 
@@ -141,10 +153,12 @@ describe('Sidebar', () => {
           onSelectBrand={mockOnSelectBrand}
           onDeleteBrand={mockOnDeleteBrand}
           onCreateBrandClick={mockOnCreateBrandClick}
+          hasActiveBrand={true}
+          hasKeywords={true}
           isLoading={false}
         />
       );
-      
+
       expect(screen.getByRole('button', { name: /Create new brand/i })).toBeInTheDocument();
     });
 
@@ -159,13 +173,15 @@ describe('Sidebar', () => {
           onSelectBrand={mockOnSelectBrand}
           onDeleteBrand={mockOnDeleteBrand}
           onCreateBrandClick={mockOnCreateBrandClick}
+          hasActiveBrand={true}
+          hasKeywords={true}
           isLoading={false}
         />
       );
-      
+
       const brandButton = screen.getByRole('button', { name: mockBrands[0] });
       fireEvent.click(brandButton);
-      
+
       expect(mockOnSelectBrand).toHaveBeenCalledWith(mockBrands[0]);
       expect(mockOnClose).toHaveBeenCalled();
     });
@@ -181,13 +197,15 @@ describe('Sidebar', () => {
           onSelectBrand={mockOnSelectBrand}
           onDeleteBrand={mockOnDeleteBrand}
           onCreateBrandClick={mockOnCreateBrandClick}
+          hasActiveBrand={true}
+          hasKeywords={true}
           isLoading={false}
         />
       );
-      
+
       const deleteButtons = screen.getAllByLabelText(/Delete/i);
       fireEvent.click(deleteButtons[0]);
-      
+
       expect(mockOnDeleteBrand).toHaveBeenCalledWith(mockBrands[0]);
     });
 
@@ -202,12 +220,14 @@ describe('Sidebar', () => {
           onSelectBrand={mockOnSelectBrand}
           onDeleteBrand={mockOnDeleteBrand}
           onCreateBrandClick={mockOnCreateBrandClick}
+          hasActiveBrand={true}
+          hasKeywords={true}
           isLoading={true}
         />
       );
-      
+
       const deleteButtons = screen.getAllByLabelText(/Delete/i);
-      deleteButtons.forEach(button => {
+      deleteButtons.forEach((button) => {
         expect(button).toBeDisabled();
       });
     });
@@ -223,13 +243,15 @@ describe('Sidebar', () => {
           onSelectBrand={mockOnSelectBrand}
           onDeleteBrand={mockOnDeleteBrand}
           onCreateBrandClick={mockOnCreateBrandClick}
+          hasActiveBrand={true}
+          hasKeywords={true}
           isLoading={false}
         />
       );
-      
+
       const createButton = screen.getByRole('button', { name: /Create new brand/i });
       fireEvent.click(createButton);
-      
+
       expect(mockOnCreateBrandClick).toHaveBeenCalled();
       expect(mockOnClose).toHaveBeenCalled();
     });
@@ -247,10 +269,12 @@ describe('Sidebar', () => {
           onSelectBrand={mockOnSelectBrand}
           onDeleteBrand={mockOnDeleteBrand}
           onCreateBrandClick={mockOnCreateBrandClick}
+          hasActiveBrand={true}
+          hasKeywords={true}
           isLoading={false}
         />
       );
-      
+
       expect(screen.getByText(/Recent Searches/i)).toBeInTheDocument();
     });
 
@@ -265,10 +289,12 @@ describe('Sidebar', () => {
           onSelectBrand={mockOnSelectBrand}
           onDeleteBrand={mockOnDeleteBrand}
           onCreateBrandClick={mockOnCreateBrandClick}
+          hasActiveBrand={true}
+          hasKeywords={true}
           isLoading={false}
         />
       );
-      
+
       expect(screen.queryByText(/Recent Searches/i)).not.toBeInTheDocument();
     });
 
@@ -283,11 +309,13 @@ describe('Sidebar', () => {
           onSelectBrand={mockOnSelectBrand}
           onDeleteBrand={mockOnDeleteBrand}
           onCreateBrandClick={mockOnCreateBrandClick}
+          hasActiveBrand={true}
+          hasKeywords={true}
           isLoading={false}
         />
       );
-      
-      mockRecentSearches.forEach(search => {
+
+      mockRecentSearches.forEach((search) => {
         expect(screen.getByText(search)).toBeInTheDocument();
       });
     });
@@ -303,13 +331,15 @@ describe('Sidebar', () => {
           onSelectBrand={mockOnSelectBrand}
           onDeleteBrand={mockOnDeleteBrand}
           onCreateBrandClick={mockOnCreateBrandClick}
+          hasActiveBrand={true}
+          hasKeywords={true}
           isLoading={false}
         />
       );
-      
+
       const searchButton = screen.getByRole('button', { name: mockRecentSearches[0] });
       fireEvent.click(searchButton);
-      
+
       expect(mockOnHistoryItemClick).toHaveBeenCalledWith(mockRecentSearches[0]);
       expect(mockOnClose).toHaveBeenCalled();
     });
@@ -325,15 +355,17 @@ describe('Sidebar', () => {
           onSelectBrand={mockOnSelectBrand}
           onDeleteBrand={mockOnDeleteBrand}
           onCreateBrandClick={mockOnCreateBrandClick}
+          hasActiveBrand={true}
+          hasKeywords={true}
           isLoading={true}
         />
       );
-      
-      const searchButtons = mockRecentSearches.map(search => 
+
+      const searchButtons = mockRecentSearches.map((search) =>
         screen.getByRole('button', { name: search })
       );
-      
-      searchButtons.forEach(button => {
+
+      searchButtons.forEach((button) => {
         expect(button).toBeDisabled();
       });
     });
@@ -351,13 +383,15 @@ describe('Sidebar', () => {
           onSelectBrand={mockOnSelectBrand}
           onDeleteBrand={mockOnDeleteBrand}
           onCreateBrandClick={mockOnCreateBrandClick}
+          hasActiveBrand={true}
+          hasKeywords={true}
           isLoading={false}
         />
       );
-      
+
       const closeButton = screen.getByRole('button', { name: /Close menu/i });
       fireEvent.click(closeButton);
-      
+
       expect(mockOnClose).toHaveBeenCalledTimes(1);
     });
 
@@ -372,13 +406,15 @@ describe('Sidebar', () => {
           onSelectBrand={mockOnSelectBrand}
           onDeleteBrand={mockOnDeleteBrand}
           onCreateBrandClick={mockOnCreateBrandClick}
+          hasActiveBrand={true}
+          hasKeywords={true}
           isLoading={false}
         />
       );
-      
+
       const overlay = container.querySelector('.fixed.inset-0.bg-black');
       fireEvent.click(overlay!);
-      
+
       expect(mockOnClose).toHaveBeenCalledTimes(1);
     });
   });
@@ -395,10 +431,12 @@ describe('Sidebar', () => {
           onSelectBrand={mockOnSelectBrand}
           onDeleteBrand={mockOnDeleteBrand}
           onCreateBrandClick={mockOnCreateBrandClick}
+          hasActiveBrand={true}
+          hasKeywords={true}
           isLoading={false}
         />
       );
-      
+
       expect(screen.getByLabelText(/Close menu/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/Create new brand/i)).toBeInTheDocument();
     });

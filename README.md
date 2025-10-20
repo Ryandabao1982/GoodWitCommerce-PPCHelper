@@ -266,7 +266,6 @@ Generate Amazon-compatible CSV files for bulk upload:
 ├── index.css                   # Global styles
 ├── components/                 # React components
 │   ├── Dashboard.tsx
-│   ├── ViewSwitcher.tsx
 │   └── LoadingSpinner.tsx
 ├── services/                   # Backend services
 │   ├── geminiService.ts        # AI service integration
@@ -275,6 +274,7 @@ Generate Amazon-compatible CSV files for bulk upload:
 │   ├── database.types.ts       # Database types
 │   └── testConnection.ts       # Connection test utility
 ├── utils/                      # Utility functions
+│   ├── navigation.ts           # Shared navigation configuration
 │   ├── storage.ts              # localStorage utilities
 │   └── sorting.ts              # Sorting utilities
 ├── supabase/                   # Database infrastructure

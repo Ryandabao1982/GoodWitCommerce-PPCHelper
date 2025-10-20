@@ -42,12 +42,14 @@ Amazon PPC Keyword Genius is a client-side React application that provides AI-po
 ### 1. Application Layer (`App.tsx`)
 
 **Responsibilities:**
+
 - Application state management
 - Routing and view switching
 - Brand context management
 - User authentication state
 
 **Key State:**
+
 - Current brand
 - Active view (Dashboard, Keyword Bank, Campaign Planner, Settings)
 - User session
@@ -56,8 +58,9 @@ Amazon PPC Keyword Genius is a client-side React application that provides AI-po
 ### 2. Components Layer (`/components`)
 
 **UI Components:**
+
 - `Dashboard.tsx` - Main dashboard view with analytics
-- `ViewSwitcher.tsx` - Navigation between different views
+- `DesktopSidebar.tsx` / `BottomNavigation.tsx` - Primary navigation surfaces driven by shared config in `utils/navigation.ts`
 - `LoadingSpinner.tsx` - Loading state indicator
 - `ErrorMessage.tsx` - Error display component
 - `QuickStartGuide.tsx` - Onboarding component
@@ -66,6 +69,7 @@ Amazon PPC Keyword Genius is a client-side React application that provides AI-po
 - `KeywordBank.tsx` - Keyword management interface
 
 **Design Patterns:**
+
 - Functional components with hooks
 - Props-based data flow
 - Controlled components for forms
@@ -80,6 +84,7 @@ Pure service interfaces that isolate external dependencies.
 **Purpose:** AI-powered keyword research and analysis
 
 **Key Functions:**
+
 ```typescript
 - generateKeywords(seed, settings): Promise<KeywordData[]>
 - generateRelatedIdeas(seed): Promise<string[]>
@@ -88,6 +93,7 @@ Pure service interfaces that isolate external dependencies.
 ```
 
 **Features:**
+
 - Rate limiting protection
 - Error handling and retries
 - Response parsing and validation
@@ -98,6 +104,7 @@ Pure service interfaces that isolate external dependencies.
 **Purpose:** Cloud database connection
 
 **Configuration:**
+
 - URL and anonymous key from environment variables
 - Row-Level Security (RLS) for data protection
 - Real-time subscriptions support
@@ -107,6 +114,7 @@ Pure service interfaces that isolate external dependencies.
 **Purpose:** Database operations abstraction
 
 **Key Functions:**
+
 ```typescript
 - syncBrandToDatabase(brand): Promise<void>
 - loadBrandsFromDatabase(): Promise<Brand[]>
@@ -115,6 +123,7 @@ Pure service interfaces that isolate external dependencies.
 ```
 
 **Features:**
+
 - CRUD operations for brands, keywords, campaigns
 - Error handling and fallbacks
 - Batch operations support
@@ -126,6 +135,7 @@ Pure service interfaces that isolate external dependencies.
 **Purpose:** Browser localStorage abstraction
 
 **Key Functions:**
+
 ```typescript
 - saveBrands(brands): void
 - loadBrands(): Brand[]
@@ -138,6 +148,7 @@ Pure service interfaces that isolate external dependencies.
 **Purpose:** Seamless switching between local and cloud storage
 
 **Strategy:**
+
 ```
 When signed in:
   1. Try database operation
@@ -207,7 +218,7 @@ User Action (CRUD operation)
     └──────────┬───────────┘
                ▼
          Update UI
-    
+
     └─ Not Signed In ──────┐
                            │
                            ▼
@@ -225,11 +236,13 @@ User Action (CRUD operation)
 ### API Key Protection
 
 **Current Implementation:**
+
 - API keys stored in browser localStorage
 - Keys sent directly from client to Google API
 - No server-side key storage
 
 **Recommended for Production:**
+
 ```
 ┌──────────────┐         ┌──────────────┐         ┌──────────────┐
 │    Client    │────────▶│  API Proxy   │────────▶│  Gemini API  │
@@ -245,6 +258,7 @@ User Action (CRUD operation)
 ### Data Security
 
 **Row-Level Security (RLS) in Supabase:**
+
 ```sql
 -- Users can only access their own data
 CREATE POLICY "Users can view own brands"
@@ -257,6 +271,7 @@ WITH CHECK (auth.uid() = user_id);
 ```
 
 **Content Security Policy:**
+
 - Restricts script sources to trusted domains
 - Prevents XSS attacks
 - Controls resource loading
@@ -294,31 +309,33 @@ WITH CHECK (auth.uid() = user_id);
 ### 1. Debouncing and Rate Limiting
 
 **Implementation:**
+
 ```typescript
 // Debounce user input before API calls
-const debouncedSearch = useMemo(
-  () => debounce((keyword) => performSearch(keyword), 500),
-  []
-);
+const debouncedSearch = useMemo(() => debounce((keyword) => performSearch(keyword), 500), []);
 ```
 
 ### 2. Caching Strategy
 
 **localStorage Cache:**
+
 - Recent keyword searches
 - User preferences
 - Brand configurations
 
 **Potential Enhancement:**
+
 - Cache Gemini API responses with TTL
 - Implement service worker for offline support
 
 ### 3. Code Splitting
 
 **Current:**
+
 - Single bundle (~808 KB after minification)
 
 **Recommended:**
+
 ```javascript
 // Lazy load heavy components
 const CampaignPlanner = lazy(() => import('./components/CampaignPlanner'));
@@ -340,15 +357,18 @@ __tests__/
 ### Testing Strategy
 
 **Unit Tests:**
+
 - Services: Mock external APIs
 - Utils: Pure function testing
 - Components: Render and interaction tests
 
 **Integration Tests:**
+
 - Service + Storage integration
 - Component + Service integration
 
 **E2E Tests (Planned):**
+
 - Complete user workflows
 - Multi-step processes
 
@@ -390,12 +410,14 @@ Build Process:
 ### 1. Backend API Proxy (Recommended)
 
 **Purpose:**
+
 - Protect API keys
 - Add rate limiting
 - Enable usage analytics
 - Implement caching
 
 **Technology Options:**
+
 - Node.js + Express
 - Vercel Serverless Functions
 - Cloudflare Workers
@@ -403,6 +425,7 @@ Build Process:
 ### 2. Real-time Collaboration
 
 **Implementation:**
+
 - Supabase Real-time subscriptions
 - Shared brand workspaces
 - Live keyword updates
@@ -410,27 +433,29 @@ Build Process:
 ### 3. Advanced Analytics
 
 **Features:**
+
 - Keyword performance tracking
 - Campaign ROI analysis
 - Competitive insights
 
 **Data Pipeline:**
+
 ```
 User Data ─▶ Analytics Service ─▶ Data Warehouse ─▶ Dashboard
 ```
 
 ## Technology Stack Summary
 
-| Layer | Technology | Version |
-|-------|-----------|---------|
-| Frontend Framework | React | 19.2.0 |
-| Language | TypeScript | 5.8.2 |
-| Build Tool | Vite | 6.2.0 |
-| Styling | Tailwind CSS | 4.1.14 |
-| AI Service | Google Gemini | @google/genai 1.25.0 |
-| Database | Supabase (PostgreSQL) | @supabase/supabase-js 2.75.1 |
-| Testing | Vitest | 3.2.4 |
-| Testing Library | React Testing Library | 16.3.0 |
+| Layer              | Technology            | Version                      |
+| ------------------ | --------------------- | ---------------------------- |
+| Frontend Framework | React                 | 19.2.0                       |
+| Language           | TypeScript            | 5.8.2                        |
+| Build Tool         | Vite                  | 6.2.0                        |
+| Styling            | Tailwind CSS          | 4.1.14                       |
+| AI Service         | Google Gemini         | @google/genai 1.25.0         |
+| Database           | Supabase (PostgreSQL) | @supabase/supabase-js 2.75.1 |
+| Testing            | Vitest                | 3.2.4                        |
+| Testing Library    | React Testing Library | 16.3.0                       |
 
 ## References
 

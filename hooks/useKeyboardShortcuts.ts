@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import type { ViewType } from '../components/ViewSwitcher';
+import type { ViewType } from '../types';
 
 interface UseKeyboardShortcutsProps {
   onViewChange: (view: ViewType) => void;
@@ -41,13 +41,13 @@ export const useKeyboardShortcuts = ({
           event.preventDefault();
           onViewChange('settings');
         },
-        'b': () => {
+        b: () => {
           if (onCreateBrand) {
             event.preventDefault();
             onCreateBrand();
           }
         },
-        'k': () => {
+        k: () => {
           if (onSearch) {
             event.preventDefault();
             onSearch();

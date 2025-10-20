@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ViewType } from './ViewSwitcher';
+import type { ViewType } from '../types';
 
 interface BreadcrumbProps {
   currentView: ViewType;
@@ -51,12 +51,7 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5l7 7-7 7"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           )}
           {item.onClick ? (
@@ -67,9 +62,7 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({
               {item.label}
             </button>
           ) : (
-            <span className="font-medium text-gray-900 dark:text-white">
-              {item.label}
-            </span>
+            <span className="font-medium text-gray-900 dark:text-white">{item.label}</span>
           )}
         </React.Fragment>
       ))}

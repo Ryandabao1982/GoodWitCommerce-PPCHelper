@@ -1,10 +1,17 @@
 export type KeywordType = 'Broad' | 'Phrase' | 'Exact' | 'Long-tail';
 export type MatchType = 'Broad' | 'Phrase' | 'Exact';
 export type CompetitionLevel = 'Low' | 'Medium' | 'High';
-export type KeywordCategory = 'Core' | 'Opportunity' | 'Branded' | 'Low-hanging Fruit' | 'Complementary';
+export type KeywordCategory =
+  | 'Core'
+  | 'Opportunity'
+  | 'Branded'
+  | 'Low-hanging Fruit'
+  | 'Complementary';
 export type KeywordSource = 'AI' | 'Web';
 
 export type BadgeType = KeywordType | CompetitionLevel | KeywordCategory | KeywordSource | 'New';
+
+export type ViewType = 'research' | 'bank' | 'planner' | 'brand' | 'sop' | 'settings';
 
 export interface KeywordData {
   keyword: string;
@@ -200,7 +207,13 @@ export interface KeywordPerformance {
   createdAt: string;
 }
 
-export type LifecycleEventType = 'promoted' | 'negated' | 'paused' | 'activated' | 'bid_changed' | 'stage_changed';
+export type LifecycleEventType =
+  | 'promoted'
+  | 'negated'
+  | 'paused'
+  | 'activated'
+  | 'bid_changed'
+  | 'stage_changed';
 
 export interface LifecycleEvent {
   id: string;
@@ -367,7 +380,7 @@ export interface ParsedKeywordData {
 }
 
 // SOP Library Types
-export type SOPCategory = 
+export type SOPCategory =
   | 'Campaign Management'
   | 'Keyword Research'
   | 'Brand Setup'

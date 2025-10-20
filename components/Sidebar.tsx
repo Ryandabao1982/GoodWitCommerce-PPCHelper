@@ -1,5 +1,6 @@
 import React from 'react';
-import type { ViewType } from './ViewSwitcher';
+import type { ViewType } from '../types';
+import { NAVIGATION_ITEMS, getNavigationTooltip, isViewAccessible } from '../utils/navigation';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -13,6 +14,8 @@ interface SidebarProps {
   isLoading: boolean;
   currentView?: ViewType;
   onViewChange?: (view: ViewType) => void;
+  hasActiveBrand: boolean;
+  hasKeywords: boolean;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -27,30 +30,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isLoading,
   currentView,
   onViewChange,
+  hasActiveBrand,
+  hasKeywords,
 }) => {
   if (!isOpen) return null;
 
-  const navigationItems = [
-    { id: 'research' as ViewType, label: 'Dashboard', icon: '📊' },
-    { id: 'bank' as ViewType, label: 'Keyword Bank', icon: '🏦' },
-    { id: 'planner' as ViewType, label: 'Campaign Planner', icon: '📋' },
-    { id: 'brand' as ViewType, label: 'Brand Tab', icon: '🎯' },
-    { id: 'sop' as ViewType, label: 'SOP Library', icon: '📚' },
-    { id: 'settings' as ViewType, label: 'Settings', icon: '⚙️' },
-  ];
+  const navigationContext = { hasActiveBrand, hasKeywords };
 
   return (
     <>
       {/* Overlay */}
-      <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={onClose} />
 
       {/* Sidebar */}
-      <div className={`fixed left-0 top-0 h-full w-72 bg-white dark:bg-gray-800 shadow-lg z-50 transform transition-transform duration-300 ${
-        isOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}>
+      <div
+        className={`fixed left-0 top-0 h-full w-72 bg-white dark:bg-gray-800 shadow-lg z-50 transform transition-transform duration-300 ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
         <div className="p-6 h-full overflow-y-auto">
           {/* Close Button */}
           <div className="flex justify-between items-center mb-6">
@@ -60,8 +57,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
               className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
               aria-label="Close menu"
             >
-              <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="w-5 h-5 text-gray-600 dark:text-gray-300"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
@@ -69,26 +76,38 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Navigation Section */}
           {onViewChange && (
             <div className="mb-8">
-              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase mb-3">Navigation</h3>
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase mb-3">
+                Navigation
+              </h3>
               <ul className="space-y-2">
-                {navigationItems.map((item) => (
-                  <li key={item.id}>
-                    <button
-                      onClick={() => {
-                        onViewChange(item.id);
-                        onClose();
-                      }}
-                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                        currentView === item.id
-                          ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
-                          : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
-                      }`}
-                    >
-                      <span className="text-xl">{item.icon}</span>
-                      <span className="text-sm font-medium">{item.label}</span>
-                    </button>
-                  </li>
-                ))}
+                {NAVIGATION_ITEMS.map((item) => {
+                  const isActive = currentView === item.id;
+                  const isEnabled = isViewAccessible(item.id, navigationContext);
+                  const tooltip = getNavigationTooltip(item, navigationContext);
+                  return (
+                    <li key={item.id}>
+                      <button
+                        onClick={() => {
+                          if (!isEnabled) return;
+                          onViewChange?.(item.id);
+                          onClose();
+                        }}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                          isEnabled
+                            ? isActive
+                              ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
+                              : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
+                            : 'text-gray-400 dark:text-gray-500 opacity-60 cursor-not-allowed'
+                        }`}
+                        aria-disabled={!isEnabled}
+                        title={tooltip}
+                      >
+                        <span className="text-xl">{item.icon}</span>
+                        <span className="text-sm font-medium">{item.label}</span>
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           )}
@@ -96,7 +115,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Brands Section */}
           <div className="mb-8">
             <div className="flex justify-between items-center mb-3">
-              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase">Brands</h3>
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase">
+                Brands
+              </h3>
               <button
                 onClick={() => {
                   onCreateBrandClick();
@@ -106,7 +127,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 aria-label="Create new brand"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v16m8-8H4"
+                  />
                 </svg>
               </button>
             </div>
@@ -131,8 +157,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       aria-label={`Delete ${brand}`}
                       disabled={isLoading}
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
                       </svg>
                     </button>
                   </li>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import type { ViewType } from './ViewSwitcher';
+import type { ViewType } from '../types';
+import { NAVIGATION_ITEMS, getNavigationTooltip, isViewAccessible } from '../utils/navigation';
 
 interface DesktopSidebarProps {
   currentView: ViewType;
@@ -10,6 +11,8 @@ interface DesktopSidebarProps {
   onCreateBrandClick: () => void;
   recentSearches: string[];
   onHistoryItemClick: (keyword: string) => void;
+  hasActiveBrand: boolean;
+  hasKeywords: boolean;
 }
 
 export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
@@ -21,17 +24,15 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
   onCreateBrandClick,
   recentSearches,
   onHistoryItemClick,
+  hasActiveBrand,
+  hasKeywords,
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const navigationItems = [
-    { id: 'research' as ViewType, label: 'Dashboard', icon: '📊', shortcut: '⌘1' },
-    { id: 'bank' as ViewType, label: 'Keyword Bank', icon: '🏦', shortcut: '⌘2' },
-    { id: 'planner' as ViewType, label: 'Campaign Planner', icon: '📋', shortcut: '⌘3' },
-    { id: 'brand' as ViewType, label: 'Brand Analytics', icon: '🎯', shortcut: '⌘4' },
-    { id: 'sop' as ViewType, label: 'SOP Library', icon: '📚', shortcut: '⌘5' },
-    { id: 'settings' as ViewType, label: 'Settings', icon: '⚙️', shortcut: '⌘6' },
-  ];
+  const navigationContext = {
+    hasActiveBrand,
+    hasKeywords,
+  };
 
   return (
     <aside
@@ -73,28 +74,36 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
       {/* Navigation Items */}
       <nav className="flex-1 p-3 overflow-y-auto">
         <ul className="space-y-1">
-          {navigationItems.map((item) => {
+          {NAVIGATION_ITEMS.map((item) => {
             const isActive = currentView === item.id;
+            const isEnabled = isViewAccessible(item.id, navigationContext);
+            const tooltip = getNavigationTooltip(item, navigationContext);
             return (
               <li key={item.id}>
                 <button
-                  onClick={() => onViewChange(item.id)}
+                  onClick={() => {
+                    if (!isEnabled) return;
+                    onViewChange(item.id);
+                  }}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
-                    isActive
-                      ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 shadow-sm'
-                      : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
+                    isEnabled
+                      ? isActive
+                        ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 shadow-sm'
+                        : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
+                      : 'text-gray-400 dark:text-gray-500 cursor-not-allowed opacity-60'
                   }`}
-                  title={isCollapsed ? item.label : undefined}
+                  title={tooltip ?? (isCollapsed ? item.label : undefined)}
+                  aria-disabled={!isEnabled}
                 >
                   <span className="text-xl flex-shrink-0">{item.icon}</span>
                   {!isCollapsed && (
                     <>
-                      <span className="flex-1 text-left text-sm font-medium">
-                        {item.label}
-                      </span>
-                      <span className="text-xs text-gray-400 dark:text-gray-500 font-mono">
-                        {item.shortcut}
-                      </span>
+                      <span className="flex-1 text-left text-sm font-medium">{item.label}</span>
+                      {item.shortcut && (
+                        <span className="text-xs text-gray-400 dark:text-gray-500 font-mono">
+                          {item.shortcut}
+                        </span>
+                      )}
                     </>
                   )}
                 </button>
@@ -117,8 +126,18 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
               aria-label="Create new brand"
               title="Create new brand"
             >
-              <svg className="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              <svg
+                className="w-4 h-4 text-gray-600 dark:text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
               </svg>
             </button>
           </div>
