@@ -15,6 +15,8 @@ interface DashboardProps {
 
 type SortField = 'keyword' | 'type' | 'category' | 'searchVolume' | 'competition' | 'relevance' | 'source';
 type SortDirection = 'asc' | 'desc';
+type FilterType = 'all' | 'Exact' | 'Phrase' | 'Broad' | 'Long-tail';
+type FilterCompetition = 'all' | 'Low' | 'Medium' | 'High';
 
 export const Dashboard: React.FC<DashboardProps> = ({ 
   data, 
@@ -29,6 +31,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
 }) => {
   const [sortField, setSortField] = useState<SortField>('relevance');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [filterType, setFilterType] = useState<FilterType>('all');
+  const [filterCompetition, setFilterCompetition] = useState<FilterCompetition>('all');
+  const [searchFilter, setSearchFilter] = useState('');
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -40,8 +45,30 @@ export const Dashboard: React.FC<DashboardProps> = ({
   };
 
   const sortedData = useMemo(() => {
-    const sorted = [...data];
-    sorted.sort((a, b) => {
+    // First apply filters
+    let filtered = [...data];
+    
+    // Apply type filter
+    if (filterType !== 'all') {
+      filtered = filtered.filter(item => item.type === filterType);
+    }
+    
+    // Apply competition filter
+    if (filterCompetition !== 'all') {
+      filtered = filtered.filter(item => item.competition === filterCompetition);
+    }
+    
+    // Apply search filter
+    if (searchFilter.trim()) {
+      const search = searchFilter.toLowerCase();
+      filtered = filtered.filter(item => 
+        item.keyword.toLowerCase().includes(search) ||
+        item.category.toLowerCase().includes(search)
+      );
+    }
+    
+    // Then sort
+    filtered.sort((a, b) => {
       let comparison = 0;
 
       switch (sortField) {
@@ -71,8 +98,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       return sortDirection === 'asc' ? comparison : -comparison;
     });
-    return sorted;
-  }, [data, sortField, sortDirection, parseVolume]);
+    return filtered;
+  }, [data, sortField, sortDirection, parseVolume, filterType, filterCompetition, searchFilter]);
 
   const getBadgeColor = (type: string, value: string) => {
     if (type === 'competition') {
@@ -430,23 +457,67 @@ export const Dashboard: React.FC<DashboardProps> = ({
     <div className="space-y-6">
       {/* Quick Stats Section */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer">
           <div className="text-sm text-gray-600 dark:text-gray-400">Total Keywords</div>
           <div className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{stats.totalKeywords}</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">↗ Research data</div>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer">
           <div className="text-sm text-gray-600 dark:text-gray-400">Avg Relevance</div>
           <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">{stats.avgRelevance}/10</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            {parseFloat(stats.avgRelevance) >= 7 ? '✓ Excellent' : parseFloat(stats.avgRelevance) >= 5 ? '◐ Good' : '⚠ Needs work'}
+          </div>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer">
           <div className="text-sm text-gray-600 dark:text-gray-400">High Volume</div>
           <div className="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">{stats.highVolumeCount}</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            {stats.totalKeywords > 0 ? `${Math.round((stats.highVolumeCount / stats.totalKeywords) * 100)}% of total` : 'No data'}
+          </div>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer">
           <div className="text-sm text-gray-600 dark:text-gray-400">Low Competition</div>
           <div className="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-1">{stats.lowCompetitionCount}</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            {stats.totalKeywords > 0 ? `${Math.round((stats.lowCompetitionCount / stats.totalKeywords) * 100)}% sweet spot` : 'No data'}
+          </div>
         </div>
       </div>
+
+      {/* AI Insights & Suggestions */}
+      {stats.totalKeywords > 0 && (
+        <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg shadow-md p-6 border border-purple-200 dark:border-purple-800">
+          <div className="flex items-start space-x-3">
+            <div className="text-2xl">🤖</div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">AI Insights & Recommendations</h3>
+              <div className="space-y-2">
+                {stats.lowCompetitionCount > 0 && stats.highVolumeCount > 0 && (
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    💡 <strong>Great opportunity!</strong> You have {stats.lowCompetitionCount} low-competition keywords with {stats.highVolumeCount} high-volume terms. Consider prioritizing these in your campaigns.
+                  </p>
+                )}
+                {parseFloat(stats.avgRelevance) < 5 && (
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    ⚠️ <strong>Action needed:</strong> Your average relevance score is below 5. Try refining your seed keywords for better-targeted results.
+                  </p>
+                )}
+                {stats.exactMatchCount < stats.totalKeywords * 0.3 && stats.totalKeywords > 10 && (
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    💭 <strong>Tip:</strong> Only {Math.round((stats.exactMatchCount / stats.totalKeywords) * 100)}% are exact match. Consider adding more exact match keywords for better conversion rates.
+                  </p>
+                )}
+                {stats.totalKeywords < 20 && (
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    📊 <strong>Expand research:</strong> You have {stats.totalKeywords} keywords. Try searching for related terms to build a more comprehensive keyword bank.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Match Type Distribution Section */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
@@ -479,14 +550,85 @@ export const Dashboard: React.FC<DashboardProps> = ({
       {/* Keywords Table Section */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
         <div className="px-4 md:px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
               <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Keyword Research Results</h2>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                Detailed view of all discovered keywords
+                {sortedData.length !== data.length ? (
+                  <>Showing {sortedData.length} of {data.length} keywords</>
+                ) : (
+                  <>Detailed view of all discovered keywords</>
+                )}
               </p>
             </div>
+            
+            {/* Search and Filters */}
+            <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+              <input
+                type="text"
+                placeholder="Search keywords..."
+                value={searchFilter}
+                onChange={(e) => setSearchFilter(e.target.value)}
+                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white text-sm"
+              />
+              <select
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value as FilterType)}
+                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white text-sm"
+              >
+                <option value="all">All Types</option>
+                <option value="Exact">Exact</option>
+                <option value="Phrase">Phrase</option>
+                <option value="Broad">Broad</option>
+                <option value="Long-tail">Long-tail</option>
+              </select>
+              <select
+                value={filterCompetition}
+                onChange={(e) => setFilterCompetition(e.target.value as FilterCompetition)}
+                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white text-sm"
+              >
+                <option value="all">All Competition</option>
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+              </select>
+            </div>
           </div>
+          
+          {/* Active Filters Display */}
+          {(filterType !== 'all' || filterCompetition !== 'all' || searchFilter) && (
+            <div className="flex flex-wrap gap-2 mt-3">
+              <span className="text-xs text-gray-500 dark:text-gray-400">Active filters:</span>
+              {filterType !== 'all' && (
+                <span className="inline-flex items-center px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-xs rounded-full">
+                  Type: {filterType}
+                  <button onClick={() => setFilterType('all')} className="ml-1 hover:text-blue-600">×</button>
+                </span>
+              )}
+              {filterCompetition !== 'all' && (
+                <span className="inline-flex items-center px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 text-xs rounded-full">
+                  Competition: {filterCompetition}
+                  <button onClick={() => setFilterCompetition('all')} className="ml-1 hover:text-green-600">×</button>
+                </span>
+              )}
+              {searchFilter && (
+                <span className="inline-flex items-center px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 text-xs rounded-full">
+                  Search: "{searchFilter}"
+                  <button onClick={() => setSearchFilter('')} className="ml-1 hover:text-purple-600">×</button>
+                </span>
+              )}
+              <button
+                onClick={() => {
+                  setFilterType('all');
+                  setFilterCompetition('all');
+                  setSearchFilter('');
+                }}
+                className="text-xs text-red-600 dark:text-red-400 hover:underline"
+              >
+                Clear all
+              </button>
+            </div>
+          )}
         </div>
 
       {/* Mobile Card View - visible on small screens */}
@@ -624,12 +766,23 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       {/* Efficiency Tips Section */}
       <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-        <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-2">💡 Research Tips</h3>
+        <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-2 flex items-center">
+          💡 Research Tips
+          {sortedData.length !== data.length && (
+            <span className="ml-2 text-xs font-normal text-blue-700 dark:text-blue-400">
+              ({sortedData.length} keywords match your filters)
+            </span>
+          )}
+        </h3>
         <ul className="text-xs text-blue-800 dark:text-blue-300 space-y-1">
           <li>• Click column headers to sort by different metrics</li>
+          <li>• Use filters above to narrow down results by type or competition</li>
           <li>• Focus on keywords with high relevance (7+) and low-medium competition</li>
           <li>• Use the Keyword Bank tab to organize and assign keywords to campaigns</li>
           <li>• High volume keywords (&gt;10K) are great for brand awareness</li>
+          {stats.lowCompetitionCount > 0 && stats.highVolumeCount > 0 && (
+            <li className="font-medium">• ⭐ Start with {stats.lowCompetitionCount} low-competition keywords for quick wins!</li>
+          )}
         </ul>
       </div>
     </div>
