@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrandState, RolloutTask } from '../../types';
+import { EmptyStateCard } from '../EmptyState';
 
 interface BrandTabOverviewProps {
   brandState: BrandState;
@@ -7,7 +8,7 @@ interface BrandTabOverviewProps {
 }
 
 export const BrandTabOverview: React.FC<BrandTabOverviewProps> = ({ brandState, selectedPortfolio }) => {
-  // Mock data for coverage map
+  // Get campaign types from actual campaigns
   const campaignTypes = ['SP_EXACT', 'SP_BROAD', 'SP_PHRASE', 'SP_AUTO', 'SD', 'SB'];
   // Extract ASINs from brandState.campaigns
   const asins = Array.from(
@@ -17,40 +18,47 @@ export const BrandTabOverview: React.FC<BrandTabOverviewProps> = ({ brandState, 
     )
   );
   
-  // Mock coverage data
+  // Use actual rollout tasks from brand state, or provide empty array
+  const rolloutTasks: RolloutTask[] = brandState.rolloutTasks || [];
+
+  // Calculate actual coverage data from campaigns
   const coverageData: Record<string, Record<string, { hasCoverage: boolean; hasOverlap: boolean }>> = {};
   campaignTypes.forEach(type => {
     coverageData[type] = {};
     asins.forEach(asin => {
+      // Find campaigns matching this type and ASIN
+      const matchingCampaigns = brandState.campaigns.filter(campaign => {
+        const campaignName = campaign.name.toUpperCase();
+        const hasTypeMatch = campaignName.includes(type.replace('SP_', '').replace('_', ' '));
+        const hasAsinMatch = campaign.asin === asin || campaign.asins?.includes(asin);
+        return hasTypeMatch && hasAsinMatch;
+      });
+      
+      // Check for overlap (multiple campaigns of same type for same ASIN)
+      const hasOverlap = matchingCampaigns.length > 1;
+      const hasCoverage = matchingCampaigns.length > 0;
+      
       coverageData[type][asin] = {
-        hasCoverage: Math.random() > 0.3,
-        hasOverlap: Math.random() > 0.7,
+        hasCoverage,
+        hasOverlap,
       };
     });
   });
 
-  // Mock lifecycle distribution
-  const lifecycleData = [
-    { stage: 'Discovery', count: 45, spend: 320 },
-    { stage: 'Test', count: 28, spend: 450 },
-    { stage: 'Performance', count: 62, spend: 1200 },
-    { stage: 'SKAG', count: 15, spend: 800 },
-    { stage: 'Archived', count: 8, spend: 50 },
-  ];
-
-  // Mock rollout tasks
-  const rolloutTasks: RolloutTask[] = brandState.rolloutTasks || [
-    { phase: 1, description: 'Research + Branded campaigns', completed: true },
-    { phase: 1, description: 'Core ASIN coverage with Exact match', completed: true },
-    { phase: 2, description: 'Competitor/PT campaigns', completed: true },
-    { phase: 2, description: 'Expand to Broad/Phrase match', completed: false },
-    { phase: 3, description: 'SKAG/Category expansion', completed: false },
-    { phase: 3, description: 'Optimize bid strategies', completed: false },
-    { phase: 4, description: 'SD remarketing setup', completed: false },
-    { phase: 4, description: 'Audience targeting', completed: false },
-    { phase: 5, description: 'Seasonal campaigns', completed: false },
-    { phase: 5, description: 'Advanced automation', completed: false },
-  ];
+  // Calculate lifecycle distribution from keyword health data
+  const lifecycleData = (() => {
+    if (!brandState.keywordHealthData || brandState.keywordHealthData.length === 0) {
+      return [];
+    }
+    
+    const stages = ['Discovery', 'Test', 'Performance', 'SKAG', 'Archived'];
+    return stages.map(stage => {
+      const stageKeywords = brandState.keywordHealthData!.filter(kw => kw.lifecycle === stage);
+      const count = stageKeywords.length;
+      const spend = stageKeywords.reduce((sum, kw) => sum + kw.spend, 0);
+      return { stage, count, spend };
+    }).filter(item => item.count > 0); // Only show stages with data
+  })();
 
   const phaseProgress = [1, 2, 3, 4, 5].map(phase => {
     const phaseTasks = rolloutTasks.filter(t => t.phase === phase);
@@ -63,10 +71,29 @@ export const BrandTabOverview: React.FC<BrandTabOverviewProps> = ({ brandState, 
     };
   });
 
+  // Show empty state if no campaigns or ASINs
+  const hasNoCampaigns = brandState.campaigns.length === 0;
+  const hasNoAsins = asins.length === 0;
+
+  if (hasNoCampaigns && hasNoAsins) {
+    return (
+      <div className="space-y-6">
+        <EmptyStateCard
+          icon="🚀"
+          title="No Campaign Data Yet"
+          description="Create campaigns and add ASINs to see coverage maps, lifecycle distribution, and rollout tracking. This overview will help you manage your PPC strategy across all campaign types."
+          actionText="Go to Campaigns"
+          onAction={() => {}}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Coverage Map */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+      {asins.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-bold text-gray-900 dark:text-white">Coverage Map</h3>
           <span className="text-xs text-gray-500 dark:text-gray-400">Campaign types vs ASINs</span>
@@ -127,9 +154,11 @@ export const BrandTabOverview: React.FC<BrandTabOverviewProps> = ({ brandState, 
           </div>
         </div>
       </div>
+      )}
 
       {/* Lifecycle Distribution */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+      {lifecycleData.length > 0 ? (
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-bold text-gray-900 dark:text-white">Lifecycle Distribution</h3>
           <span className="text-xs text-gray-500 dark:text-gray-400">Keywords by stage</span>
@@ -172,9 +201,17 @@ export const BrandTabOverview: React.FC<BrandTabOverviewProps> = ({ brandState, 
           </div>
         </div>
       </div>
+      ) : (
+        <EmptyStateCard
+          icon="📈"
+          title="No Lifecycle Data"
+          description="Lifecycle distribution shows how your keywords are distributed across different stages (Discovery, Test, Performance, SKAG, Archived). This data will populate once you have performance metrics for your keywords."
+        />
+      )}
 
       {/* Rollout Tracker */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+      {rolloutTasks.length > 0 ? (
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-bold text-gray-900 dark:text-white">Rollout Tracker</h3>
           <span className="text-xs text-gray-500 dark:text-gray-400">Phase 1 → 5 progress</span>
@@ -240,6 +277,13 @@ export const BrandTabOverview: React.FC<BrandTabOverviewProps> = ({ brandState, 
           ))}
         </div>
       </div>
+      ) : (
+        <EmptyStateCard
+          icon="📋"
+          title="No Rollout Tracker"
+          description="The rollout tracker helps you monitor your PPC strategy implementation across 5 phases. Add rollout tasks to track your progress from research to advanced automation."
+        />
+      )}
     </div>
   );
 };

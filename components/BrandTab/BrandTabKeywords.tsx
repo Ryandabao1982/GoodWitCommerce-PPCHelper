@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { BrandState, BrandTabSettings, KeywordHealth } from '../../types';
+import { EmptyStateCard } from '../EmptyState';
 
 interface BrandTabKeywordsProps {
   brandState: BrandState;
@@ -10,36 +11,10 @@ export const BrandTabKeywords: React.FC<BrandTabKeywordsProps> = ({ brandState, 
   const [sortField, setSortField] = useState<keyof KeywordHealth>('oppScore');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
-  // Generate mock keyword health data from brand state
+  // Use actual keyword health data from brand state
   const keywordHealthData: KeywordHealth[] = useMemo(() => {
-    // Use price and targetAcos from settings if available, otherwise fallback to defaults
-    const price = settings.price ?? 29.99;
-    const targetAcos = settings.targetAcos ?? 25;
-    return brandState.keywordResults.map((kw, idx) => {
-      // Mock calculations
-      const cvr = 2 + Math.random() * 3;
-      const cpcMax = (price * (targetAcos / 100) * (cvr / 100));
-      const cpc = cpcMax * (0.5 + Math.random() * 0.8);
-      const spend = 50 + Math.random() * 500;
-      const sales = spend * (1 + Math.random() * 3);
-      const acos = (spend / sales) * 100;
-      
-      return {
-        keyword: kw.keyword,
-        oppScore: Math.round(50 + Math.random() * 50),
-        intent: ['Branded', 'Commercial', 'Informational', 'Transactional'][Math.floor(Math.random() * 4)],
-        category: kw.category,
-        lifecycle: ['Discovery', 'Test', 'Performance', 'SKAG'][Math.floor(Math.random() * 4)] as any,
-        acos: acos,
-        cvr: cvr,
-        cpc: cpc,
-        cpcMax: cpcMax,
-        spend: spend,
-        sales: sales,
-        rag: acos > 30 ? 'Red' : acos > 20 ? 'Amber' : 'Green',
-      };
-    });
-  }, [brandState.keywordResults, settings.price, settings.targetAcos]);
+    return brandState.keywordHealthData || [];
+  }, [brandState.keywordHealthData]);
 
   // Harvest queue (keywords ready to promote)
   const harvestQueue = useMemo(() => {
@@ -98,6 +73,21 @@ export const BrandTabKeywords: React.FC<BrandTabKeywordsProps> = ({ brandState, 
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
     }
   };
+
+  // Show empty state if no keyword health data is available
+  if (keywordHealthData.length === 0) {
+    return (
+      <div className="space-y-6">
+        <EmptyStateCard
+          icon="📊"
+          title="No Performance Data Available"
+          description="Keyword performance metrics will appear here once you connect your Amazon Ads account and have active campaigns running. This data includes ACOS, CVR, spend, and opportunity scores."
+          actionText="Learn About Connecting Data"
+          onAction={() => window.open('https://advertising.amazon.com', '_blank')}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
