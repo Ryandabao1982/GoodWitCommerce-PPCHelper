@@ -1,4 +1,5 @@
 import React from 'react';
+import { ConnectionStatus } from './ConnectionStatus';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -44,7 +45,7 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          {/* Right: Brand Selector and Dark Mode Toggle */}
+          {/* Right: Brand Selector, Connection Status, and Dark Mode Toggle */}
           <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
             {brands.length > 0 && (
               <div className="flex items-center gap-1 md:gap-2">
@@ -72,6 +73,7 @@ export const Header: React.FC<HeaderProps> = ({
                 </button>
               </div>
             )}
+            <ConnectionStatus className="hidden sm:block" />
             <button
               onClick={onToggleDarkMode}
               className="p-1.5 md:p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors flex-shrink-0"

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 interface BrandCreationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (brandName: string) => boolean;
+  onCreate: (brandName: string) => boolean | Promise<boolean>;
 }
 
 export const BrandCreationModal: React.FC<BrandCreationModalProps> = ({
@@ -44,7 +44,7 @@ export const BrandCreationModal: React.FC<BrandCreationModalProps> = ({
     }
   }, [brandName]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -65,7 +65,7 @@ export const BrandCreationModal: React.FC<BrandCreationModalProps> = ({
       return;
     }
 
-    const success = onCreate(trimmedName);
+    const success = await onCreate(trimmedName);
     if (success) {
       setBrandName('');
       onClose();
