@@ -617,6 +617,54 @@ const App: React.FC = () => {
   };
 
   // Keyboard shortcuts
+  // Handle auth state changes - reload data when user signs in/out
+  const handleAuthChange = useCallback(async (user: any) => {
+    if (user) {
+      // User signed in - reload all data from database
+      try {
+        const [loadedBrands, loadedActiveBrand, loadedBrandStates] = await Promise.all([
+          brandStorage.list(),
+          brandStorage.getActive(),
+          brandStateStorage.getAll(),
+        ]);
+        
+        setBrands(loadedBrands);
+        setActiveBrand(loadedActiveBrand);
+        setBrandStates(loadedBrandStates);
+        
+        // Reload SOPs if there's an active brand
+        if (loadedActiveBrand) {
+          const sops = await getSOPsForBrand(loadedActiveBrand);
+          setActiveBrandSOPs(sops);
+        }
+      } catch (error) {
+        console.error('Error reloading data after sign in:', error);
+      }
+    } else {
+      // User signed out - data will fall back to localStorage automatically
+      // Reload data from localStorage
+      try {
+        const [loadedBrands, loadedActiveBrand, loadedBrandStates] = await Promise.all([
+          brandStorage.list(),
+          brandStorage.getActive(),
+          brandStateStorage.getAll(),
+        ]);
+        
+        setBrands(loadedBrands);
+        setActiveBrand(loadedActiveBrand);
+        setBrandStates(loadedBrandStates);
+        
+        // Reload SOPs if there's an active brand
+        if (loadedActiveBrand) {
+          const sops = await getSOPsForBrand(loadedActiveBrand);
+          setActiveBrandSOPs(sops);
+        }
+      } catch (error) {
+        console.error('Error reloading data after sign out:', error);
+      }
+    }
+  }, []);
+
   useKeyboardShortcuts({
     onViewChange: setCurrentView,
     onCreateBrand: () => setIsBrandModalOpen(true),
@@ -665,6 +713,7 @@ const App: React.FC = () => {
           onOpenCreateBrandModal={() => setIsBrandModalOpen(true)}
           isDarkMode={isDarkMode}
           onToggleDarkMode={handleToggleDarkMode}
+          onAuthChange={handleAuthChange}
         />
         <main className="container mx-auto p-4 md:p-6 lg:p-8 flex-1 pb-20 md:pb-6">
           {/* Breadcrumb Navigation - Desktop only */}

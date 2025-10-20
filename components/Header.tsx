@@ -1,5 +1,7 @@
 import React from 'react';
 import { ConnectionStatus } from './ConnectionStatus';
+import { UserProfile } from './UserProfile';
+import type { User } from '@supabase/supabase-js';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -9,6 +11,7 @@ interface HeaderProps {
   onOpenCreateBrandModal: () => void;
   isDarkMode: boolean;
   onToggleDarkMode: () => void;
+  onAuthChange?: (user: User | null) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -19,6 +22,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenCreateBrandModal,
   isDarkMode,
   onToggleDarkMode,
+  onAuthChange,
 }) => {
   return (
     <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
@@ -75,6 +79,7 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             )}
             <ConnectionStatus className="hidden sm:block" />
+            <UserProfile onAuthChange={onAuthChange} />
             <button
               onClick={onToggleDarkMode}
               className="p-1.5 md:p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors flex-shrink-0"
