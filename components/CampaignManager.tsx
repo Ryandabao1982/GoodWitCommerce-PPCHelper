@@ -22,6 +22,8 @@ export const CampaignManager: React.FC<CampaignManagerProps> = ({
   const [newCampaignName, setNewCampaignName] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState<number>(-1);
   const [dailyBudget, setDailyBudget] = useState<string>('');
+  const [campaignAsin, setCampaignAsin] = useState<string>('');
+  const [adGroupName, setAdGroupName] = useState<string>('Ad Group 1');
   const [expandedCampaigns, setExpandedCampaigns] = useState<Set<string>>(new Set());
   const [editingAdGroup, setEditingAdGroup] = useState<{ campaignId: string; adGroupId: string } | null>(null);
   const [editingCampaign, setEditingCampaign] = useState<string | null>(null);
@@ -32,27 +34,57 @@ export const CampaignManager: React.FC<CampaignManagerProps> = ({
       return;
     }
 
+    if (!dailyBudget) {
+      alert('Please enter a daily budget');
+      return;
+    }
+
+    if (!campaignAsin.trim()) {
+      alert('Please enter an ASIN for this campaign');
+      return;
+    }
+
+    if (!adGroupName.trim()) {
+      alert('Please enter an ad group name');
+      return;
+    }
+
+    // Validate ASIN format
+    const trimmedAsin = campaignAsin.trim().toUpperCase();
+    if (!/^B[A-Z0-9]{9}$/.test(trimmedAsin)) {
+      alert('Invalid ASIN format. Should be 10 characters starting with B (e.g., B08N5WRWNW)');
+      return;
+    }
+
     let newCampaign: Campaign;
 
     if (selectedTemplate >= 0 && selectedTemplate < CAMPAIGN_TEMPLATES.length) {
       // Create from template
       const template = CAMPAIGN_TEMPLATES[selectedTemplate];
-      const budget = dailyBudget ? parseFloat(dailyBudget) : undefined;
+      const budget = parseFloat(dailyBudget);
       newCampaign = createCampaignFromTemplate(template, newCampaignName.trim(), budget);
+      // Update ASIN and ad group name
+      newCampaign.asin = trimmedAsin;
+      if (newCampaign.adGroups.length > 0) {
+        newCampaign.adGroups[0].name = adGroupName.trim();
+        newCampaign.adGroups[0].asin = trimmedAsin;
+      }
     } else {
       // Create custom campaign
       newCampaign = {
         id: `campaign-${Date.now()}`,
         name: newCampaignName.trim(),
-        dailyBudget: dailyBudget ? parseFloat(dailyBudget) : undefined,
+        dailyBudget: parseFloat(dailyBudget),
+        asin: trimmedAsin,
         adGroups: [
           {
             id: `adgroup-${Date.now()}`,
-            name: 'Ad Group 1',
+            name: adGroupName.trim(),
             keywords: [],
             defaultBid: 1.0,
             defaultMatchType: 'Broad',
             bidModifiers: { topOfSearch: 50, productPages: 0 },
+            asin: trimmedAsin,
           },
         ],
       };
@@ -62,6 +94,8 @@ export const CampaignManager: React.FC<CampaignManagerProps> = ({
     setNewCampaignName('');
     setSelectedTemplate(-1);
     setDailyBudget('');
+    setCampaignAsin('');
+    setAdGroupName('Ad Group 1');
     setShowCreateModal(false);
   };
 
@@ -261,7 +295,7 @@ export const CampaignManager: React.FC<CampaignManagerProps> = ({
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Campaign Name *
+                      Campaign Name <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -274,13 +308,63 @@ export const CampaignManager: React.FC<CampaignManagerProps> = ({
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Daily Budget (Optional)
+                      Brand
                     </label>
                     <input
-                      type="number"
-                      value={dailyBudget}
-                      onChange={(e) => setDailyBudget(e.target.value)}
-                      placeholder="e.g., 50.00"
+                      type="text"
+                      value={activeBrandName}
+                      disabled
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300 cursor-not-allowed"
+                    />
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      Campaign is automatically linked to active brand
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Daily Budget <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2.5 text-gray-500 dark:text-gray-400">$</span>
+                      <input
+                        type="number"
+                        value={dailyBudget}
+                        onChange={(e) => setDailyBudget(e.target.value)}
+                        placeholder="e.g., 50.00"
+                        min="0"
+                        step="0.01"
+                        className="w-full pl-8 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Product ASIN <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={campaignAsin}
+                      onChange={(e) => setCampaignAsin(e.target.value)}
+                      placeholder="e.g., B08N5WRWNW"
+                      maxLength={10}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    />
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      10-character Amazon product identifier (starts with B)
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Initial Ad Group Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={adGroupName}
+                      onChange={(e) => setAdGroupName(e.target.value)}
+                      placeholder="e.g., Main Keywords"
                       className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                     />
                   </div>
@@ -301,6 +385,9 @@ export const CampaignManager: React.FC<CampaignManagerProps> = ({
                         </option>
                       ))}
                     </select>
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      Pre-configured campaign structures or create custom
+                    </p>
                   </div>
 
                   <div className="flex gap-3 justify-end mt-6">

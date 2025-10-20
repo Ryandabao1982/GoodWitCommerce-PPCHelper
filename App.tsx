@@ -439,7 +439,7 @@ const App: React.FC = () => {
   }, [activeBrand, activeBrandState, updateBrandState, apiSettings.geminiApiKey]);
 
   // --- Brand Management ---
-  const handleCreateBrand = async (brandName: string): Promise<boolean> => {
+  const handleCreateBrand = async (brandName: string, budget?: number, asins?: string[]): Promise<boolean> => {
     if (brands.includes(brandName)) {
       alert(`Brand "${brandName}" already exists.`);
       return false;
@@ -458,7 +458,11 @@ const App: React.FC = () => {
           searchedKeywords: [],
           advancedSearchSettings: { advancedKeywords: '', minVolume: '', maxVolume: '', isWebAnalysisEnabled: false, brandName: '', asin: '' },
           keywordClusters: null,
-          campaigns: []
+          campaigns: [],
+          metadata: {
+            budget,
+            asins
+          }
         }
       }));
       setActiveBrand(brandName);
