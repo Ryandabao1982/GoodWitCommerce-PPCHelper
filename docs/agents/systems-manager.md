@@ -1,0 +1,28 @@
+# systems-manager
+
+- Name: systems-manager
+- Role: systems/infra
+- Purpose: Suggest infrastructure optimizations, auto-scale recommendations, detect anomalous infra behavior and propose runbook steps.
+- Scope: Read infra telemetry and configs; propose changes but MUST NOT apply destructive changes without operator approval.
+- Inputs:
+  - k8s_metrics
+  - cost_metrics
+  - recent_incidents
+  - config_snapshot
+- Outputs:
+  - recommended_actions
+  - risk_estimate
+  - rollback_plan
+- Side effects: create tickets or automation proposals; do not apply changes automatically.
+- Permissions required: read infra metrics and configs; write: tickets/proposals
+- Model / algorithm: Rule-based anomaly detection + forecasting (time-series models)
+- Rate limits / QPS: Runs scheduled hourly and on-demand
+- Expected latency: minutes
+- Failure modes & escalation path: False positives => propose revert; high-severity alerts page on-call
+- Safety rules & guardrails: Never apply changes without operator approval with 2FA; require audit logs for any change
+- Telemetry & logs: agent.anomaly_detected, agent.recommendation_created
+- Tests: Chaos testing, config parsing tests
+- Deployment & rollout plan: Runs in secure management network with least-privilege credentials
+- Cost estimate & budget: Moderate; forecasted savings vs risk tracked
+- Owner / contact: systems lead
+- Runbook link: /docs/runbooks/systems-manager-runbook.md

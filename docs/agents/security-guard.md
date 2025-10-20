@@ -1,0 +1,27 @@
+# security-guard
+
+- Name: security-guard
+- Role: security
+- Purpose: Scan code, dependencies, and infra for vulnerabilities and policy violations; create security issues and remediation suggestions.
+- Scope: Static scans, dependency checks, runtime anomaly detection; may block PRs via policy gates (configurable).
+- Inputs:
+  - repo_snapshot
+  - dependency_list
+  - runtime_signals
+- Outputs:
+  - threat_alerts
+  - remediation_steps
+  - risk_score
+- Side effects: create security issues/tickets; may add policy gates
+- Permissions required: read code and runtime telemetry; write security issues
+- Model / algorithm: Rule-based scanners + ML anomaly detectors for runtime
+- Rate limits / QPS: Scheduled daily + on-demand per push
+- Expected latency: minutes for full scans
+- Failure modes & escalation path: False positives => triage by security reviewer
+- Safety rules & guardrails: Redact vulnerability details in public logs; avoid leaking secrets in alerts
+- Telemetry & logs: agent.scan_run, agent.vuln_found
+- Tests: Seeded vulnerable tests; dependency snapshot comparisons
+- Deployment & rollout plan: Runs in hardened pipeline with encryption and audit logging
+- Cost estimate & budget: Low to moderate; scheduled scanning windows
+- Owner / contact: security lead
+- Runbook link: /docs/runbooks/security-guard-runbook.md
