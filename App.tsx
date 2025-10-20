@@ -82,6 +82,7 @@ const App: React.FC = () => {
   
   // SOP update trigger to force re-renders
   const [sopUpdateTrigger, setSopUpdateTrigger] = useState(0);
+  const [activeBrandSOPs, setActiveBrandSOPs] = useState<SOP[]>([]);
 
   // API Settings state
   const [apiSettings, setApiSettings] = useState<ApiSettings>(() => ({
@@ -196,6 +197,20 @@ const App: React.FC = () => {
       return newState;
     });
   }, []);
+  
+  // Load SOPs when active brand changes
+  useEffect(() => {
+    if (activeBrand) {
+      getSOPsForBrand(activeBrand).then(sops => {
+        setActiveBrandSOPs(sops);
+      }).catch(error => {
+        console.error('Error loading SOPs:', error);
+        setActiveBrandSOPs([]);
+      });
+    } else {
+      setActiveBrandSOPs([]);
+    }
+  }, [activeBrand, sopUpdateTrigger]);
   
   const handleSearch = useCallback(async (searchOverride?: string) => {
     if (!activeBrand || !activeBrandState) return;
@@ -686,35 +701,32 @@ const App: React.FC = () => {
           ) : currentView === 'sop' && activeBrand ? (
             <SOPLibrary
               key={sopUpdateTrigger}
-              sops={getSOPsForBrand(activeBrand)}
-              onAddSOP={(sopData) => {
-                addSOP(activeBrand, sopData);
+              sops={activeBrandSOPs}
+              onAddSOP={async (sopData) => {
+                await addSOP(activeBrand, sopData);
                 // Force re-render by incrementing trigger
                 setSopUpdateTrigger(prev => prev + 1);
               }}
-              onUpdateSOP={(id, updates) => {
-                updateSOP(activeBrand, id, updates);
+              onUpdateSOP={async (id, updates) => {
+                await updateSOP(activeBrand, id, updates);
                 setSopUpdateTrigger(prev => prev + 1);
               }}
-              onDeleteSOP={(id) => {
-                deleteSOP(activeBrand, id);
+              onDeleteSOP={async (id) => {
+                await deleteSOP(activeBrand, id);
                 setSopUpdateTrigger(prev => prev + 1);
               }}
-              onToggleFavorite={(id) => {
-                toggleSOPFavorite(activeBrand, id);
+              onToggleFavorite={async (id) => {
+                await toggleSOPFavorite(activeBrand, id);
                 setSopUpdateTrigger(prev => prev + 1);
               }}
-              onSOPView={(id) => {
-                incrementSOPViewCount(activeBrand, id);
-                trackSOPView(activeBrand, id);
+              onSOPView={async (id) => {
+                await trackSOPView(activeBrand, id);
               }}
               onAISearch={async (query) => {
-                const sops = getSOPsForBrand(activeBrand);
-                return await aiSearchSOPs(query, sops);
+                return await aiSearchSOPs(query, activeBrandSOPs);
               }}
               onAIRecommend={async () => {
-                const sops = getSOPsForBrand(activeBrand);
-                return await getAIRecommendedSOPs(sops, {
+                return await getAIRecommendedSOPs(activeBrandSOPs, {
                   recentSearches: activeBrandState?.searchedKeywords.slice(-5),
                   currentView,
                   activeBrand,
