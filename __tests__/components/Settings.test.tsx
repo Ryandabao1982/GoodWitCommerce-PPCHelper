@@ -178,16 +178,16 @@ describe('Settings', () => {
           onResetSettings={mockOnResetSettings}
         />
       );
-      
-      // Settings component should handle save internally
-      // Look for any save-related elements
-      mockOnSaveSettings();
-      expect(mockOnSaveSettings).toHaveBeenCalled();
+
+      const saveButton = screen.getByRole('button', { name: /Save Settings/i });
+      fireEvent.click(saveButton);
+
+      expect(mockOnSaveSettings).toHaveBeenCalledWith(populatedApiSettings);
     });
 
     it('should show confirmation dialog before reset', () => {
       const mockConfirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
-      
+
       render(
         <Settings
           apiSettings={populatedApiSettings}
@@ -196,9 +196,13 @@ describe('Settings', () => {
           onResetSettings={mockOnResetSettings}
         />
       );
-      
-      // Trigger reset if there's a reset button
-      // Note: The component might not expose a reset button directly
+
+      const resetButton = screen.getByRole('button', { name: /Reset to Default/i });
+      fireEvent.click(resetButton);
+
+      expect(mockConfirm).toHaveBeenCalled();
+      expect(mockOnResetSettings).not.toHaveBeenCalled();
+
       mockConfirm.mockRestore();
     });
   });
