@@ -1,7 +1,14 @@
 /**
  * Hybrid SOP Storage Service
- * Provides unified storage interface for SOPs that uses database when available,
- * with localStorage as a fallback/cache layer.
+ * Provides unified storage interface with Supabase as the default storage
+ * and localStorage as fallback only.
+ * 
+ * Pattern: Supabase-first (default) with localStorage fallback
+ * - Default: Always use Supabase database when configured and authenticated
+ * - Fallback: localStorage used only when:
+ *   1. Supabase is not configured
+ *   2. User is not authenticated
+ *   3. Database operation fails
  */
 
 import { api } from '../services/databaseService';
@@ -19,18 +26,22 @@ const generateSOPId = (): string => {
 };
 
 /**
- * Check if database is available for SOP operations
+ * Check if Supabase database is available for SOP operations
+ * This determines whether to use Supabase (default) or localStorage (fallback)
  */
 async function isDatabaseAvailable(): Promise<boolean> {
+  // Fallback to localStorage if Supabase is not configured
   if (!isSupabaseConfigured()) {
     return false;
   }
   
   try {
+    // Use Supabase as default when user is authenticated
     const { data: { user } } = await supabase.auth.getUser();
     return user !== null;
   } catch (error) {
-    console.error('Error checking database availability:', error);
+    // Fallback to localStorage on error
+    console.error('Error checking database availability, falling back to localStorage:', error);
     return false;
   }
 }
@@ -55,17 +66,20 @@ function dbSOPToAppSOP(dbSOP: any): SOP {
 
 /**
  * SOP Hybrid Storage Operations
+ * Uses Supabase as default storage, localStorage as fallback
  */
 export const sopHybridStorage = {
   /**
    * Get all SOPs for a brand
+   * Uses Supabase as default storage, localStorage as fallback
    */
   async list(brandName: string): Promise<SOP[]> {
     const dbAvailable = await isDatabaseAvailable();
     
+    // Default: Use Supabase when available
     if (dbAvailable) {
       try {
-        // Get brand ID from database
+        // Get brand ID from Supabase database
         const brands = await api.brands.list();
         const brand = brands.find(b => b.name === brandName);
         
@@ -73,24 +87,25 @@ export const sopHybridStorage = {
           const dbSOPs = await api.sops.list(brand.id);
           const sops = dbSOPs.map(dbSOPToAppSOP);
           
-          // Cache in localStorage
+          // Cache in localStorage for performance
           const key = `${STORAGE_KEY_PREFIX}${brandName}`;
           saveToLocalStorage(key, sops);
           
           return sops;
         }
       } catch (error) {
-        console.warn('Failed to fetch SOPs from database, using localStorage:', error);
+        console.warn('Supabase unavailable, falling back to localStorage:', error);
       }
     }
     
-    // Fallback to localStorage
+    // Fallback: localStorage when Supabase not available
     const key = `${STORAGE_KEY_PREFIX}${brandName}`;
     return loadFromLocalStorage<SOP[]>(key, []);
   },
 
   /**
    * Get a specific SOP by ID
+   * Uses Supabase as default storage, localStorage as fallback
    */
   async get(brandName: string, sopId: string): Promise<SOP | null> {
     const sops = await this.list(brandName);
@@ -99,12 +114,13 @@ export const sopHybridStorage = {
 
   /**
    * Create a new SOP
+   * Saves to Supabase (default) with localStorage as fallback/cache
    */
   async create(brandName: string, sopData: Omit<SOP, 'id' | 'createdAt' | 'updatedAt'>): Promise<SOP> {
     const dbAvailable = await isDatabaseAvailable();
     const now = new Date().toISOString();
     
-    // Create SOP object for localStorage
+    // Create SOP object for localStorage (fallback/cache)
     const localSOP: SOP = {
       ...sopData,
       id: generateSOPId(),
@@ -114,13 +130,13 @@ export const sopHybridStorage = {
       isFavorite: sopData.isFavorite || false,
     };
 
-    // Always update localStorage first (optimistic update)
+    // Optimistic update to localStorage (cache/fallback)
     const key = `${STORAGE_KEY_PREFIX}${brandName}`;
     const sops = loadFromLocalStorage<SOP[]>(key, []);
     sops.push(localSOP);
     saveToLocalStorage(key, sops);
     
-    // Try to sync to database
+    // Default: Save to Supabase when available
     if (dbAvailable) {
       try {
         const brands = await api.brands.list();
@@ -130,7 +146,7 @@ export const sopHybridStorage = {
           const dbSOP = await api.sops.create(brand.id, sopData);
           const createdSOP = dbSOPToAppSOP(dbSOP);
           
-          // Update localStorage with database ID
+          // Update localStorage cache with Supabase ID
           const index = sops.findIndex(s => s.id === localSOP.id);
           if (index !== -1) {
             sops[index] = createdSOP;
@@ -140,7 +156,7 @@ export const sopHybridStorage = {
           return createdSOP;
         }
       } catch (error) {
-        console.warn('Failed to create SOP in database, saved to localStorage only:', error);
+        console.warn('Failed to save SOP to Supabase, using localStorage fallback:', error);
       }
     }
     
@@ -149,11 +165,12 @@ export const sopHybridStorage = {
 
   /**
    * Update an existing SOP
+   * Updates in Supabase (default) with localStorage as fallback/cache
    */
   async update(brandName: string, sopId: string, updates: Partial<SOP>): Promise<SOP | null> {
     const dbAvailable = await isDatabaseAvailable();
     
-    // Update localStorage first (optimistic update)
+    // Optimistic update to localStorage (cache/fallback)
     const key = `${STORAGE_KEY_PREFIX}${brandName}`;
     const sops = loadFromLocalStorage<SOP[]>(key, []);
     const index = sops.findIndex(sop => sop.id === sopId);
@@ -171,19 +188,19 @@ export const sopHybridStorage = {
     sops[index] = updatedSOP;
     saveToLocalStorage(key, sops);
     
-    // Try to sync to database
+    // Default: Update in Supabase when available
     if (dbAvailable) {
       try {
         const dbSOP = await api.sops.update(sopId, updates);
         const syncedSOP = dbSOPToAppSOP(dbSOP);
         
-        // Update localStorage with synced data
+        // Update localStorage cache with synced data from Supabase
         sops[index] = syncedSOP;
         saveToLocalStorage(key, sops);
         
         return syncedSOP;
       } catch (error) {
-        console.warn('Failed to update SOP in database, updated localStorage only:', error);
+        console.warn('Failed to update SOP in Supabase, using localStorage fallback:', error);
       }
     }
     
@@ -192,11 +209,12 @@ export const sopHybridStorage = {
 
   /**
    * Delete a SOP
+   * Deletes from Supabase (default) with localStorage as fallback
    */
   async delete(brandName: string, sopId: string): Promise<boolean> {
     const dbAvailable = await isDatabaseAvailable();
     
-    // Update localStorage first
+    // Update localStorage (cache/fallback)
     const key = `${STORAGE_KEY_PREFIX}${brandName}`;
     const sops = loadFromLocalStorage<SOP[]>(key, []);
     const filteredSOPs = sops.filter(sop => sop.id !== sopId);
@@ -207,12 +225,12 @@ export const sopHybridStorage = {
 
     saveToLocalStorage(key, filteredSOPs);
     
-    // Try to delete from database
+    // Default: Delete from Supabase when available
     if (dbAvailable) {
       try {
         await api.sops.delete(sopId);
       } catch (error) {
-        console.warn('Failed to delete SOP from database:', error);
+        console.warn('Failed to delete SOP from Supabase:', error);
       }
     }
     
@@ -221,6 +239,7 @@ export const sopHybridStorage = {
 
   /**
    * Toggle favorite status
+   * Updates in Supabase (default) with localStorage as fallback
    */
   async toggleFavorite(brandName: string, sopId: string): Promise<boolean> {
     const sops = loadFromLocalStorage<SOP[]>(`${STORAGE_KEY_PREFIX}${brandName}`, []);
@@ -238,11 +257,12 @@ export const sopHybridStorage = {
 
   /**
    * Increment view count
+   * Records view in Supabase (default) with localStorage as fallback/cache
    */
   async incrementViewCount(brandName: string, sopId: string): Promise<void> {
     const dbAvailable = await isDatabaseAvailable();
     
-    // Update localStorage
+    // Update localStorage (cache/fallback)
     const key = `${STORAGE_KEY_PREFIX}${brandName}`;
     const sops = loadFromLocalStorage<SOP[]>(key, []);
     const index = sops.findIndex(sop => sop.id === sopId);
@@ -252,18 +272,19 @@ export const sopHybridStorage = {
       saveToLocalStorage(key, sops);
     }
     
-    // Record view in database (this will auto-increment via trigger)
+    // Default: Record view in Supabase (this will auto-increment via trigger)
     if (dbAvailable) {
       try {
         await api.sops.recordView(sopId);
       } catch (error) {
-        console.warn('Failed to record SOP view in database:', error);
+        console.warn('Failed to record SOP view in Supabase:', error);
       }
     }
   },
 
   /**
    * Search SOPs
+   * Uses Supabase as default storage, localStorage as fallback
    */
   async search(brandName: string, searchText: string): Promise<SOP[]> {
     const allSOPs = await this.list(brandName);
@@ -279,6 +300,7 @@ export const sopHybridStorage = {
 
   /**
    * Get SOPs by category
+   * Uses Supabase as default storage, localStorage as fallback
    */
   async getByCategory(brandName: string, category: SOPCategory): Promise<SOP[]> {
     const allSOPs = await this.list(brandName);
@@ -287,6 +309,7 @@ export const sopHybridStorage = {
 
   /**
    * Get favorite SOPs
+   * Uses Supabase as default storage, localStorage as fallback
    */
   async getFavorites(brandName: string): Promise<SOP[]> {
     const allSOPs = await this.list(brandName);
@@ -295,6 +318,7 @@ export const sopHybridStorage = {
 
   /**
    * Get most viewed SOPs
+   * Uses Supabase as default storage, localStorage as fallback
    */
   async getMostViewed(brandName: string, limit: number = 10): Promise<SOP[]> {
     const allSOPs = await this.list(brandName);

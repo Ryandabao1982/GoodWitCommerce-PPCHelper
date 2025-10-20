@@ -1,12 +1,15 @@
 /**
  * Hybrid Storage Service
- * Provides unified storage interface that uses database when available,
- * with localStorage as a fallback/cache layer.
+ * Provides unified storage interface with Supabase as the default storage
+ * and localStorage as fallback only.
  * 
- * Pattern: Database-first with localStorage fallback
- * - When authenticated: Try database first, fall back to localStorage on error
- * - When not authenticated: Use localStorage only
- * - Always keep localStorage in sync as a cache/backup
+ * Pattern: Supabase-first (default) with localStorage fallback
+ * - Default: Always use Supabase database when configured and authenticated
+ * - Fallback: localStorage used only when:
+ *   1. Supabase is not configured
+ *   2. User is not authenticated
+ *   3. Database operation fails
+ * - localStorage serves as local cache for performance and offline access
  */
 
 import { api } from '../services/databaseService';
@@ -15,18 +18,22 @@ import { loadFromLocalStorage, saveToLocalStorage } from './storage';
 import type { BrandState, KeywordData, Campaign } from '../types';
 
 /**
- * Check if user is authenticated and database is available
+ * Check if Supabase database is available (configured and user authenticated)
+ * This determines whether to use Supabase (default) or localStorage (fallback)
  */
 export async function isDatabaseAvailable(): Promise<boolean> {
+  // Fallback to localStorage if Supabase is not configured
   if (!isSupabaseConfigured()) {
     return false;
   }
   
   try {
+    // Use Supabase as default when user is authenticated
     const { data: { user } } = await supabase.auth.getUser();
     return user !== null;
   } catch (error) {
-    console.error('Error checking database availability:', error);
+    // Fallback to localStorage on error
+    console.error('Error checking database availability, falling back to localStorage:', error);
     return false;
   }
 }
@@ -37,23 +44,25 @@ export async function isDatabaseAvailable(): Promise<boolean> {
 export const brandStorage = {
   /**
    * Get all brands
+   * Uses Supabase as default storage, localStorage as fallback
    */
   async list(): Promise<string[]> {
     const dbAvailable = await isDatabaseAvailable();
     
+    // Default: Use Supabase when available
     if (dbAvailable) {
       try {
         const brands = await api.brands.list();
         const brandNames = brands.map(b => b.name);
-        // Cache in localStorage
+        // Cache in localStorage for performance and offline access
         saveToLocalStorage('ppcGeniusBrands', brandNames);
         return brandNames;
       } catch (error) {
-        console.warn('Failed to fetch brands from database, using localStorage:', error);
+        console.warn('Supabase unavailable, falling back to localStorage:', error);
       }
     }
     
-    // Fallback to localStorage
+    // Fallback: localStorage when Supabase not available
     return loadFromLocalStorage<string[]>('ppcGeniusBrands', []);
   },
 
@@ -74,34 +83,36 @@ export const brandStorage = {
 
   /**
    * Create a new brand
+   * Saves to Supabase (default) with localStorage as fallback/cache
    */
   async create(brandName: string): Promise<void> {
     const dbAvailable = await isDatabaseAvailable();
     
-    // Always update localStorage first (optimistic update)
+    // Optimistic update to localStorage (cache/fallback)
     const brands = loadFromLocalStorage<string[]>('ppcGeniusBrands', []);
     if (!brands.includes(brandName)) {
       brands.push(brandName);
       saveToLocalStorage('ppcGeniusBrands', brands);
     }
     
-    // Try to sync to database
+    // Default: Save to Supabase when available
     if (dbAvailable) {
       try {
         await api.brands.create(brandName);
       } catch (error) {
-        console.warn('Failed to create brand in database, saved to localStorage only:', error);
+        console.warn('Failed to save brand to Supabase, using localStorage fallback:', error);
       }
     }
   },
 
   /**
    * Delete a brand
+   * Deletes from Supabase (default) with localStorage as fallback
    */
   async delete(brandName: string): Promise<void> {
     const dbAvailable = await isDatabaseAvailable();
     
-    // Update localStorage first
+    // Update localStorage (cache/fallback)
     const brands = loadFromLocalStorage<string[]>('ppcGeniusBrands', []);
     const filteredBrands = brands.filter(b => b !== brandName);
     saveToLocalStorage('ppcGeniusBrands', filteredBrands);
@@ -111,7 +122,7 @@ export const brandStorage = {
     delete brandStates[brandName];
     saveToLocalStorage('ppcGeniusBrandStates', brandStates);
     
-    // Try to delete from database
+    // Default: Delete from Supabase when available
     if (dbAvailable) {
       try {
         const dbBrands = await api.brands.list();
@@ -128,17 +139,20 @@ export const brandStorage = {
 
 /**
  * Brand State Storage Operations
+ * Uses Supabase as default storage, localStorage as fallback
  */
 export const brandStateStorage = {
   /**
    * Get all brand states
+   * Uses Supabase as default storage, localStorage as fallback
    */
   async getAll(): Promise<Record<string, BrandState>> {
     const dbAvailable = await isDatabaseAvailable();
     
+    // Default: Use Supabase when available
     if (dbAvailable) {
       try {
-        // Fetch all brands from database
+        // Fetch all brands from Supabase database
         const dbBrands = await api.brands.list();
         const brandStates: Record<string, BrandState> = {};
         
@@ -181,20 +195,21 @@ export const brandStateStorage = {
           };
         }
         
-        // Cache in localStorage
+        // Cache in localStorage for performance
         saveToLocalStorage('ppcGeniusBrandStates', brandStates);
         return brandStates;
       } catch (error) {
-        console.warn('Failed to fetch brand states from database, using localStorage:', error);
+        console.warn('Supabase unavailable, falling back to localStorage:', error);
       }
     }
     
-    // Fallback to localStorage
+    // Fallback: localStorage when Supabase not available
     return loadFromLocalStorage<Record<string, BrandState>>('ppcGeniusBrandStates', {});
   },
 
   /**
    * Get state for a specific brand
+   * Uses Supabase as default storage, localStorage as fallback
    */
   async get(brandName: string): Promise<BrandState | null> {
     const allStates = await this.getAll();
@@ -203,11 +218,12 @@ export const brandStateStorage = {
 
   /**
    * Update brand state
+   * Saves to Supabase (default) with localStorage as fallback/cache
    */
   async update(brandName: string, updates: Partial<BrandState>): Promise<void> {
     const dbAvailable = await isDatabaseAvailable();
     
-    // Update localStorage first (optimistic update)
+    // Optimistic update to localStorage (cache/fallback)
     const brandStates = loadFromLocalStorage<Record<string, BrandState>>('ppcGeniusBrandStates', {});
     const currentState = brandStates[brandName] || {
       keywordResults: [],
@@ -220,50 +236,50 @@ export const brandStateStorage = {
     brandStates[brandName] = { ...currentState, ...updates };
     saveToLocalStorage('ppcGeniusBrandStates', brandStates);
     
-    // Try to sync to database
+    // Default: Sync to Supabase when available
     if (dbAvailable) {
       try {
-        // Find brand in database
+        // Find brand in Supabase database
         const dbBrands = await api.brands.list();
         const dbBrand = dbBrands.find(b => b.name === brandName);
         
         if (!dbBrand) {
-          // Brand doesn't exist in DB, create it
+          // Brand doesn't exist in Supabase, create it
           const newBrand = await api.brands.create(brandName);
           await this.syncBrandToDatabase(newBrand.id, brandStates[brandName]);
         } else {
-          // Sync the updates
+          // Sync the updates to Supabase
           await this.syncBrandToDatabase(dbBrand.id, brandStates[brandName]);
         }
       } catch (error) {
-        console.warn('Failed to sync brand state to database:', error);
+        console.warn('Failed to sync brand state to Supabase:', error);
       }
     }
   },
 
   /**
-   * Internal: Sync brand state to database
+   * Internal: Sync brand state to Supabase database
    */
   async syncBrandToDatabase(brandId: string, state: BrandState): Promise<void> {
-    // Sync keywords if they changed
+    // Sync keywords to Supabase if they changed
     if (state.keywordResults && state.keywordResults.length > 0) {
       try {
-        // Get existing keywords to avoid duplicates
+        // Get existing keywords from Supabase to avoid duplicates
         const existingKeywords = await api.keywords.list(brandId);
         const existingKeywordTexts = new Set(existingKeywords.map(k => k.keyword));
         
-        // Only create keywords that don't exist yet
+        // Only create keywords that don't exist in Supabase yet
         const newKeywords = state.keywordResults.filter(k => !existingKeywordTexts.has(k.keyword));
         
         if (newKeywords.length > 0) {
           await api.keywords.createBulk(brandId, newKeywords);
         }
       } catch (error) {
-        console.warn('Failed to sync keywords to database:', error);
+        console.warn('Failed to sync keywords to Supabase:', error);
       }
     }
     
-    // Sync campaigns if they exist
+    // Sync campaigns to Supabase if they exist
     if (state.campaigns && state.campaigns.length > 0) {
       try {
         const existingCampaigns = await api.campaigns.list(brandId);
@@ -275,7 +291,7 @@ export const brandStateStorage = {
           }
         }
       } catch (error) {
-        console.warn('Failed to sync campaigns to database:', error);
+        console.warn('Failed to sync campaigns to Supabase:', error);
       }
     }
   }
@@ -283,6 +299,7 @@ export const brandStateStorage = {
 
 /**
  * Settings Storage Operations
+ * Settings always use localStorage (session-specific preferences)
  */
 export const settingsStorage = {
   /**
