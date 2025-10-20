@@ -31,6 +31,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **SOP Library - Brand Independence**: SOPs are now globally available across all brands, acting as a shared wiki/knowledge base:
+  - Removed brand-specific SOP storage (previously `ppcGeniusSOP_{brandName}`)
+  - Implemented global SOP storage (`ppcGeniusGlobalSOPs`)
+  - Updated all SOP operations to work without brand context
+  - Renamed "SOP Library" to "Knowledge Base" in UI
+  - Updated messaging to emphasize shared knowledge base nature
+  - SOPs are now accessible to everyone regardless of active brand
+  - **Migration Note**: Existing brand-specific SOPs will need to be re-created or manually migrated to the global storage
 - **Dashboard Component**: Completely refactored to support dual modes (landing page and keyword view) with enhanced interactivity
 - **App.tsx**: Added `lastActiveBrand` state tracking and persistence to improve user experience
 - **README.md**: Updated documentation section to reference new `/docs` folder structure with clear navigation to technical documentation.
