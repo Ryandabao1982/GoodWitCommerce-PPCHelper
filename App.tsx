@@ -1,3 +1,13 @@
+import React from 'react';
+import { useBrandManager } from './src/hooks/useBrandManager';
+import { useApiSettings } from './src/hooks/useApiSettings';
+import { useSOPManager } from './src/hooks/useSOPManager';
+import { MainAppPage } from './pages/MainAppPage';
+
+const App: React.FC = () => {
+  const brandManager = useBrandManager();
+  const apiSettingsManager = useApiSettings();
+  const sopManager = useSOPManager(brandManager.activeBrand);
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
@@ -23,6 +33,7 @@ import { ViewSwitcher } from './components/ViewSwitcher';
 import type { ViewType } from './components/ViewSwitcher';
 import { CampaignManager } from './components/CampaignManager';
 import { parseSearchVolume } from './utils/sorting';
+import { splitSeedKeywords } from './utils/keywordParsing';
 import { KeywordBank } from './components/KeywordBank';
 import { WelcomeMessage } from './components/WelcomeMessage';
 import { Settings } from './components/Settings';
@@ -250,6 +261,23 @@ const App: React.FC = () => {
 
       const searchSettings = activeBrandState.advancedSearchSettings;
       const seedKeyword = searchOverride ?? searchSettings.advancedKeywords;
+    try {
+      const [newKeywords, related] = await fetchKeywords(
+        seedKeyword,
+        searchSettings.isWebAnalysisEnabled,
+        searchSettings.brandName,
+        searchSettings.asin || ''
+      );
+      
+      const uniqueNewKeywords = new Map(activeBrandState.keywordResults.map(kw => [kw.keyword.toLowerCase(), kw]));
+      newKeywords.forEach(kw => {
+        if (!uniqueNewKeywords.has(kw.keyword.toLowerCase())) {
+          uniqueNewKeywords.set(kw.keyword.toLowerCase(), kw);
+        }
+      });
+      
+      const newSearchedKeywords = new Set(activeBrandState.searchedKeywords);
+      splitSeedKeywords(seedKeyword).forEach(k => newSearchedKeywords.add(k));
 
       if (!seedKeyword.trim()) {
         setError('Please enter at least one seed keyword.');
@@ -659,10 +687,12 @@ const App: React.FC = () => {
     setApiSettings((prev) => ({ ...prev, ...settings }));
   };
 
-  const handleSaveApiSettings = () => {
-    saveToLocalStorage('ppcGeniusApiSettings.geminiApiKey', apiSettings.geminiApiKey);
-    saveToLocalStorage('ppcGeniusApiSettings.supabaseUrl', apiSettings.supabaseUrl);
-    saveToLocalStorage('ppcGeniusApiSettings.supabaseAnonKey', apiSettings.supabaseAnonKey);
+  const handleSaveApiSettings = (nextSettings: ApiSettings) => {
+    setApiSettings(nextSettings);
+
+    saveToLocalStorage('ppcGeniusApiSettings.geminiApiKey', nextSettings.geminiApiKey);
+    saveToLocalStorage('ppcGeniusApiSettings.supabaseUrl', nextSettings.supabaseUrl);
+    saveToLocalStorage('ppcGeniusApiSettings.supabaseAnonKey', nextSettings.supabaseAnonKey);
     // Reinitialize services with new settings
     reinitializeGeminiService();
     reinitializeSOPService();
@@ -715,8 +745,12 @@ const App: React.FC = () => {
   };
 
   const handleApiKeySave = (apiKey: string) => {
-    handleApiSettingsChange({ geminiApiKey: apiKey });
-    handleSaveApiSettings();
+    const nextSettings = {
+      ...apiSettings,
+      geminiApiKey: apiKey,
+    };
+
+    handleSaveApiSettings(nextSettings);
   };
 
   const handleSkipApiStep = () => {
@@ -1161,6 +1195,11 @@ const App: React.FC = () => {
       {/* Bottom Navigation for Mobile */}
       {activeBrand && <BottomNavigation currentView={currentView} onViewChange={setCurrentView} />}
     </div>
+    <MainAppPage
+      brandManager={brandManager}
+      apiSettingsManager={apiSettingsManager}
+      sopManager={sopManager}
+    />
   );
 };
 
