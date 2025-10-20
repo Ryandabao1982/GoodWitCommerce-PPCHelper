@@ -2,7 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { CampaignManager } from '../../components/CampaignManager';
-import type { Campaign, AdGroup, KeywordData } from '../../types';
+import type { ComponentProps } from 'react';
+import type { Campaign, KeywordData } from '../../types';
 import { CAMPAIGN_TEMPLATES } from '../../utils/campaignTemplates';
 
 describe('CampaignManager', () => {
@@ -27,14 +28,39 @@ describe('CampaignManager', () => {
     name: 'Test Campaign',
     dailyBudget: 90,
     adGroups: [
-      { id: 'ag-1', name: 'Ad Group 1', keywords: [], defaultBid: 1, defaultMatchType: 'Broad', bidModifiers: { topOfSearch: 0, productPages: 0 } },
-      { id: 'ag-2', name: 'Ad Group 2', keywords: [], defaultBid: 1, defaultMatchType: 'Broad', bidModifiers: { topOfSearch: 0, productPages: 0 } },
-      { id: 'ag-3', name: 'Ad Group 3', keywords: [], defaultBid: 1, defaultMatchType: 'Broad', bidModifiers: { topOfSearch: 0, productPages: 0 } },
+      {
+        id: 'ag-1',
+        name: 'Ad Group 1',
+        keywords: [],
+        defaultBid: 1,
+        defaultMatchType: 'Broad',
+        bidModifiers: { topOfSearch: 0, productPages: 0 },
+        negativeKeywords: [],
+      },
+      {
+        id: 'ag-2',
+        name: 'Ad Group 2',
+        keywords: [],
+        defaultBid: 1,
+        defaultMatchType: 'Broad',
+        bidModifiers: { topOfSearch: 0, productPages: 0 },
+        negativeKeywords: [],
+      },
+      {
+        id: 'ag-3',
+        name: 'Ad Group 3',
+        keywords: [],
+        defaultBid: 1,
+        defaultMatchType: 'Broad',
+        bidModifiers: { topOfSearch: 0, productPages: 0 },
+        negativeKeywords: [],
+      },
     ],
+    negativeKeywords: [],
     ...overrides,
   });
 
-  const renderCM = (props?: Partial<React.ComponentProps<typeof CampaignManager>>) => {
+  const renderCM = (props?: Partial<ComponentProps<typeof CampaignManager>>) => {
     return render(
       <CampaignManager
         campaigns={props?.campaigns ?? []}
@@ -72,7 +98,7 @@ describe('CampaignManager', () => {
       // Template select is present
       const select = screen.getByRole('combobox');
       // pick a known template index (Manual Phrase)
-      const idx = CAMPAIGN_TEMPLATES.findIndex(t => t.name.includes('Manual Phrase'));
+      const idx = CAMPAIGN_TEMPLATES.findIndex((t) => t.name.includes('Manual Phrase'));
       expect(idx).toBeGreaterThanOrEqual(0);
 
       fireEvent.change(select, { target: { value: String(idx) } });
@@ -92,7 +118,7 @@ describe('CampaignManager', () => {
       renderCM();
       fireEvent.click(screen.getByRole('button', { name: /New Campaign/i }));
 
-      const idx = CAMPAIGN_TEMPLATES.findIndex(t => t.name.includes('Manual Exact'));
+      const idx = CAMPAIGN_TEMPLATES.findIndex((t) => t.name.includes('Manual Exact'));
       fireEvent.change(screen.getByRole('combobox'), { target: { value: String(idx) } });
 
       fireEvent.click(screen.getByRole('button', { name: /Create Campaign/i }));
@@ -166,8 +192,8 @@ describe('CampaignManager', () => {
       expect(mockOnCampaignsChange).toHaveBeenCalledTimes(1);
       const updated = mockOnCampaignsChange.mock.calls[0][0] as Campaign[];
       const updatedCampaign = updated[0];
-      const budgets = updatedCampaign.adGroups.map(ag => ag.budget ?? 0);
-      expect(budgets.every(b => Math.abs(b - 30) < 0.0001)).toBe(true);
+      const budgets = updatedCampaign.adGroups.map((ag) => ag.budget ?? 0);
+      expect(budgets.every((b) => Math.abs(b - 30) < 0.0001)).toBe(true);
     });
   });
 
@@ -221,6 +247,57 @@ describe('CampaignManager', () => {
     });
   });
 
+  describe('Negative keyword management', () => {
+    it('adds a campaign-level negative keyword', () => {
+      const c = makeCampaign();
+      renderCM({ campaigns: [c] });
+
+      fireEvent.click(screen.getByRole('button', { name: /Test Campaign/i }));
+      fireEvent.click(screen.getByRole('button', { name: /Negative Keywords/i }));
+
+      const campaignSection = screen.getByText(/Campaign Negative Keywords/i).closest('div');
+      expect(campaignSection).toBeTruthy();
+      const scoped = within(campaignSection!);
+      fireEvent.change(scoped.getByPlaceholderText(/Add negative keyword/i), {
+        target: { value: 'cheap' },
+      });
+      fireEvent.click(scoped.getByRole('button', { name: /^Add$/i }));
+
+      expect(mockOnCampaignsChange).toHaveBeenCalled();
+      const updated = mockOnCampaignsChange.mock.calls[
+        mockOnCampaignsChange.mock.calls.length - 1
+      ][0] as Campaign[];
+      expect(updated[0].negativeKeywords).toHaveLength(1);
+      expect(updated[0].negativeKeywords?.[0].keyword).toBe('cheap');
+    });
+
+    it('adds an ad group negative keyword via bulk input', () => {
+      const c = makeCampaign();
+      renderCM({ campaigns: [c] });
+
+      fireEvent.click(screen.getByRole('button', { name: /Test Campaign/i }));
+      fireEvent.click(screen.getByRole('button', { name: /Negative Keywords/i }));
+
+      const adGroupSection = screen.getByText(/Ad Group Negative Keywords/i).closest('div');
+      expect(adGroupSection).toBeTruthy();
+      const scoped = within(adGroupSection!);
+      const bulkTextarea = scoped.getAllByPlaceholderText(/Enter one keyword per line/i)[0];
+      fireEvent.change(bulkTextarea, { target: { value: 'duplicate\nconflict' } });
+      fireEvent.click(scoped.getAllByRole('button', { name: /Add from List/i })[0]);
+
+      expect(mockOnCampaignsChange).toHaveBeenCalled();
+      const updated = mockOnCampaignsChange.mock.calls[
+        mockOnCampaignsChange.mock.calls.length - 1
+      ][0] as Campaign[];
+      const firstAdGroup = updated[0].adGroups[0];
+      expect(firstAdGroup.negativeKeywords).toHaveLength(2);
+      expect(firstAdGroup.negativeKeywords?.map((n) => n.keyword)).toEqual([
+        'duplicate',
+        'conflict',
+      ]);
+    });
+  });
+
   describe('Drag-and-drop assignment', () => {
     it('handles dropping keywords on an ad group', () => {
       const c = makeCampaign();
@@ -255,9 +332,15 @@ describe('CampaignManager', () => {
         if (tag === 'a') {
           return {
             set href(v: string) {},
-            get href() { return ''; },
-            set download(v: string) { (this as any)._download = v; },
-            get download() { return (this as any)._download; },
+            get href() {
+              return '';
+            },
+            set download(v: string) {
+              (this as any)._download = v;
+            },
+            get download() {
+              return (this as any)._download;
+            },
             click: vi.fn(),
           } as any;
         }
@@ -266,7 +349,14 @@ describe('CampaignManager', () => {
 
       const c = makeCampaign({
         adGroups: [
-          { id: 'ag-1', name: 'AG1', keywords: ['kw1','kw2'], defaultBid: 1, defaultMatchType: 'Broad', bidModifiers: { topOfSearch: 0, productPages: 0 } },
+          {
+            id: 'ag-1',
+            name: 'AG1',
+            keywords: ['kw1', 'kw2'],
+            defaultBid: 1,
+            defaultMatchType: 'Broad',
+            bidModifiers: { topOfSearch: 0, productPages: 0 },
+          },
         ],
       });
 
@@ -275,7 +365,7 @@ describe('CampaignManager', () => {
 
       expect(urlSpy).toHaveBeenCalled();
       // anchor was created and given a filename
-      const anchor = (createElSpy.mock.results.find(r => (r.value as any)?.click)?.value) as any;
+      const anchor = createElSpy.mock.results.find((r) => (r.value as any)?.click)?.value as any;
       expect(anchor.download).toBe('BrandX_campaign_plan.csv');
 
       revokeSpy.mockRestore();

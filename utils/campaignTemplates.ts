@@ -33,9 +33,24 @@ export const CAMPAIGN_TEMPLATES: CampaignTemplate[] = [
     category: 'Sponsored Products',
     suggestedDailyBudget: 30,
     adGroups: [
-      { name: 'High Volume Keywords', defaultMatchType: 'Broad', defaultBid: 1.5, budgetPercent: 50 },
-      { name: 'Mid Volume Keywords', defaultMatchType: 'Broad', defaultBid: 1.0, budgetPercent: 35 },
-      { name: 'Low Volume Keywords', defaultMatchType: 'Broad', defaultBid: 0.75, budgetPercent: 15 },
+      {
+        name: 'High Volume Keywords',
+        defaultMatchType: 'Broad',
+        defaultBid: 1.5,
+        budgetPercent: 50,
+      },
+      {
+        name: 'Mid Volume Keywords',
+        defaultMatchType: 'Broad',
+        defaultBid: 1.0,
+        budgetPercent: 35,
+      },
+      {
+        name: 'Low Volume Keywords',
+        defaultMatchType: 'Broad',
+        defaultBid: 0.75,
+        budgetPercent: 15,
+      },
     ],
   },
   {
@@ -45,7 +60,12 @@ export const CAMPAIGN_TEMPLATES: CampaignTemplate[] = [
     suggestedDailyBudget: 30,
     adGroups: [
       { name: 'Core Keywords', defaultMatchType: 'Phrase', defaultBid: 1.25, budgetPercent: 60 },
-      { name: 'Opportunity Keywords', defaultMatchType: 'Phrase', defaultBid: 1.0, budgetPercent: 40 },
+      {
+        name: 'Opportunity Keywords',
+        defaultMatchType: 'Phrase',
+        defaultBid: 1.0,
+        budgetPercent: 40,
+      },
     ],
   },
   {
@@ -74,9 +94,24 @@ export const CAMPAIGN_TEMPLATES: CampaignTemplate[] = [
     category: 'Sponsored Products',
     suggestedDailyBudget: 35,
     adGroups: [
-      { name: 'Tier 1 Competitors', defaultMatchType: 'Phrase', defaultBid: 1.75, budgetPercent: 50 },
-      { name: 'Tier 2 Competitors', defaultMatchType: 'Phrase', defaultBid: 1.25, budgetPercent: 35 },
-      { name: 'Tier 3 Competitors', defaultMatchType: 'Broad', defaultBid: 0.75, budgetPercent: 15 },
+      {
+        name: 'Tier 1 Competitors',
+        defaultMatchType: 'Phrase',
+        defaultBid: 1.75,
+        budgetPercent: 50,
+      },
+      {
+        name: 'Tier 2 Competitors',
+        defaultMatchType: 'Phrase',
+        defaultBid: 1.25,
+        budgetPercent: 35,
+      },
+      {
+        name: 'Tier 3 Competitors',
+        defaultMatchType: 'Broad',
+        defaultBid: 0.75,
+        budgetPercent: 15,
+      },
     ],
   },
   {
@@ -85,7 +120,12 @@ export const CAMPAIGN_TEMPLATES: CampaignTemplate[] = [
     category: 'Sponsored Products',
     suggestedDailyBudget: 50,
     adGroups: [
-      { name: 'Core Product Terms', defaultMatchType: 'Phrase', defaultBid: 2.0, budgetPercent: 40 },
+      {
+        name: 'Core Product Terms',
+        defaultMatchType: 'Phrase',
+        defaultBid: 2.0,
+        budgetPercent: 40,
+      },
       { name: 'Category Terms', defaultMatchType: 'Broad', defaultBid: 1.5, budgetPercent: 30 },
       { name: 'Discovery', defaultMatchType: 'Broad', defaultBid: 1.0, budgetPercent: 30 },
     ],
@@ -118,7 +158,12 @@ export const CAMPAIGN_TEMPLATES: CampaignTemplate[] = [
     category: 'Sponsored Brands',
     suggestedDailyBudget: 30,
     adGroups: [
-      { name: 'Collection Keywords', defaultMatchType: 'Phrase', defaultBid: 1.5, budgetPercent: 100 },
+      {
+        name: 'Collection Keywords',
+        defaultMatchType: 'Phrase',
+        defaultBid: 1.5,
+        budgetPercent: 100,
+      },
     ],
   },
 
@@ -159,9 +204,7 @@ export const CAMPAIGN_TEMPLATES: CampaignTemplate[] = [
     description: 'Promote related products to existing customers',
     category: 'Sponsored Display',
     suggestedDailyBudget: 20,
-    adGroups: [
-      { name: 'Past Purchasers', budgetPercent: 100 },
-    ],
+    adGroups: [{ name: 'Past Purchasers', budgetPercent: 100 }],
   },
 ];
 
@@ -175,9 +218,10 @@ export function createCampaignFromTemplate(
   const budget = dailyBudget ?? template.suggestedDailyBudget;
 
   const adGroups: AdGroup[] = template.adGroups.map((agTemplate, index) => {
-    const adGroupBudget = budget != null && agTemplate.budgetPercent != null
-      ? (budget * agTemplate.budgetPercent) / 100
-      : undefined;
+    const adGroupBudget =
+      budget != null && agTemplate.budgetPercent != null
+        ? (budget * agTemplate.budgetPercent) / 100
+        : undefined;
 
     return {
       id: `adgroup-${timestamp}-${index}`,
@@ -190,6 +234,7 @@ export function createCampaignFromTemplate(
         topOfSearch: 50, // Default 50% boost for top of search
         productPages: 0, // Default 0% modifier for product pages
       },
+      negativeKeywords: [],
     };
   });
 
@@ -198,5 +243,6 @@ export function createCampaignFromTemplate(
     name: campaignName,
     dailyBudget: budget,
     adGroups,
+    negativeKeywords: [],
   };
 }

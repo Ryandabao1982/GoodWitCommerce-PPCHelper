@@ -1,8 +1,15 @@
 export type KeywordType = 'Broad' | 'Phrase' | 'Exact' | 'Long-tail';
 export type MatchType = 'Broad' | 'Phrase' | 'Exact';
 export type CompetitionLevel = 'Low' | 'Medium' | 'High';
-export type KeywordCategory = 'Core' | 'Opportunity' | 'Branded' | 'Low-hanging Fruit' | 'Complementary';
+export type KeywordCategory =
+  | 'Core'
+  | 'Opportunity'
+  | 'Branded'
+  | 'Low-hanging Fruit'
+  | 'Complementary';
 export type KeywordSource = 'AI' | 'Web';
+
+export type NegativeMatchType = 'Negative Exact' | 'Negative Phrase';
 
 export type BadgeType = KeywordType | CompetitionLevel | KeywordCategory | KeywordSource | 'New';
 
@@ -36,6 +43,25 @@ export interface BidModifiers {
   productPages?: number; // Percentage modifier for product pages
 }
 
+export interface PlannerNegativeKeyword {
+  id: string;
+  keyword: string;
+  matchType: NegativeMatchType;
+  note?: string;
+  source?: 'manual' | 'imported' | 'synced';
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface NegativeKeywordList {
+  id: string;
+  name: string;
+  keywords: PlannerNegativeKeyword[];
+  scope?: 'Campaign' | 'AdGroup' | 'Account';
+  updatedAt?: string;
+  syncedWithSupabase?: boolean;
+}
+
 export interface AdGroup {
   id: string;
   name: string;
@@ -45,6 +71,7 @@ export interface AdGroup {
   bidModifiers?: BidModifiers; // Bid modifiers for different placements
   budget?: number; // Budget allocated to this ad group
   asin?: string; // ASIN for product-specific targeting
+  negativeKeywords?: PlannerNegativeKeyword[]; // Negative keywords applied to this ad group
 }
 
 export interface CampaignProjections {
@@ -62,6 +89,7 @@ export interface Campaign {
   dailyBudget?: number; // Daily budget for the campaign
   projections?: CampaignProjections | null;
   asin?: string; // ASIN for product-specific campaigns
+  negativeKeywords?: PlannerNegativeKeyword[]; // Campaign-level negative keywords
 }
 
 // API Configuration Settings
@@ -170,6 +198,7 @@ export interface BrandState {
   sops?: SOP[];
   sopStats?: SOPStats;
   metadata?: BrandMetadata;
+  negativeKeywordLists?: NegativeKeywordList[];
 }
 
 // Lifecycle Management Types
@@ -200,7 +229,13 @@ export interface KeywordPerformance {
   createdAt: string;
 }
 
-export type LifecycleEventType = 'promoted' | 'negated' | 'paused' | 'activated' | 'bid_changed' | 'stage_changed';
+export type LifecycleEventType =
+  | 'promoted'
+  | 'negated'
+  | 'paused'
+  | 'activated'
+  | 'bid_changed'
+  | 'stage_changed';
 
 export interface LifecycleEvent {
   id: string;
@@ -367,7 +402,7 @@ export interface ParsedKeywordData {
 }
 
 // SOP Library Types
-export type SOPCategory = 
+export type SOPCategory =
   | 'Campaign Management'
   | 'Keyword Research'
   | 'Brand Setup'

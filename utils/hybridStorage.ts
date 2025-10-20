@@ -2,7 +2,7 @@
  * Hybrid Storage Service
  * Provides unified storage interface with Supabase as the default storage
  * and localStorage as fallback only.
- * 
+ *
  * Pattern: Supabase-first (default) with localStorage fallback
  * - Default: Always use Supabase database when configured and authenticated
  * - Fallback: localStorage used only when:
@@ -15,7 +15,132 @@
 import { api } from '../services/databaseService';
 import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
 import { loadFromLocalStorage, saveToLocalStorage } from './storage';
-import type { BrandState, KeywordData, Campaign } from '../types';
+import type {
+  BrandState,
+  Campaign,
+  CompetitionLevel,
+  KeywordCategory,
+  KeywordSource,
+  KeywordType,
+  NegativeMatchType,
+  PlannerNegativeKeyword,
+} from '../types';
+
+interface SupabaseKeywordRecord {
+  keyword: string;
+  type: string | null;
+  category: string | null;
+  search_volume: string;
+  competition: string | null;
+  relevance: number;
+  source: string | null;
+}
+
+interface SupabaseNegativeKeywordRecord {
+  id: string;
+  keyword: string;
+  match_type: string | null;
+  reason?: string | null;
+  source?: string | null;
+}
+
+interface SupabaseAdGroupKeywordRecord {
+  keyword: {
+    keyword: string;
+  };
+}
+
+interface SupabaseAdGroupRecord {
+  id: string;
+  name: string;
+  ad_group_keywords?: SupabaseAdGroupKeywordRecord[];
+  negative_keywords?: SupabaseNegativeKeywordRecord[];
+}
+
+interface SupabaseCampaignRecord {
+  id: string;
+  name: string;
+  total_budget: number | null;
+  projections: Campaign['projections'] | null;
+  ad_groups?: SupabaseAdGroupRecord[];
+  negative_keywords?: SupabaseNegativeKeywordRecord[];
+}
+
+type NegativeSource = NonNullable<PlannerNegativeKeyword['source']>;
+
+const parseKeywordType = (value: string | null): KeywordType => {
+  if (value === 'Broad' || value === 'Phrase' || value === 'Exact' || value === 'Long-tail') {
+    return value;
+  }
+  return 'Broad';
+};
+
+const parseKeywordCategory = (value: string | null): KeywordCategory => {
+  if (
+    value === 'Core' ||
+    value === 'Opportunity' ||
+    value === 'Branded' ||
+    value === 'Low-hanging Fruit' ||
+    value === 'Complementary'
+  ) {
+    return value;
+  }
+  return 'Core';
+};
+
+const parseCompetitionLevel = (value: string | null): CompetitionLevel => {
+  if (value === 'Low' || value === 'Medium' || value === 'High') {
+    return value;
+  }
+  return 'Medium';
+};
+
+const parseKeywordSource = (value: string | null): KeywordSource => {
+  if (value === 'AI' || value === 'Web') {
+    return value;
+  }
+  return 'AI';
+};
+
+const parseNegativeMatchType = (value: string | null): NegativeMatchType => {
+  if (value === 'Negative Exact' || value === 'Negative Phrase') {
+    return value;
+  }
+  return 'Negative Phrase';
+};
+
+const parseNegativeSource = (value: string | null): PlannerNegativeKeyword['source'] => {
+  if (value === 'manual' || value === 'imported' || value === 'synced') {
+    return value as NegativeSource;
+  }
+  return undefined;
+};
+
+const mapSupabaseNegativeKeywords = (
+  records: SupabaseNegativeKeywordRecord[] | undefined
+): PlannerNegativeKeyword[] =>
+  (records ?? []).map((record) => ({
+    id: record.id,
+    keyword: record.keyword,
+    matchType: parseNegativeMatchType(record.match_type),
+    note: record.reason ?? undefined,
+    source: parseNegativeSource(record.source) ?? 'synced',
+  }));
+
+const ensureCampaignNegativeDefaults = (campaign: Campaign): Campaign => ({
+  ...campaign,
+  negativeKeywords: campaign.negativeKeywords ?? [],
+  adGroups: campaign.adGroups.map((adGroup) => ({
+    ...adGroup,
+    negativeKeywords: adGroup.negativeKeywords ?? [],
+  })),
+});
+
+const normalizeBrandState = (state: BrandState): BrandState => ({
+  ...state,
+  campaigns: state.campaigns ? state.campaigns.map(ensureCampaignNegativeDefaults) : [],
+  negativeKeywordLists: state.negativeKeywordLists ?? [],
+});
 
 /**
  * Check if Supabase database is available (configured and user authenticated)
@@ -26,10 +151,12 @@ export async function isDatabaseAvailable(): Promise<boolean> {
   if (!isSupabaseConfigured()) {
     return false;
   }
-  
+
   try {
     // Use Supabase as default when user is authenticated
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     return user !== null;
   } catch (error) {
     // Fallback to localStorage on error
@@ -48,12 +175,12 @@ export const brandStorage = {
    */
   async list(): Promise<string[]> {
     const dbAvailable = await isDatabaseAvailable();
-    
+
     // Default: Use Supabase when available
     if (dbAvailable) {
       try {
         const brands = await api.brands.list();
-        const brandNames = brands.map(b => b.name);
+        const brandNames = brands.map((b) => b.name);
         // Cache in localStorage for performance and offline access
         saveToLocalStorage('ppcGeniusBrands', brandNames);
         return brandNames;
@@ -61,7 +188,7 @@ export const brandStorage = {
         console.warn('Supabase unavailable, falling back to localStorage:', error);
       }
     }
-    
+
     // Fallback: localStorage when Supabase not available
     return loadFromLocalStorage<string[]>('ppcGeniusBrands', []);
   },
@@ -87,14 +214,14 @@ export const brandStorage = {
    */
   async create(brandName: string): Promise<void> {
     const dbAvailable = await isDatabaseAvailable();
-    
+
     // Optimistic update to localStorage (cache/fallback)
     const brands = loadFromLocalStorage<string[]>('ppcGeniusBrands', []);
     if (!brands.includes(brandName)) {
       brands.push(brandName);
       saveToLocalStorage('ppcGeniusBrands', brands);
     }
-    
+
     // Default: Save to Supabase when available
     if (dbAvailable) {
       try {
@@ -111,22 +238,25 @@ export const brandStorage = {
    */
   async delete(brandName: string): Promise<void> {
     const dbAvailable = await isDatabaseAvailable();
-    
+
     // Update localStorage (cache/fallback)
     const brands = loadFromLocalStorage<string[]>('ppcGeniusBrands', []);
-    const filteredBrands = brands.filter(b => b !== brandName);
+    const filteredBrands = brands.filter((b) => b !== brandName);
     saveToLocalStorage('ppcGeniusBrands', filteredBrands);
-    
+
     // Remove brand state from localStorage
-    const brandStates = loadFromLocalStorage<Record<string, BrandState>>('ppcGeniusBrandStates', {});
+    const brandStates = loadFromLocalStorage<Record<string, BrandState>>(
+      'ppcGeniusBrandStates',
+      {}
+    );
     delete brandStates[brandName];
     saveToLocalStorage('ppcGeniusBrandStates', brandStates);
-    
+
     // Default: Delete from Supabase when available
     if (dbAvailable) {
       try {
         const dbBrands = await api.brands.list();
-        const dbBrand = dbBrands.find(b => b.name === brandName);
+        const dbBrand = dbBrands.find((b) => b.name === brandName);
         if (dbBrand) {
           await api.brands.delete(dbBrand.id);
         }
@@ -134,7 +264,7 @@ export const brandStorage = {
         console.warn('Failed to delete brand from database:', error);
       }
     }
-  }
+  },
 };
 
 /**
@@ -148,29 +278,29 @@ export const brandStateStorage = {
    */
   async getAll(): Promise<Record<string, BrandState>> {
     const dbAvailable = await isDatabaseAvailable();
-    
+
     // Default: Use Supabase when available
     if (dbAvailable) {
       try {
         // Fetch all brands from Supabase database
         const dbBrands = await api.brands.list();
         const brandStates: Record<string, BrandState> = {};
-        
+
         for (const brand of dbBrands) {
           // Fetch keywords for this brand
-          const keywords = await api.keywords.list(brand.id);
+          const keywords = (await api.keywords.list(brand.id)) as SupabaseKeywordRecord[];
           // Fetch campaigns for this brand
-          const campaigns = await api.campaigns.list(brand.id);
-          
+          const campaigns = (await api.campaigns.list(brand.id)) as SupabaseCampaignRecord[];
+
           brandStates[brand.name] = {
-            keywordResults: keywords.map(k => ({
+            keywordResults: keywords.map((k) => ({
               keyword: k.keyword,
-              type: k.type as any,
-              category: k.category as any,
+              type: parseKeywordType(k.type),
+              category: parseKeywordCategory(k.category),
               searchVolume: k.search_volume,
-              competition: k.competition as any,
+              competition: parseCompetitionLevel(k.competition),
               relevance: k.relevance,
-              source: k.source as any,
+              source: parseKeywordSource(k.source),
             })),
             searchedKeywords: [], // This is session-specific, keep in localStorage
             advancedSearchSettings: {
@@ -181,20 +311,25 @@ export const brandStateStorage = {
               brandName: brand.name,
             },
             keywordClusters: null, // TODO: Implement cluster loading
-            campaigns: campaigns.map(c => ({
+            campaigns: campaigns.map((c) => ({
               id: c.id,
               name: c.name,
-              adGroups: c.ad_groups?.map((ag: any) => ({
-                id: ag.id,
-                name: ag.name,
-                keywords: ag.ad_group_keywords?.map((agk: any) => agk.keyword.keyword) || [],
-              })) || [],
+              adGroups:
+                c.ad_groups?.map((adGroup) => ({
+                  id: adGroup.id,
+                  name: adGroup.name,
+                  keywords:
+                    adGroup.ad_group_keywords?.map((keyword) => keyword.keyword.keyword) || [],
+                  negativeKeywords: mapSupabaseNegativeKeywords(adGroup.negative_keywords),
+                })) || [],
               totalBudget: c.total_budget ? Number(c.total_budget) : undefined,
-              projections: c.projections as any,
+              projections: c.projections ?? null,
+              negativeKeywords: mapSupabaseNegativeKeywords(c.negative_keywords),
             })),
+            negativeKeywordLists: [],
           };
         }
-        
+
         // Cache in localStorage for performance
         saveToLocalStorage('ppcGeniusBrandStates', brandStates);
         return brandStates;
@@ -202,9 +337,15 @@ export const brandStateStorage = {
         console.warn('Supabase unavailable, falling back to localStorage:', error);
       }
     }
-    
+
     // Fallback: localStorage when Supabase not available
-    return loadFromLocalStorage<Record<string, BrandState>>('ppcGeniusBrandStates', {});
+    const fallbackStates = loadFromLocalStorage<Record<string, BrandState>>(
+      'ppcGeniusBrandStates',
+      {}
+    );
+    return Object.fromEntries(
+      Object.entries(fallbackStates).map(([name, state]) => [name, normalizeBrandState(state)])
+    );
   },
 
   /**
@@ -222,27 +363,48 @@ export const brandStateStorage = {
    */
   async update(brandName: string, updates: Partial<BrandState>): Promise<void> {
     const dbAvailable = await isDatabaseAvailable();
-    
+
     // Optimistic update to localStorage (cache/fallback)
-    const brandStates = loadFromLocalStorage<Record<string, BrandState>>('ppcGeniusBrandStates', {});
-    const currentState = brandStates[brandName] || {
-      keywordResults: [],
-      searchedKeywords: [],
-      advancedSearchSettings: { advancedKeywords: '', minVolume: '', maxVolume: '', isWebAnalysisEnabled: false, brandName },
-      keywordClusters: null,
-      campaigns: [],
-    };
-    
-    brandStates[brandName] = { ...currentState, ...updates };
+    const brandStates = loadFromLocalStorage<Record<string, BrandState>>(
+      'ppcGeniusBrandStates',
+      {}
+    );
+    const currentState = brandStates[brandName]
+      ? normalizeBrandState(brandStates[brandName])
+      : normalizeBrandState({
+          keywordResults: [],
+          searchedKeywords: [],
+          advancedSearchSettings: {
+            advancedKeywords: '',
+            minVolume: '',
+            maxVolume: '',
+            isWebAnalysisEnabled: false,
+            brandName,
+          },
+          keywordClusters: null,
+          campaigns: [],
+          negativeKeywordLists: [],
+        } as BrandState);
+
+    const nextCampaigns = updates.campaigns
+      ? updates.campaigns.map(ensureCampaignNegativeDefaults)
+      : currentState.campaigns;
+
+    brandStates[brandName] = normalizeBrandState({
+      ...currentState,
+      ...updates,
+      campaigns: nextCampaigns,
+      negativeKeywordLists: updates.negativeKeywordLists ?? currentState.negativeKeywordLists ?? [],
+    });
     saveToLocalStorage('ppcGeniusBrandStates', brandStates);
-    
+
     // Default: Sync to Supabase when available
     if (dbAvailable) {
       try {
         // Find brand in Supabase database
         const dbBrands = await api.brands.list();
-        const dbBrand = dbBrands.find(b => b.name === brandName);
-        
+        const dbBrand = dbBrands.find((b) => b.name === brandName);
+
         if (!dbBrand) {
           // Brand doesn't exist in Supabase, create it
           const newBrand = await api.brands.create(brandName);
@@ -266,11 +428,13 @@ export const brandStateStorage = {
       try {
         // Get existing keywords from Supabase to avoid duplicates
         const existingKeywords = await api.keywords.list(brandId);
-        const existingKeywordTexts = new Set(existingKeywords.map(k => k.keyword));
-        
+        const existingKeywordTexts = new Set(existingKeywords.map((k) => k.keyword));
+
         // Only create keywords that don't exist in Supabase yet
-        const newKeywords = state.keywordResults.filter(k => !existingKeywordTexts.has(k.keyword));
-        
+        const newKeywords = state.keywordResults.filter(
+          (k) => !existingKeywordTexts.has(k.keyword)
+        );
+
         if (newKeywords.length > 0) {
           await api.keywords.createBulk(brandId, newKeywords);
         }
@@ -278,13 +442,13 @@ export const brandStateStorage = {
         console.warn('Failed to sync keywords to Supabase:', error);
       }
     }
-    
+
     // Sync campaigns to Supabase if they exist
     if (state.campaigns && state.campaigns.length > 0) {
       try {
         const existingCampaigns = await api.campaigns.list(brandId);
-        const existingCampaignNames = new Set(existingCampaigns.map(c => c.name));
-        
+        const existingCampaignNames = new Set(existingCampaigns.map((c) => c.name));
+
         for (const campaign of state.campaigns) {
           if (!existingCampaignNames.has(campaign.name)) {
             await api.campaigns.create(brandId, campaign);
@@ -294,7 +458,7 @@ export const brandStateStorage = {
         console.warn('Failed to sync campaigns to Supabase:', error);
       }
     }
-  }
+  },
 };
 
 /**
@@ -328,7 +492,7 @@ export const settingsStorage = {
    */
   setQuickStartSeen(seen: boolean): void {
     saveToLocalStorage('ppcGeniusHasSeenQuickStart', seen);
-  }
+  },
 };
 
 /**
@@ -341,7 +505,7 @@ export async function getConnectionStatus(): Promise<{
   usingLocalStorage: boolean;
 }> {
   const isConfigured = isSupabaseConfigured();
-  
+
   if (!isConfigured) {
     return {
       isConnected: false,
@@ -350,11 +514,13 @@ export async function getConnectionStatus(): Promise<{
       usingLocalStorage: true,
     };
   }
-  
+
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     const isAuthenticated = user !== null;
-    
+
     return {
       isConnected: true,
       isAuthenticated,
@@ -362,6 +528,7 @@ export async function getConnectionStatus(): Promise<{
       usingLocalStorage: true, // Always used as cache/fallback
     };
   } catch (error) {
+    console.warn('Failed to determine Supabase connection status, assuming offline mode:', error);
     return {
       isConnected: false,
       isAuthenticated: false,
