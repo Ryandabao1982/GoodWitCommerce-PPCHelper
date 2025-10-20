@@ -653,15 +653,15 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
 
       {/* Create/Edit Modal */}
       {(showCreateModal || (showViewModal && isEditing)) && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-50 overflow-y-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-3xl w-full my-2 sm:my-4 max-h-[95vh] sm:max-h-[90vh] flex flex-col">
+            <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
               <h3 className="text-xl font-bold text-gray-900 dark:text-white">
                 {isEditing ? 'Edit SOP' : 'Create New SOP'}
               </h3>
             </div>
 
-            <div className="p-6 space-y-4">
+            <div className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
               {/* AI Assistant Panel */}
               <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-2 border-purple-300 dark:border-purple-700 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
@@ -789,8 +789,8 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
                   value={formData.content}
                   onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                   placeholder="Enter the SOP content, steps, guidelines, or best practices..."
-                  rows={12}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white font-mono text-sm"
+                  rows={8}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white font-mono text-sm resize-y min-h-[120px]"
                 />
               </div>
 
@@ -838,7 +838,7 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
               </div>
             </div>
 
-            <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3 sticky bottom-0 bg-white dark:bg-gray-800">
+            <div className="p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3 flex-shrink-0 bg-white dark:bg-gray-800">
               <button
                 onClick={() => {
                   setShowCreateModal(false);
@@ -853,13 +853,13 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
                     tagInput: '',
                   });
                 }}
-                className="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                className="px-4 sm:px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={isEditing ? handleUpdateSOP : handleCreateSOP}
-                className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
+                className="px-4 sm:px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
               >
                 {isEditing ? 'Update' : 'Create'} SOP
               </button>
@@ -870,20 +870,21 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
 
       {/* View Modal */}
       {showViewModal && !isEditing && selectedSOP && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-50 overflow-y-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full my-2 sm:my-4 max-h-[95vh] sm:max-h-[90vh] flex flex-col">
+            <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+              <div className="flex justify-between items-start gap-4">
+                {/* min-w-0 prevents this flex item from overflowing its container when text is too long; works with break-words on the heading below */}
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-2 break-words">
                     {selectedSOP.title}
                   </h3>
-                  <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
-                    <span className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                    <span className="px-2 sm:px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded text-xs sm:text-sm">
                       {selectedSOP.category}
                     </span>
                     <span>👁️ {selectedSOP.viewCount || 0} views</span>
-                    <span>Updated {new Date(selectedSOP.updatedAt).toLocaleDateString()}</span>
+                    <span className="hidden sm:inline">Updated {new Date(selectedSOP.updatedAt).toLocaleDateString()}</span>
                   </div>
                 </div>
                 <button
@@ -891,16 +892,16 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
                     setShowViewModal(false);
                     setSelectedSOP(null);
                   }}
-                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 text-2xl"
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 text-2xl flex-shrink-0"
                 >
                   ✕
                 </button>
               </div>
             </div>
 
-            <div className="p-6">
+            <div className="p-4 sm:p-6 overflow-y-auto flex-1">
               <div className="prose dark:prose-invert max-w-none">
-                <div className="whitespace-pre-wrap text-gray-700 dark:text-gray-300">
+                <div className="whitespace-pre-wrap text-gray-700 dark:text-gray-300 text-sm sm:text-base">
                   {selectedSOP.content}
                 </div>
               </div>
@@ -922,16 +923,16 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
               )}
             </div>
 
-            <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3 sticky bottom-0 bg-white dark:bg-gray-800">
+            <div className="p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700 flex flex-wrap justify-end gap-2 sm:gap-3 flex-shrink-0 bg-white dark:bg-gray-800">
               <button
                 onClick={() => onToggleFavorite(selectedSOP.id)}
-                className="px-6 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-medium transition-colors"
+                className="px-4 sm:px-6 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-medium transition-colors text-sm sm:text-base"
               >
                 {selectedSOP.isFavorite ? '⭐ Unfavorite' : '☆ Favorite'}
               </button>
               <button
                 onClick={() => handleEditSOP(selectedSOP)}
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                className="px-4 sm:px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm sm:text-base"
               >
                 Edit
               </button>
@@ -940,7 +941,7 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
                   setShowViewModal(false);
                   setSelectedSOP(null);
                 }}
-                className="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                className="px-4 sm:px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors text-sm sm:text-base"
               >
                 Close
               </button>
