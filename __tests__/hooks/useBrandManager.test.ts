@@ -18,25 +18,29 @@ const baseBrandState: BrandState = {
   campaigns: [],
 };
 
-const mockBrandStorage = {
-  list: vi.fn<[], Promise<string[]>>(),
-  getActive: vi.fn<[], Promise<string | null>>(),
-  setActive: vi.fn<(brand: string | null) => Promise<void>>(),
-  create: vi.fn<(brand: string) => Promise<void>>(),
-  delete: vi.fn<(brand: string) => Promise<void>>(),
-};
-
-const mockBrandStateStorage = {
-  getAll: vi.fn<[], Promise<Record<string, BrandState>>>(),
-  update: vi.fn<(brand: string, state: BrandState) => Promise<void>>(),
-};
-
-const mockLoad = vi.fn((_: string, defaultValue: any) => defaultValue);
+// Hoisted mock functions
+const mockBrandStorageList = vi.fn();
+const mockBrandStorageGetActive = vi.fn();
+const mockBrandStorageSetActive = vi.fn();
+const mockBrandStorageCreate = vi.fn();
+const mockBrandStorageDelete = vi.fn();
+const mockBrandStateStorageGetAll = vi.fn();
+const mockBrandStateStorageUpdate = vi.fn();
+const mockLoad = vi.fn();
 const mockSave = vi.fn();
 
 vi.mock('../../utils/hybridStorage', () => ({
-  brandStorage: mockBrandStorage,
-  brandStateStorage: mockBrandStateStorage,
+  brandStorage: {
+    list: mockBrandStorageList,
+    getActive: mockBrandStorageGetActive,
+    setActive: mockBrandStorageSetActive,
+    create: mockBrandStorageCreate,
+    delete: mockBrandStorageDelete,
+  },
+  brandStateStorage: {
+    getAll: mockBrandStateStorageGetAll,
+    update: mockBrandStateStorageUpdate,
+  },
 }));
 
 vi.mock('../../utils/storage', () => ({
@@ -47,16 +51,16 @@ vi.mock('../../utils/storage', () => ({
 describe('useBrandManager', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockBrandStorage.list.mockResolvedValue(['Brand One', 'Brand Two']);
-    mockBrandStorage.getActive.mockResolvedValue('Brand One');
-    mockBrandStorage.setActive.mockResolvedValue();
-    mockBrandStorage.create.mockResolvedValue();
-    mockBrandStorage.delete.mockResolvedValue();
-    mockBrandStateStorage.getAll.mockResolvedValue({
+    mockBrandStorageList.mockResolvedValue(['Brand One', 'Brand Two']);
+    mockBrandStorageGetActive.mockResolvedValue('Brand One');
+    mockBrandStorageSetActive.mockResolvedValue();
+    mockBrandStorageCreate.mockResolvedValue();
+    mockBrandStorageDelete.mockResolvedValue();
+    mockBrandStateStorageGetAll.mockResolvedValue({
       'Brand One': baseBrandState,
       'Brand Two': baseBrandState,
     });
-    mockBrandStateStorage.update.mockResolvedValue();
+    mockBrandStateStorageUpdate.mockResolvedValue();
   });
 
   it('loads brand data from storage on mount', async () => {
@@ -73,14 +77,14 @@ describe('useBrandManager', () => {
     const { result } = renderHook(() => useBrandManager());
     await waitFor(() => expect(result.current.activeBrand).toBe('Brand One'));
 
-    mockBrandStorage.setActive.mockClear();
+    mockBrandStorageSetActive.mockClear();
 
     act(() => {
       result.current.selectBrand('Brand Two');
     });
 
     await waitFor(() => {
-      expect(mockBrandStorage.setActive).toHaveBeenCalledWith('Brand Two');
+      expect(mockBrandStorageSetActive).toHaveBeenCalledWith('Brand Two');
     });
   });
 
@@ -93,7 +97,7 @@ describe('useBrandManager', () => {
     });
 
     await waitFor(() => {
-      expect(mockBrandStateStorage.update).toHaveBeenCalledWith(
+      expect(mockBrandStateStorageUpdate).toHaveBeenCalledWith(
         'Brand One',
         expect.objectContaining({ keywordResults: [] })
       );
