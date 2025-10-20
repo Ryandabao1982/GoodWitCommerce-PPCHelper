@@ -79,7 +79,7 @@ export default [
     },
   },
   {
-    files: ['**/*.test.{ts,tsx}', '**/__tests__/**/*.{ts,tsx}'],
+    files: ['**/*.test.{ts,tsx}', '**/__tests__/**/*.{ts,tsx}', '**/test/**/*.{ts,tsx}'],
     languageOptions: {
       globals: {
         describe: 'readonly',
@@ -91,6 +91,7 @@ export default [
         afterEach: 'readonly',
         beforeAll: 'readonly',
         afterAll: 'readonly',
+        global: 'readonly',
       },
     },
   },
