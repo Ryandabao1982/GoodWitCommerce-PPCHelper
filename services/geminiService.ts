@@ -32,7 +32,8 @@ export const reinitializeGeminiService = () => {
 export async function fetchKeywords(
   seedKeyword: string,
   isWebAnalysisEnabled: boolean,
-  brandName: string = ''
+  brandName: string = '',
+  asin: string = ''
 ): Promise<[KeywordData[], string[]]> {
   if (!genAI) {
     throw new Error('Gemini API key is not configured. Please add VITE_GEMINI_API_KEY to your .env file.');
@@ -40,6 +41,7 @@ export async function fetchKeywords(
 
   const prompt = `You are an Amazon PPC keyword research expert. Generate a comprehensive list of ${isWebAnalysisEnabled ? '50' : '30'} high-quality keywords for the seed keyword: "${seedKeyword}".
 ${brandName ? `Brand context: "${brandName}"` : ''}
+${asin ? `ASIN (Product ID): "${asin}" - Focus on keywords specifically relevant to this product.` : ''}
 
 For each keyword, provide:
 1. The keyword phrase
@@ -47,7 +49,7 @@ For each keyword, provide:
 3. Category: Core, Opportunity, Branded, Low-hanging Fruit, or Complementary
 4. Estimated monthly search volume (e.g., "10k-20k", "500-1k")
 5. Competition level: Low, Medium, or High
-6. Relevance score (1-10) relative to the seed keyword
+6. Relevance score (1-10) relative to the seed keyword${asin ? ' and the specific product ASIN' : ''}
 7. Source: AI ${isWebAnalysisEnabled ? 'or Web' : ''}
 
 Also provide 5-10 related keyword ideas for further exploration.

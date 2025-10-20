@@ -18,6 +18,8 @@ interface KeywordInputProps {
   setIsWebAnalysisEnabled: (value: boolean) => void;
   brandName: string;
   setBrandName: (value: string) => void;
+  asin?: string;
+  setAsin?: (value: string) => void;
 }
 
 export const KeywordInput: React.FC<KeywordInputProps> = ({
@@ -38,6 +40,8 @@ export const KeywordInput: React.FC<KeywordInputProps> = ({
   setIsWebAnalysisEnabled,
   brandName,
   setBrandName,
+  asin,
+  setAsin,
 }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,6 +103,24 @@ export const KeywordInput: React.FC<KeywordInputProps> = ({
           {/* Advanced Options Panel */}
           {isAdvancedSearchOpen && (
             <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-4">
+              <div>
+                <label htmlFor="asin-input" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  ASIN (Amazon Product ID)
+                </label>
+                <input
+                  id="asin-input"
+                  type="text"
+                  value={asin || ''}
+                  onChange={(e) => setAsin && setAsin(e.target.value)}
+                  placeholder="e.g., B08N5WRWNW (optional)"
+                  disabled={!isBrandActive}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 dark:disabled:bg-gray-700 dark:bg-gray-700 dark:text-white"
+                />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Research keywords specifically for this product
+                </p>
+              </div>
+
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"

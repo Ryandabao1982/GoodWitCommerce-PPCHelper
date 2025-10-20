@@ -171,7 +171,7 @@ const App: React.FC = () => {
           ...(prev[brandName] || { // Provide a default structure if it doesn't exist
             keywordResults: [],
             searchedKeywords: [],
-            advancedSearchSettings: { advancedKeywords: '', minVolume: '', maxVolume: '', isWebAnalysisEnabled: false, brandName: '' },
+            advancedSearchSettings: { advancedKeywords: '', minVolume: '', maxVolume: '', isWebAnalysisEnabled: false, brandName: '', asin: '' },
             keywordClusters: null,
             campaigns: []
           }),
@@ -216,7 +216,8 @@ const App: React.FC = () => {
       const [newKeywords, related] = await fetchKeywords(
         seedKeyword,
         searchSettings.isWebAnalysisEnabled,
-        searchSettings.brandName
+        searchSettings.brandName,
+        searchSettings.asin || ''
       );
       
       const uniqueNewKeywords = new Map(activeBrandState.keywordResults.map(kw => [kw.keyword.toLowerCase(), kw]));
@@ -256,7 +257,7 @@ const App: React.FC = () => {
   const handleAdvancedSettingsChange = (settings: Partial<AdvancedSearchSettings>) => {
     if (!activeBrand) return;
     const currentSettings = brandStates[activeBrand]?.advancedSearchSettings ?? {
-        advancedKeywords: '', minVolume: '', maxVolume: '', isWebAnalysisEnabled: false, brandName: ''
+        advancedKeywords: '', minVolume: '', maxVolume: '', isWebAnalysisEnabled: false, brandName: '', asin: ''
     };
     updateBrandState(activeBrand, { 
       advancedSearchSettings: { ...currentSettings, ...settings }
@@ -455,7 +456,7 @@ const App: React.FC = () => {
         [brandName]: {
           keywordResults: [],
           searchedKeywords: [],
-          advancedSearchSettings: { advancedKeywords: '', minVolume: '', maxVolume: '', isWebAnalysisEnabled: false, brandName: '' },
+          advancedSearchSettings: { advancedKeywords: '', minVolume: '', maxVolume: '', isWebAnalysisEnabled: false, brandName: '', asin: '' },
           keywordClusters: null,
           campaigns: []
         }
@@ -529,7 +530,7 @@ const App: React.FC = () => {
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
   const handleHistoryItemClick = (keyword: string) => {
     if (!activeBrand) return;
-    const currentSettings = activeBrandState?.advancedSearchSettings ?? { advancedKeywords: '', minVolume: '', maxVolume: '', isWebAnalysisEnabled: false, brandName: '' };
+    const currentSettings = activeBrandState?.advancedSearchSettings ?? { advancedKeywords: '', minVolume: '', maxVolume: '', isWebAnalysisEnabled: false, brandName: '', asin: '' };
     handleAdvancedSettingsChange({ ...currentSettings, advancedKeywords: keyword, isWebAnalysisEnabled: false });
     handleSearch(keyword);
     setIsSidebarOpen(false);
@@ -752,6 +753,8 @@ const App: React.FC = () => {
                 setIsWebAnalysisEnabled={(value) => handleAdvancedSettingsChange({ isWebAnalysisEnabled: value })}
                 brandName={activeBrandState?.advancedSearchSettings.brandName || ''}
                 setBrandName={(value) => handleAdvancedSettingsChange({ brandName: value })}
+                asin={activeBrandState?.advancedSearchSettings.asin || ''}
+                setAsin={(value) => handleAdvancedSettingsChange({ asin: value })}
               />
               
               {error && <div className="mt-6"><ErrorMessage message={error} /></div>}
