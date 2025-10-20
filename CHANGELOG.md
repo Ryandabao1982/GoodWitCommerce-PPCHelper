@@ -11,9 +11,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Enhanced Dashboard Tab**: Comprehensive improvements transforming Dashboard into an interactive landing page:
+  - Landing page mode showing brand overview when no brand selected
+  - Last active brand tracking and personalized welcome messages
+  - Global statistics across all brands (keywords, campaigns, searches)
+  - Interactive brand cards with drill-down navigation
+  - Recent activity feed showing cross-brand actions
+  - Quick actions panel for common tasks
+  - AI-powered insights and recommendations based on keyword data
+  - Interactive filtering system (search, type, competition)
+  - Enhanced statistics cards with hover effects and context
+  - Active filter badges with individual clear options
+  - Smart suggestions based on keyword composition and quality
+  - Responsive mobile layout improvements
+  - See `docs/DASHBOARD_IMPROVEMENTS.md` for full details
 - **Documentation Organization**: Created `/docs` folder and moved 29 technical documents from root to improve project navigation and maintainability. Added comprehensive `docs/README.md` index.
 - **CODE_REVIEW_SUMMARY.md**: Comprehensive code review document in `/docs` covering architecture analysis, improvements made, code quality metrics, and future optimization recommendations.
 - **SOP Service Test**: Added `__tests__/services/sopService.test.ts` to validate service initialization and reinitialization functionality.
+
+### Changed
+
+- **Dashboard Component**: Completely refactored to support dual modes (landing page and keyword view) with enhanced interactivity
+- **App.tsx**: Added `lastActiveBrand` state tracking and persistence to improve user experience
+- **README.md**: Updated documentation section to reference new `/docs` folder structure with clear navigation to technical documentation.
+- **Root Directory**: Cleaned up root from 32 markdown files to just 3 essential files (README.md, CHANGELOG.md, GEMINI.md), improving project organization by 90.6%.
 
 ### Fixed
 
@@ -24,13 +45,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Integrated reinitialization into App.tsx when API settings are saved/reset
   - Now matches the proven pattern used in `geminiService.ts`
 
-### Changed
-
-- **README.md**: Updated documentation section to reference new `/docs` folder structure with clear navigation to technical documentation.
-- **Root Directory**: Cleaned up root from 32 markdown files to just 3 essential files (README.md, CHANGELOG.md, GEMINI.md), improving project organization by 90.6%.
-
 ### Technical Improvements
 
+- **Dashboard UX**: Significantly improved with landing page, filters, AI insights, and state persistence
+- **State Management**: Enhanced with last active brand tracking across sessions
+- **Interactive Features**: All dashboard elements now have hover effects, filters, and smart suggestions
 - **Service Consistency**: All AI services (geminiService, sopService) now follow the same initialization pattern
 - **Better Integration**: SOP service properly reinitializes when API key is configured or changed
 - **Code Quality**: Improved maintainability with organized documentation structure

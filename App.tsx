@@ -55,6 +55,9 @@ const App: React.FC = () => {
   
   const [brands, setBrands] = useState<string[]>([]);
   const [activeBrand, setActiveBrand] = useState<string | null>(null);
+  const [lastActiveBrand, setLastActiveBrand] = useState<string | null>(() => 
+    loadFromLocalStorage<string | null>('ppcGeniusLastActiveBrand', null)
+  );
   const [brandStates, setBrandStates] = useState<Record<string, BrandState>>({});
   
   const [isLoading, setIsLoading] = useState(false);
@@ -120,6 +123,12 @@ const App: React.FC = () => {
         
         // Save active brand
         await brandStorage.setActive(activeBrand);
+        
+        // Save last active brand
+        if (activeBrand) {
+          setLastActiveBrand(activeBrand);
+          saveToLocalStorage('ppcGeniusLastActiveBrand', activeBrand);
+        }
         
         // Save brand states
         saveToLocalStorage('ppcGeniusBrandStates', brandStates);
@@ -820,6 +829,13 @@ const App: React.FC = () => {
                      <Dashboard
                         data={allBrandKeywords}
                         parseVolume={parseSearchVolume}
+                        brands={brands}
+                        activeBrand={activeBrand}
+                        brandStates={brandStates}
+                        onSelectBrand={handleSelectBrand}
+                        onCreateBrand={() => setIsBrandModalOpen(true)}
+                        recentSearches={activeBrandState?.searchedKeywords || []}
+                        lastActiveBrand={lastActiveBrand}
                       />
                   )}
                   

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Keyword View</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .screenshot-container {
+            width: 1280px;
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="screenshot-container">
+        <div class="flex h-screen">
+            <!-- Sidebar -->
+            <aside class="w-64 bg-gray-800 text-white p-4">
+                <h2 class="text-xl font-bold mb-6">Navigation</h2>
+                <nav>
+                    <div class="mb-2 bg-blue-600 p-3 rounded">
+                        <span>📊 Dashboard</span>
+                    </div>
+                    <div class="mb-2 p-3">🏦 Keyword Bank</div>
+                    <div class="mb-2 p-3">📋 Campaign Planner</div>
+                    <div class="mb-2 p-3">🎯 Brand Analytics</div>
+                </nav>
+            </aside>
+            
+            <!-- Main Content -->
+            <main class="flex-1 p-8 overflow-auto bg-gray-50">
+                <!-- Header with Brand -->
+                <div class="mb-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
+                            <p class="text-sm text-gray-600">Brand: Test Brand</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Stats -->
+                <div class="grid grid-cols-4 gap-4 mb-6">
+                    <div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer">
+                        <div class="text-sm text-gray-600">Total Keywords</div>
+                        <div class="text-2xl font-bold text-gray-900 mt-1">25</div>
+                        <div class="text-xs text-gray-500 mt-1">↗ Research data</div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer">
+                        <div class="text-sm text-gray-600">Avg Relevance</div>
+                        <div class="text-2xl font-bold text-blue-600 mt-1">8.2/10</div>
+                        <div class="text-xs text-gray-500 mt-1">✓ Excellent</div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer">
+                        <div class="text-sm text-gray-600">High Volume</div>
+                        <div class="text-2xl font-bold text-green-600 mt-1">12</div>
+                        <div class="text-xs text-gray-500 mt-1">48% of total</div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer">
+                        <div class="text-sm text-gray-600">Low Competition</div>
+                        <div class="text-2xl font-bold text-purple-600 mt-1">8</div>
+                        <div class="text-xs text-gray-500 mt-1">32% sweet spot</div>
+                    </div>
+                </div>
+                
+                <!-- AI Insights -->
+                <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg shadow-md p-6 border border-purple-200 mb-6">
+                    <div class="flex items-start space-x-3">
+                        <div class="text-2xl">🤖</div>
+                        <div class="flex-1">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">AI Insights & Recommendations</h3>
+                            <div class="space-y-2">
+                                <p class="text-sm text-gray-700">
+                                    💡 <strong>Great opportunity!</strong> You have 8 low-competition keywords with 12 high-volume terms. Consider prioritizing these in your campaigns.
+                                </p>
+                                <p class="text-sm text-gray-700">
+                                    💭 <strong>Tip:</strong> Only 32% are exact match. Consider adding more exact match keywords for better conversion rates.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Match Type Distribution -->
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Match Type Distribution</h3>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="text-center">
+                            <div class="text-sm text-gray-600">Exact</div>
+                            <div class="text-xl font-bold text-gray-900 mt-1">8</div>
+                            <div class="text-xs text-gray-500 mt-1">32%</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-sm text-gray-600">Phrase</div>
+                            <div class="text-xl font-bold text-gray-900 mt-1">10</div>
+                            <div class="text-xs text-gray-500 mt-1">40%</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-sm text-gray-600">Broad</div>
+                            <div class="text-xl font-bold text-gray-900 mt-1">7</div>
+                            <div class="text-xs text-gray-500 mt-1">28%</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Keywords Table with Filters -->
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                            <div>
+                                <h2 class="text-xl font-bold text-gray-900">Keyword Research Results</h2>
+                                <p class="text-sm text-gray-600 mt-1">Showing 8 of 25 keywords</p>
+                            </div>
+                            
+                            <!-- Filters -->
+                            <div class="flex gap-2">
+                                <input type="text" placeholder="Search keywords..." 
+                                       class="px-3 py-2 border border-gray-300 rounded-lg text-sm" 
+                                       value="wireless">
+                                <select class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                                    <option>All Types</option>
+                                    <option selected>Exact</option>
+                                    <option>Phrase</option>
+                                    <option>Broad</option>
+                                </select>
+                                <select class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                                    <option>All Competition</option>
+                                    <option>Low</option>
+                                    <option>Medium</option>
+                                    <option>High</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Active Filters -->
+                        <div class="flex flex-wrap gap-2 mt-3">
+                            <span class="text-xs text-gray-500">Active filters:</span>
+                            <span class="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                                Type: Exact
+                                <button class="ml-1 hover:text-blue-600">×</button>
+                            </span>
+                            <span class="inline-flex items-center px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
+                                Search: "wireless"
+                                <button class="ml-1 hover:text-purple-600">×</button>
+                            </span>
+                            <button class="text-xs text-red-600 hover:underline">Clear all</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+                                        Keyword ↓
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+                                        Type
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+                                        Volume
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+                                        Competition
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+                                        Relevance
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 text-sm font-medium text-gray-900">wireless headphones</td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Exact</span>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-gray-700">12,000</td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Low</span>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <div class="flex items-center">
+                                            <div class="flex-1 bg-gray-200 rounded-full h-2 mr-2">
+                                                <div class="bg-blue-600 h-2 rounded-full" style="width: 90%"></div>
+                                            </div>
+                                            <span class="text-gray-700">9/10</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 text-sm font-medium text-gray-900">wireless earbuds</td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Exact</span>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-gray-700">15,000</td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Medium</span>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <div class="flex items-center">
+                                            <div class="flex-1 bg-gray-200 rounded-full h-2 mr-2">
+                                                <div class="bg-blue-600 h-2 rounded-full" style="width: 85%"></div>
+                                            </div>
+                                            <span class="text-gray-700">8.5/10</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 text-sm font-medium text-gray-900">wireless speakers</td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Exact</span>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-gray-700">8,500</td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Low</span>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <div class="flex items-center">
+                                            <div class="flex-1 bg-gray-200 rounded-full h-2 mr-2">
+                                                <div class="bg-blue-600 h-2 rounded-full" style="width: 80%"></div>
+                                            </div>
+                                            <span class="text-gray-700">8/10</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Tips Section -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+                    <h3 class="text-sm font-semibold text-blue-900 mb-2 flex items-center">
+                        💡 Research Tips
+                        <span class="ml-2 text-xs font-normal text-blue-700">(8 keywords match your filters)</span>
+                    </h3>
+                    <ul class="text-xs text-blue-800 space-y-1">
+                        <li>• Click column headers to sort by different metrics</li>
+                        <li>• Use filters above to narrow down results by type or competition</li>
+                        <li>• Focus on keywords with high relevance (7+) and low-medium competition</li>
+                        <li>• ⭐ Start with 8 low-competition keywords for quick wins!</li>
+                    </ul>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>
