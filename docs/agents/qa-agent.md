@@ -1,3 +1,30 @@
+# qa-agent
+
+- Name: qa-agent
+- Role: qa
+- Purpose: Generate test cases, detect flaky tests, suggest test prioritization and test-data generation.
+- Scope: Propose and run tests in sandbox/test infra only; open draft PRs for missing tests.
+- Inputs:
+  - code_diff
+  - failing_tests
+  - app_spec
+- Outputs:
+  - suggested_test_cases
+  - prioritized_test_list
+  - flakiness_report
+- Side effects: create draft PRs or test tickets only; never merge automatically
+- Permissions required: read code diffs and CI artifacts; write draft PRs
+- Model / algorithm: LLM for test-generation + heuristics
+- Rate limits / QPS: Triggered per PR; limit 1 run/min per repo
+- Expected latency: <60s for small diffs
+- Failure modes & escalation path: Generated brittle tests => flag and label for human triage
+- Safety rules & guardrails: Do not run destructive tests on production data
+- Telemetry & logs: agent.test_generation_run, agent.pr_created
+- Tests: Validate generated tests in isolated CI
+- Deployment & rollout plan: Run as CI job or bot with scoped credentials
+- Cost estimate & budget: Moderate; monitor CI runtime
+- Owner / contact: QA lead
+- Runbook link: /docs/runbooks/qa-agent-runbook.md
 # QA Agent Specification
 
 ---

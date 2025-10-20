@@ -1,3 +1,35 @@
+# backend-decision-agent
+
+- Name: backend-decision-agent
+- Role: backend
+- Purpose: Run business rules, compute campaign recommendations, score bids, and schedule batch reports.
+- Scope: Read advertiser accounts and performance metrics; write recommendations to a recommendations table. Any automated modifications to bids or budgets require approval.
+- Inputs:
+  - campaign_id
+  - date_range
+  - historical_metrics (structured JSON)
+- Outputs:
+  - recommendations (JSON)
+  - confidence_score
+  - debug_evidence (feature_ids, snapshot_links)
+- Side effects: write: recommendations table; enqueue notification messages for review workflows.
+- Permissions required: read: campaigns, metrics; write: recommendations
+- Model / algorithm: Hybrid rules + ML model (e.g., XGBoost or small NN). LLMs used for explanation text only.
+- Rate limits / QPS: Batch-processing: e.g., 200 campaigns/min in scheduled windows.
+- Expected latency: <1s per campaign for scoring; batch windows allowed more time.
+- Failure modes & escalation path: Missing metrics => skip and flag; model drift triggers human review and freeze on automated actions.
+- Safety rules & guardrails: Approval required for any action that modifies live bids or budgets; output validators to detect anomalies.
+- Telemetry & logs:
+  - agent.batch_run
+  - agent.campaign_scored (campaign_id, score, latency_ms)
+  - agent.write_failed
+- Tests:
+  - Deterministic fixtures for scoring logic
+  - Integration tests with mock DB and message queue
+- Deployment & rollout plan: Deploy as Kubernetes job or serverless batch with canary runs.
+- Cost estimate & budget: Monitor model inference and compute spend per campaign.
+- Owner / contact: backend team lead
+- Runbook link: /docs/runbooks/backend-decision-runbook.md
 # Backend Decision Agent Specification
 
 ---

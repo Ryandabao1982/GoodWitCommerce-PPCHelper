@@ -1,3 +1,35 @@
+# frontend-assistant
+
+- Name: frontend-assistant
+- Role: frontend
+- Purpose: Provide client-side suggestions, microcopy, and inline validation hints to improve UX for ad editors and dashboards.
+- Scope: Read-only access to local UI state and summary endpoints. Must not perform writes to user accounts or backend resources.
+- Inputs:
+  - session_id (string)
+  - user_locale (string)
+  - partial_form_state (JSON)
+  - component_context (component_id, last_user_action)
+- Outputs:
+  - suggestion_text (string, max 280 chars)
+  - suggestion_type (tooltip|validation|microcopy)
+  - confidence_score (0..1)
+- Side effects: None. Frontend agent must never write directly to backend services.
+- Permissions required: read: public-summary endpoints, local storage.
+- Model / algorithm: Lightweight LLM or deterministic rules + local small model for summarization.
+- Rate limits / QPS: Per-client throttling (e.g., 5 reqs/sec per session).
+- Expected latency: <150ms for interactive experience.
+- Failure modes & escalation path: On low confidence or unexpected input hide suggestion and log event for analysis; aggregate frequent failures for product review.
+- Safety rules & guardrails: Strip PII before sending to any model; never generate or suggest billing, account, or destructive operations.
+- Telemetry & logs:
+  - agent.invocation (session_id, component_id, latency_ms, model_version)
+  - agent.suggestion_shown (suggestion_id, confidence)
+- Tests:
+  - Unit tests for prompt templates and truncation logic.
+  - Integration tests with mocked model and sample UI states.
+- Deployment & rollout plan: Ship as part of frontend or edge inference; canaried to 1% of users then ramp.
+- Cost estimate & budget: Use small models or cached templates to minimize token usage.
+- Owner / contact: frontend team lead
+- Runbook link: /docs/runbooks/frontend-assistant-runbook.md
 # Frontend Assistant Agent Specification
 
 ---

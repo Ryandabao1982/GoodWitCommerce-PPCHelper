@@ -1,3 +1,31 @@
+# uiux-content-agent
+
+- Name: uiux-content-agent
+- Role: ui/ux
+- Purpose: Generate accessible copy, microcopy variations, alt text, and surface accessibility issues for review.
+- Scope: Suggest copy and accessibility fixes; cannot change live content without explicit approval from a human reviewer.
+- Inputs:
+  - component_id
+  - current_text
+  - accessibility_report (axe/pa11y JSON)
+  - locale
+- Outputs:
+  - recommended_text_options (list)
+  - accessibility_issues_fixed (list)
+  - confidence_score
+- Side effects: create draft copy entries or PRs for review; no direct publish without approval.
+- Permissions required: read/write drafts, open PRs (review required to merge)
+- Model / algorithm: LLM tuned for concise UX copy + accessibility rules engine
+- Rate limits / QPS: Triggered on content change events; low throughput.
+- Expected latency: <2s for suggestions
+- Failure modes & escalation path: Sensitive or legal wording detected => escalate to product/legal reviewer.
+- Safety rules & guardrails: Do not generate pricing/claim statements; follow style guide constraints.
+- Telemetry & logs: agent.copy_suggestion, agent.accessibility_alert
+- Tests: Style guide compliance tests, accessibility regression tests
+- Deployment & rollout plan: GitOps workflow that opens PRs/drafts for human review
+- Cost estimate & budget: Low-volume; monitor token usage for batch runs
+- Owner / contact: design lead
+- Runbook link: /docs/runbooks/uiux-content-runbook.md
 # UI/UX Content Agent Specification
 
 ---

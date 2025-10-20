@@ -1,3 +1,30 @@
+# ops-manager
+
+- Name: ops-manager
+- Role: operations
+- Purpose: Automate incident triage suggestions, prioritization, runbook lookup, and routine maintenance scheduling.
+- Scope: Provide triage summaries and suggested runbook steps; execute low-risk maintenance only when explicitly authorized.
+- Inputs:
+  - incident_payload (logs, traces, recent_errors)
+  - affected_services
+- Outputs:
+  - triage_summary
+  - proposed_severity
+  - suggested_runbook_steps
+  - suggested_assignee
+- Side effects: create and annotate incident tickets; destructive remediation requires 2-step human approval
+- Permissions required: read logs & monitoring; write: incident tracking annotations
+- Model / algorithm: Classification model for severity + RAG for runbook retrieval
+- Rate limits / QPS: Event-driven; low throughput
+- Expected latency: <10s for initial triage
+- Failure modes & escalation path: Misclassification => operator override and retraining data capture
+- Safety rules & guardrails: Always include uncertainty; mark 'requires human approval' for destructive actions
+- Telemetry & logs: agent.triage_run, agent.incident_annotation
+- Tests: Simulated incidents and runbook retrieval tests
+- Deployment & rollout plan: Runs in ops cluster with strict RBAC
+- Cost estimate & budget: Low; event-driven compute
+- Owner / contact: SRE lead
+- Runbook link: /docs/runbooks/ops-manager-runbook.md
 # Operations Manager Agent Specification
 
 ---
