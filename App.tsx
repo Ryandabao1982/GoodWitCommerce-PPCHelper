@@ -42,7 +42,7 @@ import {
   incrementSOPViewCount,
   trackSOPView 
 } from './utils/sopStorage';
-import { aiSearchSOPs, getAIRecommendedSOPs } from './services/sopService';
+import { aiSearchSOPs, getAIRecommendedSOPs, reinitializeSOPService } from './services/sopService';
 
 const App: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
@@ -547,6 +547,7 @@ const App: React.FC = () => {
     saveToLocalStorage('ppcGeniusApiSettings.supabaseAnonKey', apiSettings.supabaseAnonKey);
     // Reinitialize services with new settings
     reinitializeGeminiService();
+    reinitializeSOPService();
     reinitializeSupabaseClient();
     
     // Close API key prompt if it was open
@@ -565,6 +566,7 @@ const App: React.FC = () => {
     saveToLocalStorage('ppcGeniusApiSettings.supabaseAnonKey', defaultSettings.supabaseAnonKey);
     // Reinitialize services with default settings
     reinitializeGeminiService();
+    reinitializeSOPService();
     reinitializeSupabaseClient();
   };
   

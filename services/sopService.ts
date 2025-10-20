@@ -12,9 +12,17 @@ let genAI: GoogleGenAI | null = null;
 
 const initializeGemini = () => {
   const apiKey = getApiKey();
-  if (apiKey && !genAI) {
+  if (apiKey) {
     genAI = new GoogleGenAI({ apiKey });
   }
+};
+
+// Initialize on module load
+initializeGemini();
+
+// Export function to reinitialize when settings change
+export const reinitializeSOPService = () => {
+  initializeGemini();
 };
 
 /**
