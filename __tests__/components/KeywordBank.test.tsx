@@ -1,10 +1,33 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { KeywordBank } from '../../components/KeywordBank';
 import type { KeywordData, Campaign } from '../../types';
 
+// Mock URL.createObjectURL and revokeObjectURL if not available
+const originalCreateObjectURL = URL.createObjectURL;
+const originalRevokeObjectURL = URL.revokeObjectURL;
+
 describe('KeywordBank', () => {
+  // Ensure URL methods are available for tests
+  beforeAll(() => {
+    if (typeof URL.createObjectURL === 'undefined') {
+      URL.createObjectURL = vi.fn(() => 'blob:mock-url');
+    }
+    if (typeof URL.revokeObjectURL === 'undefined') {
+      URL.revokeObjectURL = vi.fn();
+    }
+  });
+
+  afterAll(() => {
+    if (originalCreateObjectURL) {
+      URL.createObjectURL = originalCreateObjectURL;
+    }
+    if (originalRevokeObjectURL) {
+      URL.revokeObjectURL = originalRevokeObjectURL;
+    }
+  });
+
   const mockOnCampaignsChange = vi.fn();
   const mockOnAssignKeywords = vi.fn();
   const mockOnDeleteSelected = vi.fn();
@@ -65,8 +88,10 @@ describe('KeywordBank', () => {
 
       // Only "gaming mouse" remains
       expect(screen.getAllByRole('checkbox').length).toBeGreaterThan(0);
-      expect(screen.getByText(/gaming mouse/i)).toBeInTheDocument();
-      expect(screen.queryByText(/wireless headphones/i)).not.toBeInTheDocument();
+      // Check that gaming mouse appears and wireless headphones doesn't
+      const allText = screen.queryAllByText(/gaming mouse/i);
+      expect(allText.length).toBeGreaterThan(0);
+      expect(screen.queryAllByText(/wireless headphones/i).length).toBe(0);
     });
 
     it('shows message when no keywords match filter', () => {
@@ -98,9 +123,13 @@ describe('KeywordBank', () => {
 
     it('shows bulk action buttons when items are selected', () => {
       renderKB({ selectedKeywords: new Set(['wireless headphones', 'gaming mouse']) });
-      expect(screen.getByRole('button', { name: /Assign \(2\)/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /Unassign \(2\)/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /Delete \(2\)/i })).toBeInTheDocument();
+      // Use getAllByRole since there are mobile and desktop versions of the buttons
+      const assignButtons = screen.getAllByRole('button', { name: /Assign \(2\)/i });
+      const unassignButtons = screen.getAllByRole('button', { name: /Unassign \(2\)/i });
+      const deleteButtons = screen.getAllByRole('button', { name: /Delete \(2\)/i });
+      expect(assignButtons.length).toBeGreaterThan(0);
+      expect(unassignButtons.length).toBeGreaterThan(0);
+      expect(deleteButtons.length).toBeGreaterThan(0);
     });
   });
 
@@ -109,7 +138,9 @@ describe('KeywordBank', () => {
       const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
       renderKB({ campaigns: [], selectedKeywords: new Set(['kw']) });
 
-      fireEvent.click(screen.getByRole('button', { name: /Assign/i }));
+      // Get first Assign button (there may be mobile/desktop versions)
+      const assignButtons = screen.getAllByRole('button', { name: /Assign/i });
+      fireEvent.click(assignButtons[0]);
       expect(alertSpy).toHaveBeenCalled();
       alertSpy.mockRestore();
     });
@@ -117,7 +148,9 @@ describe('KeywordBank', () => {
     it('opens modal and assigns to selected campaign & ad group', () => {
       renderKB({ selectedKeywords: new Set(['wireless headphones', 'gaming mouse']) });
 
-      fireEvent.click(screen.getByRole('button', { name: /Assign \(2\)/i }));
+      // Get first Assign button (there may be mobile/desktop versions)
+      const assignButtons = screen.getAllByRole('button', { name: /Assign \(2\)/i });
+      fireEvent.click(assignButtons[0]);
 
       // Select campaign
       const selects = screen.getAllByRole('combobox');
@@ -139,39 +172,51 @@ describe('KeywordBank', () => {
   describe('Drag-and-drop', () => {
     it('starts drag with keyword payload', () => {
       renderKB();
-      // find a row
-      const row = screen.getByText(/wireless headphones/i).closest('tr')!;
+      // Find all elements with this text, then get the one that's in a table row
+      const elements = screen.getAllByText(/wireless headphones/i);
+      const row = elements.find(el => el.closest('tr'))?.closest('tr');
+      expect(row).toBeDefined();
       expect(row).toHaveAttribute('draggable', 'true');
 
       const dataTransfer = { setData: vi.fn(), dropEffect: '' };
-      fireEvent.dragStart(row, { dataTransfer: dataTransfer as any });
+      fireEvent.dragStart(row!, { dataTransfer: dataTransfer as any });
 
       expect(mockOnDragStart).toHaveBeenCalled();
     });
   });
 
   describe('Export CSV', () => {
-    it('exports keyword CSV with correct filename', () => {
+    it('exports keyword CSV when export button is clicked', () => {
       const urlSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:fake');
       const revokeSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+      
+      // Mock the anchor click
+      let downloadedFile = '';
+      const originalCreateElement = document.createElement.bind(document);
       const createElSpy = vi.spyOn(document, 'createElement').mockImplementation((tag: any) => {
         if (tag === 'a') {
-          return {
-            set href(v: string) {},
-            get href() { return ''; },
-            set download(v: string) { (this as any)._download = v; },
-            get download() { return (this as any)._download; },
+          const mockAnchor = {
+            href: '',
+            download: '',
             click: vi.fn(),
           } as any;
+          // Capture the download filename
+          Object.defineProperty(mockAnchor, 'download', {
+            get() { return this._download; },
+            set(v) { downloadedFile = v; this._download = v; }
+          });
+          return mockAnchor;
         }
-        return document.createElement(tag);
+        return originalCreateElement(tag);
       });
 
       renderKB({ activeBrandName: 'BrandX' });
-      fireEvent.click(screen.getByRole('button', { name: /Export/i }));
+      const exportButtons = screen.getAllByRole('button', { name: /Export/i });
+      fireEvent.click(exportButtons[0]);
 
-      const anchor = (createElSpy.mock.results.find(r => (r.value as any)?.click)?.value) as any;
-      expect(anchor.download).toBe('BrandX_keywords.csv');
+      // Verify the CSV was created with correct filename
+      expect(downloadedFile).toBe('BrandX_keywords.csv');
+      expect(urlSpy).toHaveBeenCalled();
 
       urlSpy.mockRestore();
       revokeSpy.mockRestore();
@@ -182,7 +227,8 @@ describe('KeywordBank', () => {
   describe('Empty states', () => {
     it('shows empty bank message when no keywords', () => {
       renderKB({ keywords: [] });
-      expect(screen.getByText(/No keywords in bank yet/i)).toBeInTheDocument();
+      // Check for the updated empty state message
+      expect(screen.getByText(/No Keywords Yet/i)).toBeInTheDocument();
     });
   });
 });
