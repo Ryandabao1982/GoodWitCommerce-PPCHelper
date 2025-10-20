@@ -47,8 +47,8 @@
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/Ryandabao1982/Amazon-PPC-Keyword-Research-and-Analysis-.git
-   cd Amazon-PPC-Keyword-Research-and-Analysis-
+   git clone https://github.com/Ryandabao1982/GoodWitCommerce-PPCHelper.git
+   cd GoodWitCommerce-PPCHelper
    ```
 
 2. **Install dependencies**

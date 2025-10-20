@@ -7,10 +7,14 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "lint": "echo 'Lint configuration needed - add ESLint'",
+    "format": "echo 'Format configuration needed - add Prettier'",
+    "release": "echo 'Release configuration needed - add standard-version or changesets'"
   },
   "dependencies": {
     "@google/genai": "^1.25.0",
@@ -25,6 +29,8 @@
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
     "@types/node": "^22.14.0",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
     "@vitejs/plugin-react": "^5.0.0",
     "@vitest/coverage-v8": "^3.2.4",
     "@vitest/ui": "^3.2.4",
