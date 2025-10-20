@@ -150,18 +150,18 @@ This guide shows when and how the Dashboard improvements appear in different app
 
 ## Feature Visibility Matrix
 
-| Feature | No Brands | Brands Exist, None Selected | Brand Selected, No Keywords | Brand Selected, Has Keywords |
-|---------|-----------|----------------------------|----------------------------|------------------------------|
-| Last Active Brand Welcome | ❌ | ✅ | ❌ | ❌ |
-| Global Statistics Grid | ❌ | ✅ | ❌ | ❌ |
-| Brand Cards Overview | ❌ | ✅ | ❌ | ❌ |
-| Recent Activity Feed | ❌ | ✅ | ❌ | ❌ |
-| Quick Actions Panel | ❌ | ✅ | ❌ | ❌ |
-| Interactive Filters | ❌ | ❌ | ❌ | ✅ |
-| AI Insights | ❌ | ❌ | ❌ | ✅ (if data qualifies) |
-| Enhanced Stats Cards | ❌ | ❌ | ✅ (empty) | ✅ (with data) |
-| Match Type Distribution | ❌ | ❌ | ✅ (empty) | ✅ (with data) |
-| Keyword Table | ❌ | ❌ | ✅ (empty) | ✅ (with data) |
+Feature | No Brands | Brands Exist, None Selected | Brand Selected, No Keywords | Brand Selected, Has Keywords |
+---------|-----------|----------------------------|----------------------------|------------------------------|
+Last Active Brand Welcome | ❌ | ✅ | ❌ | ❌ |
+Global Statistics Grid | ❌ | ✅ | ❌ | ❌ |
+Brand Cards Overview | ❌ | ✅ | ❌ | ❌ |
+Recent Activity Feed | ❌ | ✅ | ❌ | ❌ |
+Quick Actions Panel | ❌ | ✅ | ❌ | ❌ |
+Interactive Filters | ❌ | ❌ | ❌ | ✅ |
+AI Insights | ❌ | ❌ | ❌ | ✅ (if data qualifies) |
+Enhanced Stats Cards | ❌ | ❌ | ✅ (empty) | ✅ (with data) |
+Match Type Distribution | ❌ | ❌ | ✅ (empty) | ✅ (with data) |
+Keyword Table | ❌ | ❌ | ✅ (empty) | ✅ (with data) |
 
 ## How to Test Each State
 
