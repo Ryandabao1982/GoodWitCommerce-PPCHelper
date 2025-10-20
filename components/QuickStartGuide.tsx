@@ -1,155 +1,182 @@
 import React from 'react';
+import { QuickStartPreview } from './QuickStartPreview';
 
 interface QuickStartGuideProps {
-  onCreateBrand: () => void;
-  onGoToSettings: () => void;
+  step: number;
   hasApiKey: boolean;
   hasBrand: boolean;
+  hasSkippedApiStep: boolean;
+  onConfigureApiKey: () => void;
+  onContinue: () => void;
+  onSkip: () => void;
+  onCreateBrand: () => void;
+  onBack?: () => void;
+  onClose: () => void;
+  canClose: boolean;
 }
 
+const STEP_TITLES = ['Connect your API key', 'Create your first brand'];
+
 export const QuickStartGuide: React.FC<QuickStartGuideProps> = ({
-  onCreateBrand,
-  onGoToSettings,
+  step,
   hasApiKey,
   hasBrand,
+  hasSkippedApiStep,
+  onConfigureApiKey,
+  onContinue,
+  onSkip,
+  onCreateBrand,
+  onBack,
+  onClose,
+  canClose,
 }) => {
-  const steps = [
-    {
-      id: 1,
-      title: 'Set Up API Key',
-      description: 'Configure your Google Gemini API key to enable AI-powered keyword research',
-      icon: '🔑',
-      completed: hasApiKey,
-      action: onGoToSettings,
-      actionLabel: hasApiKey ? 'Update API Key' : 'Configure Now',
-    },
-    {
-      id: 2,
-      title: 'Create Your Brand',
-      description: 'Set up a brand workspace to organize your keyword research and campaigns',
-      icon: '🏢',
-      completed: hasBrand,
-      action: onCreateBrand,
-      actionLabel: hasBrand ? 'Create Another Brand' : 'Create Brand',
-      disabled: !hasApiKey,
-    },
-    {
-      id: 3,
-      title: 'Start Researching',
-      description: 'Enter seed keywords to generate comprehensive keyword suggestions',
-      icon: '🔍',
-      completed: false,
-      actionLabel: 'Start Research',
-      disabled: !hasApiKey || !hasBrand,
-    },
-  ];
-
-  const completedSteps = steps.filter(step => step.completed).length;
-  const progress = (completedSteps / steps.length) * 100;
+  const isApiKeyStep = step === 0;
+  const totalSteps = STEP_TITLES.length;
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-          Quick Start Guide
-        </h2>
-        <p className="text-gray-600 dark:text-gray-400 mb-4">
-          Follow these steps to get started with Amazon PPC Keyword Genius
-        </p>
-        
-        {/* Progress Bar */}
-        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-          <div
-            className="bg-blue-600 h-2.5 rounded-full transition-all duration-500"
-            style={{ width: `${progress}%` }}
-          ></div>
-        </div>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-          {completedSteps} of {steps.length} steps completed
-        </p>
-      </div>
-
-      <div className="space-y-4">
-        {steps.map((step, index) => (
-          <div
-            key={step.id}
-            className={`flex items-start gap-4 p-4 rounded-lg border-2 transition-all ${
-              step.completed
-                ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
-                : step.disabled
-                ? 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/20 opacity-60'
-                : 'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20'
-            }`}
-          >
-            {/* Step Icon */}
-            <div className="flex-shrink-0">
-              <div
-                className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl ${
-                  step.completed
-                    ? 'bg-green-100 dark:bg-green-800'
-                    : step.disabled
-                    ? 'bg-gray-100 dark:bg-gray-800'
-                    : 'bg-blue-100 dark:bg-blue-800'
-                }`}
-              >
-                {step.completed ? '✓' : step.icon}
-              </div>
-            </div>
-
-            {/* Step Content */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-                    Step {index + 1}: {step.title}
-                    {step.completed && (
-                      <span className="ml-2 text-sm text-green-600 dark:text-green-400">
-                        ✓ Complete
-                      </span>
-                    )}
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {step.description}
-                  </p>
-                </div>
-              </div>
-
-              {/* Action Button */}
-              {step.action && (
-                <button
-                  onClick={step.action}
-                  disabled={step.disabled}
-                  className={`mt-3 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    step.disabled
-                      ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-500 cursor-not-allowed'
-                      : step.completed
-                      ? 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-                      : 'bg-blue-600 text-white hover:bg-blue-700'
-                  }`}
-                >
-                  {step.actionLabel}
-                </button>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {completedSteps === steps.length && (
-        <div className="mt-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border-2 border-green-300 dark:border-green-700">
-          <div className="flex items-center gap-3">
-            <span className="text-3xl">🎉</span>
+    <div className="mb-6 rounded-xl border border-blue-100 bg-white p-6 shadow-lg dark:border-blue-900/40 dark:bg-gray-800">
+      <div className="flex flex-col gap-6 lg:flex-row">
+        <div className="flex-1">
+          <div className="flex items-start justify-between gap-4">
             <div>
-              <h4 className="text-lg font-semibold text-green-900 dark:text-green-100">
-                All Set!
-              </h4>
-              <p className="text-sm text-green-700 dark:text-green-300">
-                You're ready to start your keyword research journey. Enter a seed keyword above to begin!
+              <p className="text-xs font-semibold uppercase tracking-wide text-blue-600 dark:text-blue-300">
+                Quick start guide
+              </p>
+              <h2 className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
+                {STEP_TITLES[step]}
+              </h2>
+              <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+                Step {step + 1} of {totalSteps}
               </p>
             </div>
+            <button
+              onClick={onClose}
+              disabled={!canClose}
+              className={`rounded-md px-3 py-1 text-sm font-medium transition ${
+                canClose
+                  ? 'text-gray-500 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                  : 'cursor-not-allowed text-gray-300 dark:text-gray-600'
+              }`}
+            >
+              Close
+            </button>
+          </div>
+
+          <div className="mt-6">
+            {isApiKeyStep ? (
+              <div className="space-y-5">
+                <div className="rounded-lg border border-blue-100 bg-blue-50/60 p-4 text-sm text-blue-800 dark:border-blue-900/40 dark:bg-blue-900/20 dark:text-blue-200">
+                  Connect your Google Gemini API key to unlock AI-driven keyword research and
+                  campaign planning.
+                </div>
+
+                {hasApiKey ? (
+                  <div className="space-y-3">
+                    <div className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-700 dark:border-green-800/40 dark:bg-green-900/20 dark:text-green-200">
+                      API key detected. You're ready to move on to brand setup.
+                    </div>
+                    <div className="flex flex-wrap gap-3">
+                      <button
+                        onClick={onContinue}
+                        className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                      >
+                        Continue to brand setup
+                      </button>
+                      <button
+                        onClick={onConfigureApiKey}
+                        className="rounded-md border border-blue-200 px-4 py-2 text-sm font-medium text-blue-600 transition hover:bg-blue-50 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-900/30"
+                      >
+                        Review settings
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex flex-wrap gap-3">
+                      <button
+                        onClick={onConfigureApiKey}
+                        className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                      >
+                        Configure API key
+                      </button>
+                      <button
+                        onClick={onSkip}
+                        className="rounded-md border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                      >
+                        Skip for now
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      You can always add your API key later from Settings.
+                    </p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-5">
+                <div className="rounded-lg border border-purple-100 bg-purple-50/60 p-4 text-sm text-purple-800 dark:border-purple-900/40 dark:bg-purple-900/20 dark:text-purple-200">
+                  Create a brand workspace to organize searches, save winning keywords, and share
+                  campaigns.
+                </div>
+
+                {hasBrand ? (
+                  <div className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-700 dark:border-green-800/40 dark:bg-green-900/20 dark:text-green-200">
+                    Brand detected. You can close the guide or jump back to research.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <button
+                      onClick={onCreateBrand}
+                      className="rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                    >
+                      Create a brand
+                    </button>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Your first brand keeps keywords, searches, and SOPs in one organized place.
+                    </p>
+                  </div>
+                )}
+
+                <div className="flex flex-wrap gap-3">
+                  {onBack && (
+                    <button
+                      onClick={onBack}
+                      className="rounded-md border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                    >
+                      Back
+                    </button>
+                  )}
+                  <button
+                    onClick={onClose}
+                    disabled={!canClose}
+                    className={`rounded-md px-4 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                      canClose
+                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                        : 'cursor-not-allowed bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
+                    }`}
+                  >
+                    Close guide
+                  </button>
+                </div>
+
+                {!canClose && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {hasSkippedApiStep
+                      ? 'Create your first brand to finish quick start.'
+                      : 'Connect your API key to finish quick start.'}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         </div>
-      )}
+
+        <div className="w-full max-w-xs lg:w-64 xl:w-72">
+          <QuickStartPreview />
+        </div>
+      </div>
     </div>
   );
 };
+
+export default QuickStartGuide;
