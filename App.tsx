@@ -704,7 +704,9 @@ const App: React.FC = () => {
     if (!hasSeenQuickStart) {
       setHasSeenQuickStart(true);
       setHasSkippedApiStep(false);
-      setQuickStartStep(1);
+      if (!quickStartStep || quickStartStep < 1) {
+        setQuickStartStep(1);
+      }
     }
   };
 
