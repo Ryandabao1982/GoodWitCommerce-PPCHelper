@@ -55,6 +55,7 @@ export const Header: React.FC<HeaderProps> = ({
                   className="px-2 py-1.5 md:py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white max-w-[100px] sm:max-w-[150px] md:max-w-none truncate"
                   title="Select brand"
                 >
+                  {!activeBrand && <option value="">Select brand...</option>}
                   {brands.map((brand) => (
                     <option key={brand} value={brand}>
                       {brand}

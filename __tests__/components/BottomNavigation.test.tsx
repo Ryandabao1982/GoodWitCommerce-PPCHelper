@@ -46,7 +46,7 @@ describe('BottomNavigation', () => {
     render(<BottomNavigation currentView="research" onViewChange={mockOnViewChange} />);
     
     const buttons = screen.getAllByRole('button');
-    expect(buttons).toHaveLength(5);
+    expect(buttons).toHaveLength(6); // Dashboard, Keywords, Campaigns, Brand, SOPs, Settings
     
     // Check that each button has text content
     buttons.forEach(button => {
