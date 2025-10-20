@@ -246,7 +246,7 @@ This document summarizes the mobile UI/UX improvements implemented to address na
 3. **components/Header.tsx** (optimized)
 4. **App.tsx** (integrated)
 5. **index.css** (safe areas)
-6. ****tests**/components/BottomNavigation.test.tsx** (new)
+6. **__tests__/components/BottomNavigation.test.tsx** (new)
 
 ---
 
