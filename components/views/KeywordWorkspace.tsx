@@ -30,6 +30,7 @@ interface KeywordWorkspaceProps {
   isAnalyzingManualKeywords: boolean;
   shouldShowQuickStart: boolean;
   hasApiKey: boolean;
+  activeClusterFilter: string[] | null;
   onCreateBrand: () => void;
   onGoToSettings: () => void;
   onAdvancedSettingsChange: (settings: Partial<AdvancedSearchSettings>) => void;
@@ -48,6 +49,8 @@ interface KeywordWorkspaceProps {
   onSelectBrand: (brand: string) => void;
   onCreateBrandFromDashboard: () => void;
   onClearClusters: () => void;
+  onClusterClick: (clusterName: string, keywords: string[]) => void;
+  onClearClusterFilter: () => void;
 }
 
 export const KeywordWorkspace: React.FC<KeywordWorkspaceProps> = ({
@@ -66,6 +69,7 @@ export const KeywordWorkspace: React.FC<KeywordWorkspaceProps> = ({
   isAnalyzingManualKeywords,
   shouldShowQuickStart,
   hasApiKey,
+  activeClusterFilter,
   onCreateBrand,
   onGoToSettings,
   onAdvancedSettingsChange,
@@ -84,10 +88,17 @@ export const KeywordWorkspace: React.FC<KeywordWorkspaceProps> = ({
   onCreateBrandFromDashboard,
   onClearClusters,
   onHistoryItemClick,
+  onClusterClick,
+  onClearClusterFilter,
 }) => {
   const searchedKeywords = activeBrandState?.searchedKeywords || [];
   const campaigns = activeBrandState?.campaigns || [];
   const advancedSettings = activeBrandState?.advancedSearchSettings;
+
+  // Filter keywords based on active cluster
+  const displayKeywords = activeClusterFilter
+    ? allBrandKeywords.filter((kw) => activeClusterFilter.includes(kw.keyword))
+    : allBrandKeywords;
 
   return (
     <>
@@ -113,7 +124,7 @@ export const KeywordWorkspace: React.FC<KeywordWorkspaceProps> = ({
 
       <KeywordInput
         seedKeyword={advancedSettings?.advancedKeywords || ''}
-        setSeedKeyword={value => onAdvancedSettingsChange({ advancedKeywords: value })}
+        setSeedKeyword={(value) => onAdvancedSettingsChange({ advancedKeywords: value })}
         onSearch={onSearch}
         isLoading={isLoading}
         isBrandActive={!!activeBrand}
@@ -124,17 +135,19 @@ export const KeywordWorkspace: React.FC<KeywordWorkspaceProps> = ({
           })
         }
         advancedKeywords={advancedSettings?.advancedKeywords || ''}
-        setAdvancedKeywords={value => onAdvancedSettingsChange({ advancedKeywords: value })}
+        setAdvancedKeywords={(value) => onAdvancedSettingsChange({ advancedKeywords: value })}
         minVolume={advancedSettings?.minVolume || ''}
-        setMinVolume={value => onAdvancedSettingsChange({ minVolume: value })}
+        setMinVolume={(value) => onAdvancedSettingsChange({ minVolume: value })}
         maxVolume={advancedSettings?.maxVolume || ''}
-        setMaxVolume={value => onAdvancedSettingsChange({ maxVolume: value })}
+        setMaxVolume={(value) => onAdvancedSettingsChange({ maxVolume: value })}
         isWebAnalysisEnabled={advancedSettings?.isWebAnalysisEnabled ?? false}
-        setIsWebAnalysisEnabled={value => onAdvancedSettingsChange({ isWebAnalysisEnabled: value })}
+        setIsWebAnalysisEnabled={(value) =>
+          onAdvancedSettingsChange({ isWebAnalysisEnabled: value })
+        }
         brandName={advancedSettings?.brandName || ''}
-        setBrandName={value => onAdvancedSettingsChange({ brandName: value })}
+        setBrandName={(value) => onAdvancedSettingsChange({ brandName: value })}
         asin={advancedSettings?.asin || ''}
-        setAsin={value => onAdvancedSettingsChange({ asin: value })}
+        setAsin={(value) => onAdvancedSettingsChange({ asin: value })}
       />
 
       {error && (
@@ -194,10 +207,44 @@ export const KeywordWorkspace: React.FC<KeywordWorkspaceProps> = ({
           />
 
           {activeBrandState?.keywordClusters ? (
-            <KeywordClusters
-              clusters={activeBrandState.keywordClusters}
-              onClear={onClearClusters}
-            />
+            <>
+              <KeywordClusters
+                clusters={activeBrandState.keywordClusters}
+                onClear={onClearClusters}
+                onClusterClick={onClusterClick}
+              />
+
+              {activeClusterFilter && (
+                <div className="bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mb-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <svg
+                        className="w-5 h-5 text-blue-600 dark:text-blue-300"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+                        />
+                      </svg>
+                      <span className="text-blue-900 dark:text-blue-100 font-medium">
+                        Filtering {activeClusterFilter.length} keywords from selected cluster
+                      </span>
+                    </div>
+                    <button
+                      onClick={onClearClusterFilter}
+                      className="text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-100 font-medium"
+                    >
+                      Clear Filter
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           ) : (
             <>
               {currentView === 'research' && (
@@ -216,7 +263,7 @@ export const KeywordWorkspace: React.FC<KeywordWorkspaceProps> = ({
 
               {currentView === 'bank' && activeBrand && (
                 <KeywordBank
-                  keywords={allBrandKeywords}
+                  keywords={displayKeywords}
                   searchedKeywords={searchedKeywords}
                   campaigns={campaigns}
                   onCampaignsChange={onCampaignsChange}
@@ -241,13 +288,13 @@ export const KeywordWorkspace: React.FC<KeywordWorkspaceProps> = ({
                       campaigns={campaigns}
                       onCampaignsChange={onCampaignsChange}
                       onAssignKeywords={onAssignKeywords}
-                      allKeywords={allBrandKeywords}
+                      allKeywords={displayKeywords}
                       activeBrandName={activeBrand}
                     />
                   </div>
                   <div className="lg:col-span-2 order-1 lg:order-2">
                     <KeywordBank
-                      keywords={allBrandKeywords}
+                      keywords={displayKeywords}
                       searchedKeywords={searchedKeywords}
                       campaigns={campaigns}
                       onCampaignsChange={onCampaignsChange}
