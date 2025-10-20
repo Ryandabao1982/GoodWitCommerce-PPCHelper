@@ -703,7 +703,11 @@ const App: React.FC = () => {
   const handleDismissQuickStart = () => {
     setHasSeenQuickStart(true);
     setHasSkippedApiStep(false);
-    setQuickStartStep(hasApiKey ? 1 : 0);
+    if (hasApiKey && hasBrand) {
+      setQuickStartStep(STEP_TITLES.length);
+    } else {
+      setQuickStartStep(hasApiKey ? 1 : 0);
+    }
   };
 
   const handleGoToSettings = () => {
