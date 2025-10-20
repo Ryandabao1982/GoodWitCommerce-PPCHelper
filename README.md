@@ -381,63 +381,38 @@ See [UI_UX_IMPLEMENTATION.md](./UI_UX_IMPLEMENTATION.md) for technical implement
 
 ## 📚 Documentation
 
-### Core Documents
+### Essential Documents (Root Directory)
 
-- **[USER_FLOW.md](./USER_FLOW.md)** - User Journey Documentation
-  - First-time user onboarding flow
-  - Returning user workflows
-  - UX principles and patterns
-  - Accessibility considerations
-  - Future enhancements roadmap
+- **[CHANGELOG.md](./CHANGELOG.md)** - Version history and user-facing changes
+- **[GEMINI.md](./GEMINI.md)** - Gemini AI integration configuration
 
-- **[USER_PATH_SIMULATION.md](./USER_PATH_SIMULATION.md)** - User Path Analysis
-  - Step-by-step user journey simulations
-  - UI/UX issue identification
-  - Prioritized improvement recommendations
-  - Visual mockups and implementation roadmap
+### Technical Documentation ([/docs](./docs))
 
-- **[UI_UX_IMPLEMENTATION.md](./UI_UX_IMPLEMENTATION.md)** - Implementation Guide
-  - Technical documentation for new components
-  - Integration examples and code samples
-  - Testing guidelines
-  - Performance and accessibility considerations
+Comprehensive technical documentation has been organized in the `/docs` directory:
 
-- **[PRO.md](./PRO.md)** - Product Requirements Document
-  - Feature specifications
-  - User stories
-  - Non-functional requirements
+**Product & Planning:**
+- [PRO.md](./docs/PRO.md) - Product Requirements Document
+- [PLAN.md](./docs/PLAN.md) - Development Roadmap
+- [PROTOCOL.md](./docs/PROTOCOL.md) - Development Framework
 
-- **[PLAN.md](./PLAN.md)** - Development Roadmap
-  - Sprint planning
-  - Task tracking
-  - Implementation status
+**Implementation Guides:**
+- [DATABASE_IMPLEMENTATION.md](./docs/DATABASE_IMPLEMENTATION.md) - Database setup and configuration
+- [IMPLEMENTATION_SUMMARY.md](./docs/IMPLEMENTATION_SUMMARY.md) - Feature implementation summary
+- [UI_UX_IMPLEMENTATION.md](./docs/UI_UX_IMPLEMENTATION.md) - UI/UX implementation guide
 
-- **[PROTOCOL.md](./PROTOCOL.md)** - AI Vibe Coder Protocol v3.0
-  - Development framework
-  - Quality standards
-  - Collaboration guidelines
+**User Experience:**
+- [USER_FLOW.md](./docs/USER_FLOW.md) - User journey documentation
+- [USER_PATH_SIMULATION.md](./docs/USER_PATH_SIMULATION.md) - User path analysis
 
-- **[BUILD_LOG.md](./BUILD_LOG.md)** - Technical Log
-  - Development history
-  - Bug fixes and resolutions
-  - Technical decisions
+**Testing & Quality:**
+- [TEST_README.md](./docs/TEST_README.md) - Testing documentation
+- [TEST_COVERAGE_SUMMARY.md](./docs/TEST_COVERAGE_SUMMARY.md) - Test coverage report
 
-- **[CHANGELOG.md](./CHANGELOG.md)** - User-Facing Changes
-  - Version history
-  - Feature additions
-  - Breaking changes
+**Project Management:**
+- [BUILD_LOG.md](./docs/BUILD_LOG.md) - Technical build log
+- [METRICS.md](./docs/METRICS.md) - Project health metrics
 
-- **[METRICS.md](./METRICS.md)** - Project Health Dashboard
-  - Development velocity
-  - Code quality metrics
-  - Technical debt tracking
-
-- **[BACKEND_PLAN.md](./BACKEND_PLAN.md)** - Backend Implementation Plan
-  - Database schema design
-  - API endpoints specification
-  - Technology stack recommendations
-  - Migration strategy
-  - Security and deployment architecture
+📖 **For complete documentation index, see [docs/README.md](./docs/README.md)**
 
 ---
 
@@ -471,7 +446,7 @@ See [UI_UX_IMPLEMENTATION.md](./UI_UX_IMPLEMENTATION.md) for technical implement
 - ⏳ Frontend Integration with Backend
 - ⏳ Data Migration & Production Launch
 
-See [PLAN.md](./PLAN.md) for detailed task breakdown and [BACKEND_PLAN.md](./BACKEND_PLAN.md) for complete backend architecture.
+See [docs/PLAN.md](./docs/PLAN.md) for detailed task breakdown and [docs/BACKEND_PLAN.md](./docs/BACKEND_PLAN.md) for complete backend architecture.
 
 ---
 
@@ -479,16 +454,16 @@ See [PLAN.md](./PLAN.md) for detailed task breakdown and [BACKEND_PLAN.md](./BAC
 
 This project follows the **AI Vibe Coder Protocol v3.0**. All contributions should:
 
-1. Reference relevant sections in PRO.md or PLAN.md
+1. Reference relevant sections in [docs/PRO.md](./docs/PRO.md) or [docs/PLAN.md](./docs/PLAN.md)
 2. Include appropriate documentation updates
 3. Follow TypeScript best practices
 4. Update CHANGELOG.md for user-facing changes
-5. Log technical decisions in BUILD_LOG.md
+5. Log technical decisions in [docs/BUILD_LOG.md](./docs/BUILD_LOG.md)
 
 ### Development Process
 
-1. Review [PROTOCOL.md](./PROTOCOL.md)
-2. Check [PLAN.md](./PLAN.md) for available tasks
+1. Review [docs/PROTOCOL.md](./docs/PROTOCOL.md)
+2. Check [docs/PLAN.md](./docs/PLAN.md) for available tasks
 3. Create a feature branch
 4. Implement changes following the protocol
 5. Update documentation
@@ -513,8 +488,8 @@ This project is proprietary software. All rights reserved.
 ## 📞 Support
 
 For issues, questions, or feature requests:
-- Review existing documentation in PRO.md and PLAN.md
-- Check BUILD_LOG.md for known issues and solutions
+- Review existing documentation in [docs/PRO.md](./docs/PRO.md) and [docs/PLAN.md](./docs/PLAN.md)
+- Check [docs/BUILD_LOG.md](./docs/BUILD_LOG.md) for known issues and solutions
 - Open an issue on GitHub with detailed context
 
 ---
