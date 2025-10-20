@@ -570,10 +570,12 @@ const App: React.FC = () => {
     setApiSettings(prev => ({ ...prev, ...settings }));
   };
 
-  const handleSaveApiSettings = () => {
-    saveToLocalStorage('ppcGeniusApiSettings.geminiApiKey', apiSettings.geminiApiKey);
-    saveToLocalStorage('ppcGeniusApiSettings.supabaseUrl', apiSettings.supabaseUrl);
-    saveToLocalStorage('ppcGeniusApiSettings.supabaseAnonKey', apiSettings.supabaseAnonKey);
+  const handleSaveApiSettings = (nextSettings: ApiSettings) => {
+    setApiSettings(nextSettings);
+
+    saveToLocalStorage('ppcGeniusApiSettings.geminiApiKey', nextSettings.geminiApiKey);
+    saveToLocalStorage('ppcGeniusApiSettings.supabaseUrl', nextSettings.supabaseUrl);
+    saveToLocalStorage('ppcGeniusApiSettings.supabaseAnonKey', nextSettings.supabaseAnonKey);
     // Reinitialize services with new settings
     reinitializeGeminiService();
     reinitializeSOPService();
@@ -613,8 +615,12 @@ const App: React.FC = () => {
   };
 
   const handleApiKeySave = (apiKey: string) => {
-    handleApiSettingsChange({ geminiApiKey: apiKey });
-    handleSaveApiSettings();
+    const nextSettings = {
+      ...apiSettings,
+      geminiApiKey: apiKey,
+    };
+
+    handleSaveApiSettings(nextSettings);
   };
 
   // Keyboard shortcuts
