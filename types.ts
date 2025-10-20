@@ -28,6 +28,7 @@ export interface AdvancedSearchSettings {
   maxVolume: string;
   isWebAnalysisEnabled: boolean;
   brandName: string;
+  asin?: string; // ASIN for product-specific keyword research
 }
 
 export interface BidModifiers {
@@ -43,6 +44,7 @@ export interface AdGroup {
   defaultMatchType?: MatchType; // Default match type for keywords
   bidModifiers?: BidModifiers; // Bid modifiers for different placements
   budget?: number; // Budget allocated to this ad group
+  asin?: string; // ASIN for product-specific targeting
 }
 
 export interface CampaignProjections {
@@ -59,6 +61,7 @@ export interface Campaign {
   totalBudget?: number;
   dailyBudget?: number; // Daily budget for the campaign
   projections?: CampaignProjections | null;
+  asin?: string; // ASIN for product-specific campaigns
 }
 
 // API Configuration Settings

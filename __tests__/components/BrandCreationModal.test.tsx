@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { BrandCreationModal } from '../../components/BrandCreationModal';
 
@@ -114,7 +114,7 @@ describe('BrandCreationModal', () => {
       expect(mockOnCreate).toHaveBeenCalledWith('Test Brand');
     });
 
-    it('should close modal after successful creation', () => {
+    it('should close modal after successful creation', async () => {
       mockOnCreate.mockReturnValue(true);
       
       render(
@@ -127,10 +127,12 @@ describe('BrandCreationModal', () => {
       const createButton = screen.getByRole('button', { name: /Create Brand/i });
       fireEvent.click(createButton);
       
-      expect(mockOnClose).toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockOnClose).toHaveBeenCalled();
+      });
     });
 
-    it('should show error when brand name is empty', () => {
+    it('should show error when brand name is empty', async () => {
       render(
         <BrandCreationModal isOpen={true} onClose={mockOnClose} onCreate={mockOnCreate} />
       );
@@ -138,11 +140,13 @@ describe('BrandCreationModal', () => {
       const createButton = screen.getByRole('button', { name: /Create Brand/i });
       fireEvent.click(createButton);
       
-      expect(screen.getByText(/Brand name cannot be empty/i)).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText(/Brand name cannot be empty/i)).toBeInTheDocument();
+      });
       expect(mockOnCreate).not.toHaveBeenCalled();
     });
 
-    it('should show error when brand name is only whitespace', () => {
+    it('should show error when brand name is only whitespace', async () => {
       render(
         <BrandCreationModal isOpen={true} onClose={mockOnClose} onCreate={mockOnCreate} />
       );
@@ -153,11 +157,13 @@ describe('BrandCreationModal', () => {
       const createButton = screen.getByRole('button', { name: /Create Brand/i });
       fireEvent.click(createButton);
       
-      expect(screen.getByText(/Brand name cannot be empty/i)).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText(/Brand name cannot be empty/i)).toBeInTheDocument();
+      });
       expect(mockOnCreate).not.toHaveBeenCalled();
     });
 
-    it('should show error when brand already exists', () => {
+    it('should show error when brand already exists', async () => {
       mockOnCreate.mockReturnValue(false);
       
       render(
@@ -170,7 +176,9 @@ describe('BrandCreationModal', () => {
       const createButton = screen.getByRole('button', { name: /Create Brand/i });
       fireEvent.click(createButton);
       
-      expect(screen.getByText(/A brand with this name already exists/i)).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText(/A brand with this name already exists/i)).toBeInTheDocument();
+      });
       expect(mockOnClose).not.toHaveBeenCalled();
     });
 
@@ -249,12 +257,12 @@ describe('BrandCreationModal', () => {
       );
       
       const input = screen.getByLabelText(/Brand Name/i);
-      expect(input).toHaveAttribute('autoFocus');
+      expect(input).toHaveFocus();
     });
   });
 
   describe('Error State Management', () => {
-    it('should clear error when modal is reopened', () => {
+    it('should clear error when modal is reopened', async () => {
       mockOnCreate.mockReturnValue(false);
       
       const { rerender } = render(
@@ -267,7 +275,9 @@ describe('BrandCreationModal', () => {
       const createButton = screen.getByRole('button', { name: /Create Brand/i });
       fireEvent.click(createButton);
       
-      expect(screen.getByText(/A brand with this name already exists/i)).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText(/A brand with this name already exists/i)).toBeInTheDocument();
+      });
       
       rerender(
         <BrandCreationModal isOpen={false} onClose={mockOnClose} onCreate={mockOnCreate} />

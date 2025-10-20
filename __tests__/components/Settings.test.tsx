@@ -106,7 +106,7 @@ describe('Settings', () => {
       );
       
       const input = screen.getByLabelText(/Gemini API Key/i);
-      const toggleButtons = screen.getAllByLabelText(/API key/i);
+      const toggleButtons = screen.getAllByLabelText(/key visibility/i);
       const geminiToggle = toggleButtons[0];
       
       expect(input).toHaveAttribute('type', 'password');

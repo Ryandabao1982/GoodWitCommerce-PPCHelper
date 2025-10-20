@@ -104,7 +104,7 @@ export const BrandCreationModal: React.FC<BrandCreationModalProps> = ({
                 value={brandName}
                 onChange={(e) => setBrandName(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                placeholder="e.g., AcmeTools, Premium Headphones, BudgetGear"
+                placeholder="Enter brand name..."
                 autoFocus
                 maxLength={MAX_LENGTH}
               />
@@ -152,7 +152,7 @@ export const BrandCreationModal: React.FC<BrandCreationModalProps> = ({
               </button>
               <button
                 type="submit"
-                disabled={!brandName.trim() || !validationMessage.startsWith('✓')}
+                disabled={brandName.trim() && !validationMessage.startsWith('✓')}
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
               >
                 Create Brand
