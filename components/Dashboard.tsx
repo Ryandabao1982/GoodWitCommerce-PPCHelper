@@ -208,8 +208,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
     return activities.slice(-5); // Return last 5 activities
   }, [brands, brandStates]);
 
-  // Landing page view (when no brand selected or at dashboard start)
-  const showLandingPage = !activeBrand || (activeBrand && data.length === 0);
+  // Landing page view (when no brand selected)
+  const showLandingPage = !activeBrand;
   
   if (showLandingPage) {
     return (

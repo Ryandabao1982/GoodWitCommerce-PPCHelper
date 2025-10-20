@@ -46,34 +46,34 @@ describe('Dashboard', () => {
 
   describe('Rendering', () => {
     it('should render the dashboard heading', () => {
-      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} />);
+      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
       expect(screen.getByText(/Keyword Research Results/i)).toBeInTheDocument();
     });
 
     it('should display Total Keywords stat', () => {
-      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} />);
+      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
       expect(screen.getByText(/Total Keywords/i)).toBeInTheDocument();
       expect(screen.getByText('3')).toBeInTheDocument();
     });
 
     it('should display stats correctly for single keyword', () => {
-      render(<Dashboard data={[mockKeywordData[0]]} parseVolume={mockParseVolume} />);
+      render(<Dashboard data={[mockKeywordData[0]]} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
       expect(screen.getByText(/Total Keywords/i)).toBeInTheDocument();
       expect(screen.getByText('1')).toBeInTheDocument();
     });
 
     it('should render mobile card view on small screens', () => {
-      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} />);
+      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
       const mobileView = document.querySelector('.block.md\\:hidden');
       expect(mobileView).toBeInTheDocument();
     });
 
     it('should render desktop table view', () => {
-      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} />);
+      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
       const desktopView = document.querySelector('.hidden.md\\:block');
       expect(desktopView).toBeInTheDocument();
@@ -82,21 +82,25 @@ describe('Dashboard', () => {
 
   describe('Table Headers', () => {
     it('should render all table column headers', () => {
-      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} />);
+      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
-      expect(screen.getByText(/^Keyword/)).toBeInTheDocument();
-      expect(screen.getByText(/^Type/)).toBeInTheDocument();
-      expect(screen.getByText(/^Category/)).toBeInTheDocument();
-      expect(screen.getByText(/^Volume/)).toBeInTheDocument();
-      expect(screen.getByText(/^Competition/)).toBeInTheDocument();
-      expect(screen.getByText(/^Relevance/)).toBeInTheDocument();
-      expect(screen.getByText(/^Source/)).toBeInTheDocument();
+      // Use getAllByText to get multiple matches, then check for th elements
+      const headers = screen.getAllByRole('columnheader');
+      const headerTexts = headers.map(h => h.textContent);
+      
+      expect(headerTexts.some(t => t?.includes('Keyword'))).toBe(true);
+      expect(headerTexts.some(t => t?.includes('Type'))).toBe(true);
+      expect(headerTexts.some(t => t?.includes('Category'))).toBe(true);
+      expect(headerTexts.some(t => t?.includes('Volume'))).toBe(true);
+      expect(headerTexts.some(t => t?.includes('Competition'))).toBe(true);
+      expect(headerTexts.some(t => t?.includes('Relevance'))).toBe(true);
+      expect(headerTexts.some(t => t?.includes('Source'))).toBe(true);
     });
   });
 
   describe('Data Display', () => {
     it('should display all keywords in the data', () => {
-      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} />);
+      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
       mockKeywordData.forEach(item => {
         const keywords = screen.getAllByText(item.keyword);
@@ -105,14 +109,14 @@ describe('Dashboard', () => {
     });
 
     it('should display search volumes', () => {
-      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} />);
+      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
       expect(screen.getAllByText('10,000').length).toBeGreaterThan(0);
       expect(screen.getAllByText('5,000').length).toBeGreaterThan(0);
     });
 
     it('should display competition levels with badges', () => {
-      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} />);
+      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
       expect(screen.getAllByText('High').length).toBeGreaterThan(0);
       expect(screen.getAllByText('Medium').length).toBeGreaterThan(0);
@@ -120,7 +124,7 @@ describe('Dashboard', () => {
     });
 
     it('should display relevance scores', () => {
-      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} />);
+      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
       expect(screen.getAllByText(/9\/10/i).length).toBeGreaterThan(0);
       expect(screen.getAllByText(/7\/10/i).length).toBeGreaterThan(0);
@@ -128,7 +132,7 @@ describe('Dashboard', () => {
     });
 
     it('should display source badges', () => {
-      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} />);
+      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
       const aiSources = screen.getAllByText('AI');
       const webSources = screen.getAllByText('Web');
@@ -140,7 +144,7 @@ describe('Dashboard', () => {
 
   describe('Sorting Functionality', () => {
     it('should sort by keyword when keyword header is clicked', () => {
-      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} />);
+      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
       const keywordHeader = screen.getByText(/^Keyword/).parentElement!;
       fireEvent.click(keywordHeader);
@@ -149,7 +153,7 @@ describe('Dashboard', () => {
     });
 
     it('should sort by search volume when volume header is clicked', () => {
-      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} />);
+      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
       const volumeHeader = screen.getByText(/^Volume/).parentElement!;
       fireEvent.click(volumeHeader);
@@ -158,7 +162,7 @@ describe('Dashboard', () => {
     });
 
     it('should toggle sort direction on repeated clicks', () => {
-      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} />);
+      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
       const keywordHeader = screen.getByText(/^Keyword/).parentElement!;
       
@@ -172,7 +176,7 @@ describe('Dashboard', () => {
     });
 
     it('should sort by competition level', () => {
-      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} />);
+      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
       const competitionHeader = screen.getByText(/^Competition/).parentElement!;
       fireEvent.click(competitionHeader);
@@ -183,7 +187,7 @@ describe('Dashboard', () => {
     });
 
     it('should sort by relevance', () => {
-      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} />);
+      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
       const relevanceHeader = screen.getByText(/^Relevance/).parentElement!;
       fireEvent.click(relevanceHeader);
@@ -199,35 +203,35 @@ describe('Dashboard', () => {
 
   describe('Badge Colors', () => {
     it('should apply correct color for low competition', () => {
-      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} />);
+      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
       const competitionBadges = document.querySelectorAll('.bg-green-100, .dark\\:bg-green-900');
       expect(competitionBadges.length).toBeGreaterThan(0);
     });
 
     it('should apply correct color for medium competition', () => {
-      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} />);
+      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
       const competitionBadges = document.querySelectorAll('.bg-yellow-100, .dark\\:bg-yellow-900');
       expect(competitionBadges.length).toBeGreaterThan(0);
     });
 
     it('should apply correct color for high competition', () => {
-      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} />);
+      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
       const competitionBadges = document.querySelectorAll('.bg-red-100, .dark\\:bg-red-900');
       expect(competitionBadges.length).toBeGreaterThan(0);
     });
 
     it('should apply correct color for AI source', () => {
-      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} />);
+      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
       const sourceBadges = document.querySelectorAll('.bg-purple-100, .dark\\:bg-purple-900');
       expect(sourceBadges.length).toBeGreaterThan(0);
     });
 
     it('should apply correct color for Web source', () => {
-      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} />);
+      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
       const sourceBadges = document.querySelectorAll('.bg-blue-100, .dark\\:bg-blue-900');
       expect(sourceBadges.length).toBeGreaterThan(0);
@@ -236,13 +240,13 @@ describe('Dashboard', () => {
 
   describe('Empty State', () => {
     it('should display 0 keywords found when data is empty', () => {
-      render(<Dashboard data={[]} parseVolume={mockParseVolume} />);
+      render(<Dashboard data={[]} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
       expect(screen.getByText(/0 keywords found/i)).toBeInTheDocument();
     });
 
     it('should render table structure even with empty data', () => {
-      render(<Dashboard data={[]} parseVolume={mockParseVolume} />);
+      render(<Dashboard data={[]} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
       expect(screen.getByText(/^Keyword/)).toBeInTheDocument();
       expect(screen.getByText(/^Type/)).toBeInTheDocument();
@@ -251,14 +255,14 @@ describe('Dashboard', () => {
 
   describe('Relevance Progress Bar', () => {
     it('should render relevance progress bar in desktop view', () => {
-      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} />);
+      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
       const progressBars = document.querySelectorAll('.bg-blue-600.h-2.rounded-full');
       expect(progressBars.length).toBeGreaterThan(0);
     });
 
     it('should set correct width for relevance bar', () => {
-      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} />);
+      render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
       // Relevance of 9 should be 90% width
       const progressBars = document.querySelectorAll('.bg-blue-600.h-2.rounded-full');
@@ -271,14 +275,14 @@ describe('Dashboard', () => {
 
   describe('Responsive Behavior', () => {
     it('should have mobile-specific classes', () => {
-      const { container } = render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} />);
+      const { container } = render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
       const mobileView = container.querySelector('.block.md\\:hidden');
       expect(mobileView).toBeInTheDocument();
     });
 
     it('should have desktop-specific classes', () => {
-      const { container } = render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} />);
+      const { container } = render(<Dashboard data={mockKeywordData} parseVolume={mockParseVolume} activeBrand="Test Brand" />);
       
       const desktopView = container.querySelector('.hidden.md\\:block');
       expect(desktopView).toBeInTheDocument();
