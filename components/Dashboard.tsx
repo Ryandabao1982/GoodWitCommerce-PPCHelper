@@ -598,19 +598,37 @@ export const Dashboard: React.FC<DashboardProps> = ({
               {filterType !== 'all' && (
                 <span className="inline-flex items-center px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-xs rounded-full">
                   Type: {filterType}
-                  <button onClick={() => setFilterType('all')} className="ml-1 hover:text-blue-600">×</button>
+                  <button
+                    type="button"
+                    aria-label="Remove type filter"
+                    title="Remove type filter"
+                    onClick={() => setFilterType('all')}
+                    className="ml-1 hover:text-blue-600"
+                  >×</button>
                 </span>
               )}
               {filterCompetition !== 'all' && (
                 <span className="inline-flex items-center px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 text-xs rounded-full">
                   Competition: {filterCompetition}
-                  <button onClick={() => setFilterCompetition('all')} className="ml-1 hover:text-green-600">×</button>
+                  <button
+                    type="button"
+                    aria-label="Remove competition filter"
+                    title="Remove competition filter"
+                    onClick={() => setFilterCompetition('all')}
+                    className="ml-1 hover:text-green-600"
+                  >×</button>
                 </span>
               )}
               {searchFilter && (
                 <span className="inline-flex items-center px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 text-xs rounded-full">
                   Search: "{searchFilter}"
-                  <button onClick={() => setSearchFilter('')} className="ml-1 hover:text-purple-600">×</button>
+                  <button
+                    type="button"
+                    aria-label="Remove search filter"
+                    title="Remove search filter"
+                    onClick={() => setSearchFilter('')}
+                    className="ml-1 hover:text-purple-600"
+                  >×</button>
                 </span>
               )}
               <button
