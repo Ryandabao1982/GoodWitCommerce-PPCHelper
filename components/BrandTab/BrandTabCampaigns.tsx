@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { BrandState, Portfolio, Campaign } from '../../types';
+import { EmptyStateCard } from '../EmptyState';
 
 interface BrandTabCampaignsProps {
   brandState: BrandState;
@@ -242,7 +243,8 @@ export const BrandTabCampaigns: React.FC<BrandTabCampaignsProps> = ({ brandState
       )}
 
       {/* Portfolio Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {portfolios.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {portfolioStats.map(portfolio => (
           <div 
             key={portfolio.id} 
@@ -294,6 +296,13 @@ export const BrandTabCampaigns: React.FC<BrandTabCampaignsProps> = ({ brandState
           </div>
         ))}
       </div>
+      ) : (
+        <EmptyStateCard
+          icon="📁"
+          title="No Portfolios Created"
+          description="Portfolios help you organize campaigns by strategy (Launch, Optimize, Scale, Maintain). Create portfolios to better manage your campaign budgets and goals."
+        />
+      )}
 
       {/* Campaign Controls */}
       <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">

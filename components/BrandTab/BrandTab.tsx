@@ -23,12 +23,7 @@ export const BrandTab: React.FC<BrandTabProps> = ({ brandState, activeBrand, onU
   const [showSettings, setShowSettings] = useState(false);
 
   // Initialize default data if not present
-  const portfolios = brandState.portfolios || [
-    { id: 'launch', name: 'Launch', budget: 1000, campaigns: [] },
-    { id: 'optimize', name: 'Optimize', budget: 2000, campaigns: [] },
-    { id: 'scale', name: 'Scale', budget: 5000, campaigns: [] },
-    { id: 'maintain', name: 'Maintain', budget: 3000, campaigns: [] },
-  ];
+  const portfolios = brandState.portfolios || [];
 
   const kpiMetrics: KPIMetrics = brandState.kpiMetrics || {
     spend: 0,
@@ -42,7 +37,7 @@ export const BrandTab: React.FC<BrandTabProps> = ({ brandState, activeBrand, onU
 
   const ragBadge: RAGBadge = brandState.ragBadge || {
     status: 'Green',
-    drivers: ['All metrics within target range'],
+    drivers: ['No data available yet'],
   };
 
   const settings: BrandTabSettings = brandState.brandTabSettings || {

@@ -76,9 +76,19 @@ describe('BrandTab', () => {
   });
 
   it('should display portfolios in left rail', () => {
+    const brandStateWithPortfolios: BrandState = {
+      ...mockBrandState,
+      portfolios: [
+        { id: 'launch', name: 'Launch', budget: 1000, campaigns: [] },
+        { id: 'optimize', name: 'Optimize', budget: 2000, campaigns: [] },
+        { id: 'scale', name: 'Scale', budget: 5000, campaigns: [] },
+        { id: 'maintain', name: 'Maintain', budget: 3000, campaigns: [] },
+      ],
+    };
+    
     render(
       <BrandTab
-        brandState={mockBrandState}
+        brandState={brandStateWithPortfolios}
         activeBrand="TestBrand"
         onUpdateBrandState={mockOnUpdateBrandState}
       />
