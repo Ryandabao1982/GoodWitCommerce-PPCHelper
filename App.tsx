@@ -4,9 +4,14 @@ import { Sidebar } from './components/Sidebar';
 import { KeywordInput } from './components/KeywordInput';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { ErrorMessage } from './components/ErrorMessage';
-import { fetchKeywords, fetchKeywordClusters, reinitializeGeminiService, analyzeKeywordsBatch } from './services/geminiService';
+import {
+  fetchKeywords,
+  fetchKeywordClusters,
+  reinitializeGeminiService,
+  analyzeKeywordsBatch,
+} from './services/geminiService';
 import { reinitializeSupabaseClient } from './services/supabaseClient';
-import { BrandState, KeywordData, AdvancedSearchSettings, Campaign, ApiSettings, SOP } from './types';
+import { BrandState, AdvancedSearchSettings, Campaign, ApiSettings, SOP } from './types';
 import { ScrollToTopButton } from './components/ScrollToTopButton';
 import { RelatedKeywords } from './components/RelatedKeywords';
 import { SessionManager } from './components/SessionManager';
@@ -34,45 +39,46 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { loadFromLocalStorage, saveToLocalStorage } from './utils/storage';
 import { brandStorage, brandStateStorage, settingsStorage } from './utils/hybridStorage';
 import { SOPLibrary } from './components/SOPLibrary';
-import { 
-  getSOPsForBrand, 
-  addSOP, 
-  updateSOP, 
-  deleteSOP, 
-  toggleSOPFavorite, 
-  incrementSOPViewCount,
-  trackSOPView 
+import {
+  getSOPsForBrand,
+  addSOP,
+  updateSOP,
+  deleteSOP,
+  toggleSOPFavorite,
+  trackSOPView,
 } from './utils/sopStorage';
 import { aiSearchSOPs, getAIRecommendedSOPs, reinitializeSOPService } from './services/sopService';
 
 const App: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
-      return settingsStorage.getDarkMode() || 
-        (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      return (
+        settingsStorage.getDarkMode() ||
+        (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)
+      );
     }
     return false;
   });
-  
+
   const [brands, setBrands] = useState<string[]>([]);
   const [activeBrand, setActiveBrand] = useState<string | null>(null);
-  const [lastActiveBrand, setLastActiveBrand] = useState<string | null>(() => 
+  const [lastActiveBrand, setLastActiveBrand] = useState<string | null>(() =>
     loadFromLocalStorage<string | null>('ppcGeniusLastActiveBrand', null)
   );
   const [brandStates, setBrandStates] = useState<Record<string, BrandState>>({});
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [isClustering, setIsClustering] = useState(false);
   const [isAnalyzingManualKeywords, setIsAnalyzingManualKeywords] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [relatedKeywords, setRelatedKeywords] = useState<string[]>([]);
-  
+
   const [currentView, setCurrentView] = useState<ViewType>('research');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isBrandModalOpen, setIsBrandModalOpen] = useState(false);
   const [isScrollButtonVisible, setIsScrollButtonVisible] = useState(false);
   const [isApiKeyPromptOpen, setIsApiKeyPromptOpen] = useState(false);
-  const [hasSeenQuickStart, setHasSeenQuickStart] = useState<boolean>(() => 
+  const [hasSeenQuickStart, setHasSeenQuickStart] = useState<boolean>(() =>
     settingsStorage.getQuickStartSeen()
   );
   const [showSuccessToast, setShowSuccessToast] = useState(false);
@@ -80,7 +86,7 @@ const App: React.FC = () => {
   const [searchResultCount, setSearchResultCount] = useState(0);
 
   const [selectedKeywords, setSelectedKeywords] = useState<Set<string>>(new Set());
-  
+
   // SOP update trigger to force re-renders
   const [sopUpdateTrigger, setSopUpdateTrigger] = useState(0);
   const [activeBrandSOPs, setActiveBrandSOPs] = useState<SOP[]>([]);
@@ -91,7 +97,7 @@ const App: React.FC = () => {
     supabaseUrl: loadFromLocalStorage<string>('ppcGeniusApiSettings.supabaseUrl', ''),
     supabaseAnonKey: loadFromLocalStorage<string>('ppcGeniusApiSettings.supabaseAnonKey', ''),
   }));
-  
+
   // Load from hybrid storage on initial render
   useEffect(() => {
     const loadData = async () => {
@@ -101,7 +107,7 @@ const App: React.FC = () => {
           brandStorage.getActive(),
           brandStateStorage.getAll(),
         ]);
-        
+
         setBrands(loadedBrands);
         setActiveBrand(loadedActiveBrand);
         setBrandStates(loadedBrandStates);
@@ -110,7 +116,9 @@ const App: React.FC = () => {
         // Fall back to localStorage directly if hybrid storage fails
         setBrands(loadFromLocalStorage<string[]>('ppcGeniusBrands', []));
         setActiveBrand(loadFromLocalStorage<string | null>('ppcGeniusActiveBrand', null));
-        setBrandStates(loadFromLocalStorage<Record<string, BrandState>>('ppcGeniusBrandStates', {}));
+        setBrandStates(
+          loadFromLocalStorage<Record<string, BrandState>>('ppcGeniusBrandStates', {})
+        );
       }
     };
     loadData();
@@ -122,19 +130,19 @@ const App: React.FC = () => {
       try {
         // Save brands
         saveToLocalStorage('ppcGeniusBrands', brands);
-        
+
         // Save active brand
         await brandStorage.setActive(activeBrand);
-        
+
         // Save last active brand
         if (activeBrand) {
           setLastActiveBrand(activeBrand);
           saveToLocalStorage('ppcGeniusLastActiveBrand', activeBrand);
         }
-        
+
         // Save brand states
         saveToLocalStorage('ppcGeniusBrandStates', brandStates);
-        
+
         // Save settings
         settingsStorage.setDarkMode(isDarkMode);
         settingsStorage.setQuickStartSeen(hasSeenQuickStart);
@@ -144,7 +152,7 @@ const App: React.FC = () => {
     };
     saveData();
   }, [brands, activeBrand, brandStates, isDarkMode, hasSeenQuickStart]);
-  
+
   // Handle dark mode class on html element
   useEffect(() => {
     if (isDarkMode) {
@@ -166,7 +174,7 @@ const App: React.FC = () => {
     window.addEventListener('scroll', toggleVisibility);
     return () => window.removeEventListener('scroll', toggleVisibility);
   }, []);
-  
+
   const activeBrandState = useMemo(() => {
     if (!activeBrand || !brandStates[activeBrand]) {
       return null;
@@ -175,117 +183,136 @@ const App: React.FC = () => {
   }, [activeBrand, brandStates]);
 
   const updateBrandState = useCallback((brandName: string, updates: Partial<BrandState>) => {
-    setBrandStates(prev => {
+    setBrandStates((prev) => {
       const newState = {
         ...prev,
         [brandName]: {
-          ...(prev[brandName] || { // Provide a default structure if it doesn't exist
+          ...(prev[brandName] || {
+            // Provide a default structure if it doesn't exist
             keywordResults: [],
             searchedKeywords: [],
-            advancedSearchSettings: { advancedKeywords: '', minVolume: '', maxVolume: '', isWebAnalysisEnabled: false, brandName: '', asin: '' },
+            advancedSearchSettings: {
+              advancedKeywords: '',
+              minVolume: '',
+              maxVolume: '',
+              isWebAnalysisEnabled: false,
+              brandName: '',
+              asin: '',
+            },
             keywordClusters: null,
-            campaigns: []
+            campaigns: [],
           }),
           ...updates,
-        }
+        },
       };
-      
+
       // Sync to hybrid storage asynchronously
-      brandStateStorage.update(brandName, newState[brandName]).catch(error => {
+      brandStateStorage.update(brandName, newState[brandName]).catch((error) => {
         console.error('Error syncing brand state to storage:', error);
       });
-      
+
       return newState;
     });
   }, []);
-  
+
   // Load SOPs when active brand changes
   useEffect(() => {
     if (activeBrand) {
-      getSOPsForBrand(activeBrand).then(sops => {
-        setActiveBrandSOPs(sops);
-      }).catch(error => {
-        console.error('Error loading SOPs:', error);
-        setActiveBrandSOPs([]);
-      });
+      getSOPsForBrand(activeBrand)
+        .then((sops) => {
+          setActiveBrandSOPs(sops);
+        })
+        .catch((error) => {
+          console.error('Error loading SOPs:', error);
+          setActiveBrandSOPs([]);
+        });
     } else {
       setActiveBrandSOPs([]);
     }
   }, [activeBrand, sopUpdateTrigger]);
-  
-  const handleSearch = useCallback(async (searchOverride?: string) => {
-    if (!activeBrand || !activeBrandState) return;
-    
-    // Check if API key is configured
-    if (!apiSettings.geminiApiKey && !import.meta.env.VITE_GEMINI_API_KEY) {
-      setIsApiKeyPromptOpen(true);
-      return;
-    }
-    
-    const searchSettings = activeBrandState.advancedSearchSettings;
-    const seedKeyword = searchOverride ?? (searchSettings.advancedKeywords);
 
-    if (!seedKeyword.trim()) {
-        setError("Please enter at least one seed keyword.");
+  const handleSearch = useCallback(
+    async (searchOverride?: string) => {
+      if (!activeBrand || !activeBrandState) return;
+
+      // Check if API key is configured
+      if (!apiSettings.geminiApiKey && !import.meta.env.VITE_GEMINI_API_KEY) {
+        setIsApiKeyPromptOpen(true);
         return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-    setRelatedKeywords([]);
-    setSelectedKeywords(new Set()); // Clear selection on new search
-    setLastSearchKeyword(seedKeyword.trim());
-    setShowSuccessToast(false);
-
-    try {
-      const [newKeywords, related] = await fetchKeywords(
-        seedKeyword,
-        searchSettings.isWebAnalysisEnabled,
-        searchSettings.brandName,
-        searchSettings.asin || ''
-      );
-      
-      const uniqueNewKeywords = new Map(activeBrandState.keywordResults.map(kw => [kw.keyword.toLowerCase(), kw]));
-      newKeywords.forEach(kw => {
-        if (!uniqueNewKeywords.has(kw.keyword.toLowerCase())) {
-          uniqueNewKeywords.set(kw.keyword.toLowerCase(), kw);
-        }
-      });
-      
-      const newSearchedKeywords = new Set(activeBrandState.searchedKeywords);
-      splitSeedKeywords(seedKeyword).forEach(k => newSearchedKeywords.add(k));
-
-      updateBrandState(activeBrand, {
-        keywordResults: Array.from(uniqueNewKeywords.values()),
-        searchedKeywords: Array.from(newSearchedKeywords).slice(-10), // Keep history manageable
-        keywordClusters: null, // Reset clusters on new search
-      });
-      setRelatedKeywords(related);
-      setCurrentView('bank'); // UX Improvement: Default to keyword bank after search
-      
-      // Show success toast
-      setSearchResultCount(newKeywords.length);
-      setShowSuccessToast(true);
-      
-      // Dismiss Quick Start Guide after first successful search
-      if (!hasSeenQuickStart) {
-        setHasSeenQuickStart(true);
       }
 
-    } catch (err: any) {
-      setError(err.message || 'An unknown error occurred.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [activeBrand, activeBrandState, updateBrandState, apiSettings.geminiApiKey, hasSeenQuickStart]);
+      const searchSettings = activeBrandState.advancedSearchSettings;
+      const seedKeyword = searchOverride ?? searchSettings.advancedKeywords;
+
+      if (!seedKeyword.trim()) {
+        setError('Please enter at least one seed keyword.');
+        return;
+      }
+
+      setIsLoading(true);
+      setError(null);
+      setRelatedKeywords([]);
+      setSelectedKeywords(new Set()); // Clear selection on new search
+      setLastSearchKeyword(seedKeyword.trim());
+      setShowSuccessToast(false);
+
+      try {
+        const [newKeywords, related] = await fetchKeywords(
+          seedKeyword,
+          searchSettings.isWebAnalysisEnabled,
+          searchSettings.brandName,
+          searchSettings.asin || ''
+        );
+
+        const uniqueNewKeywords = new Map(
+          activeBrandState.keywordResults.map((kw) => [kw.keyword.toLowerCase(), kw])
+        );
+        newKeywords.forEach((kw) => {
+          if (!uniqueNewKeywords.has(kw.keyword.toLowerCase())) {
+            uniqueNewKeywords.set(kw.keyword.toLowerCase(), kw);
+          }
+        });
+
+        const newSearchedKeywords = new Set(activeBrandState.searchedKeywords);
+        splitSeedKeywords(seedKeyword).forEach((k) => newSearchedKeywords.add(k));
+
+        updateBrandState(activeBrand, {
+          keywordResults: Array.from(uniqueNewKeywords.values()),
+          searchedKeywords: Array.from(newSearchedKeywords).slice(-10), // Keep history manageable
+          keywordClusters: null, // Reset clusters on new search
+        });
+        setRelatedKeywords(related);
+        setCurrentView('bank'); // UX Improvement: Default to keyword bank after search
+
+        // Show success toast
+        setSearchResultCount(newKeywords.length);
+        setShowSuccessToast(true);
+
+        // Dismiss Quick Start Guide after first successful search
+        if (!hasSeenQuickStart) {
+          setHasSeenQuickStart(true);
+        }
+      } catch (err: any) {
+        setError(err.message || 'An unknown error occurred.');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [activeBrand, activeBrandState, updateBrandState, apiSettings.geminiApiKey, hasSeenQuickStart]
+  );
 
   const handleAdvancedSettingsChange = (settings: Partial<AdvancedSearchSettings>) => {
     if (!activeBrand) return;
     const currentSettings = brandStates[activeBrand]?.advancedSearchSettings ?? {
-        advancedKeywords: '', minVolume: '', maxVolume: '', isWebAnalysisEnabled: false, brandName: '', asin: ''
+      advancedKeywords: '',
+      minVolume: '',
+      maxVolume: '',
+      isWebAnalysisEnabled: false,
+      brandName: '',
+      asin: '',
     };
-    updateBrandState(activeBrand, { 
-      advancedSearchSettings: { ...currentSettings, ...settings }
+    updateBrandState(activeBrand, {
+      advancedSearchSettings: { ...currentSettings, ...settings },
     });
   };
 
@@ -297,7 +324,7 @@ const App: React.FC = () => {
 
   // --- Keyword Selection & Actions ---
   const handleToggleSelect = useCallback((keyword: string, isSelected: boolean) => {
-    setSelectedKeywords(prev => {
+    setSelectedKeywords((prev) => {
       const newSet = new Set(prev);
       if (isSelected) {
         newSet.add(keyword);
@@ -308,71 +335,86 @@ const App: React.FC = () => {
     });
   }, []);
 
-  const handleToggleSelectAll = useCallback((isSelected: boolean) => {
-    if (isSelected && activeBrandState) {
-      setSelectedKeywords(new Set(activeBrandState.keywordResults.map(kw => kw.keyword)));
-    } else {
-      setSelectedKeywords(new Set());
-    }
-  }, [activeBrandState]);
-  
+  const handleToggleSelectAll = useCallback(
+    (isSelected: boolean) => {
+      if (isSelected && activeBrandState) {
+        setSelectedKeywords(new Set(activeBrandState.keywordResults.map((kw) => kw.keyword)));
+      } else {
+        setSelectedKeywords(new Set());
+      }
+    },
+    [activeBrandState]
+  );
+
   const handleDeleteSelected = () => {
     if (!activeBrand || !activeBrandState) return;
 
     const keywordsToDelete = Array.from(selectedKeywords);
-    const lowerCaseToDelete = new Set(keywordsToDelete.map(k => k.toLowerCase()));
+    const lowerCaseToDelete = new Set(keywordsToDelete.map((k) => k.toLowerCase()));
     const newStateUpdate: Partial<BrandState> = {};
 
     // Filter keywords from results bank
-    newStateUpdate.keywordResults = activeBrandState.keywordResults.filter(kw => !lowerCaseToDelete.has(kw.keyword.toLowerCase()));
+    newStateUpdate.keywordResults = activeBrandState.keywordResults.filter(
+      (kw) => !lowerCaseToDelete.has(kw.keyword.toLowerCase())
+    );
 
     // Filter keywords from any campaign assignments
-    newStateUpdate.campaigns = activeBrandState.campaigns.map(c => ({
-        ...c,
-        adGroups: c.adGroups.map(ag => ({
-            ...ag,
-            keywords: ag.keywords.filter(kw => !lowerCaseToDelete.has(kw.toLowerCase()))
-        }))
+    newStateUpdate.campaigns = activeBrandState.campaigns.map((c) => ({
+      ...c,
+      adGroups: c.adGroups.map((ag) => ({
+        ...ag,
+        keywords: ag.keywords.filter((kw) => !lowerCaseToDelete.has(kw.toLowerCase())),
+      })),
     }));
-    
+
     updateBrandState(activeBrand, newStateUpdate);
     setSelectedKeywords(new Set());
-};
+  };
 
   const handleUnassignSelected = () => {
     if (!activeBrand || !activeBrandState) return;
-      const lowerCaseToUnassign = new Set(Array.from(selectedKeywords).map(k => (k as string).toLowerCase()));
-      const newCampaigns = activeBrandState.campaigns.map(c => ({
-        ...c,
-        adGroups: c.adGroups.map(ag => ({
-          ...ag,
-          keywords: ag.keywords.filter(kw => !lowerCaseToUnassign.has((kw as string).toLowerCase()))
-        }))
-      }));
-      updateBrandState(activeBrand, { campaigns: newCampaigns });
-      setSelectedKeywords(new Set());
+    const lowerCaseToUnassign = new Set(
+      Array.from(selectedKeywords).map((k) => (k as string).toLowerCase())
+    );
+    const newCampaigns = activeBrandState.campaigns.map((c) => ({
+      ...c,
+      adGroups: c.adGroups.map((ag) => ({
+        ...ag,
+        keywords: ag.keywords.filter(
+          (kw) => !lowerCaseToUnassign.has((kw as string).toLowerCase())
+        ),
+      })),
+    }));
+    updateBrandState(activeBrand, { campaigns: newCampaigns });
+    setSelectedKeywords(new Set());
   };
 
-  const handleAssignKeywords = (targetCampaignId: string, targetAdGroupId: string, keywordsToAssign: string[]) => {
+  const handleAssignKeywords = (
+    targetCampaignId: string,
+    targetAdGroupId: string,
+    keywordsToAssign: string[]
+  ) => {
     if (!activeBrand || !activeBrandState) return;
-    
+
     const keywordsToAssignLowerCase = new Set(keywordsToAssign.map((k: string) => k.toLowerCase()));
 
-    const newCampaigns = activeBrandState.campaigns.map(campaign => {
-        const isTargetCampaign = campaign.id === targetCampaignId;
-        const newAdGroups = campaign.adGroups.map(adGroup => {
-            let updatedKeywords = adGroup.keywords.filter(kw => !keywordsToAssignLowerCase.has(kw.toLowerCase()));
-            if (isTargetCampaign && adGroup.id === targetAdGroupId) {
-                const existingKeywords = new Set(updatedKeywords.map((k: string) => k.toLowerCase()));
-                keywordsToAssign.forEach((kw: string) => {
-                    if (!existingKeywords.has(kw.toLowerCase())) {
-                        updatedKeywords.push(kw);
-                    }
-                });
+    const newCampaigns = activeBrandState.campaigns.map((campaign) => {
+      const isTargetCampaign = campaign.id === targetCampaignId;
+      const newAdGroups = campaign.adGroups.map((adGroup) => {
+        let updatedKeywords = adGroup.keywords.filter(
+          (kw) => !keywordsToAssignLowerCase.has(kw.toLowerCase())
+        );
+        if (isTargetCampaign && adGroup.id === targetAdGroupId) {
+          const existingKeywords = new Set(updatedKeywords.map((k: string) => k.toLowerCase()));
+          keywordsToAssign.forEach((kw: string) => {
+            if (!existingKeywords.has(kw.toLowerCase())) {
+              updatedKeywords.push(kw);
             }
-            return { ...adGroup, keywords: updatedKeywords };
-        });
-        return { ...campaign, adGroups: newAdGroups };
+          });
+        }
+        return { ...adGroup, keywords: updatedKeywords };
+      });
+      return { ...campaign, adGroups: newAdGroups };
     });
 
     updateBrandState(activeBrand, { campaigns: newCampaigns });
@@ -380,115 +422,127 @@ const App: React.FC = () => {
   };
 
   const handleDragStart = (e: React.DragEvent, draggedKeyword: string) => {
-      let keywordsToDrag: string[];
-      // If the dragged keyword is part of the current selection, drag all selected keywords.
-      // Otherwise, clear selection and drag only the single keyword.
-      if (selectedKeywords.has(draggedKeyword)) {
-          keywordsToDrag = Array.from(selectedKeywords);
-      } else {
-          keywordsToDrag = [draggedKeyword];
-          setSelectedKeywords(new Set([draggedKeyword])); // Auto-select the dragged keyword
-      }
-      e.dataTransfer.setData('application/json', JSON.stringify(keywordsToDrag));
-      e.dataTransfer.effectAllowed = 'move';
+    let keywordsToDrag: string[];
+    // If the dragged keyword is part of the current selection, drag all selected keywords.
+    // Otherwise, clear selection and drag only the single keyword.
+    if (selectedKeywords.has(draggedKeyword)) {
+      keywordsToDrag = Array.from(selectedKeywords);
+    } else {
+      keywordsToDrag = [draggedKeyword];
+      setSelectedKeywords(new Set([draggedKeyword])); // Auto-select the dragged keyword
+    }
+    e.dataTransfer.setData('application/json', JSON.stringify(keywordsToDrag));
+    e.dataTransfer.effectAllowed = 'move';
   };
 
   // --- Manual Keyword Entry ---
-  const handleAddManualKeywords = useCallback(async (keywords: string[]) => {
-    if (!activeBrand || !activeBrandState) return;
-    
-    // Check if API key is configured
-    if (!apiSettings.geminiApiKey && !import.meta.env.VITE_GEMINI_API_KEY) {
-      setIsApiKeyPromptOpen(true);
-      return;
-    }
+  const handleAddManualKeywords = useCallback(
+    async (keywords: string[]) => {
+      if (!activeBrand || !activeBrandState) return;
 
-    setIsAnalyzingManualKeywords(true);
-    setError(null);
-
-    try {
-      const brandName = activeBrandState.advancedSearchSettings.brandName || '';
-      
-      // Filter out keywords that already exist
-      const existingKeywordsLower = new Set(
-        activeBrandState.keywordResults.map(kw => kw.keyword.toLowerCase())
-      );
-      const newKeywords = keywords.filter(
-        kw => !existingKeywordsLower.has(kw.toLowerCase())
-      );
-
-      if (newKeywords.length === 0) {
-        alert('All keywords already exist in your keyword bank.');
+      // Check if API key is configured
+      if (!apiSettings.geminiApiKey && !import.meta.env.VITE_GEMINI_API_KEY) {
+        setIsApiKeyPromptOpen(true);
         return;
       }
 
-      // Analyze keywords in batch with progress tracking
-      const result = await analyzeKeywordsBatch(newKeywords, brandName, (completed, total) => {
-        // Could update a progress state here if we want to show progress
-        console.log(`Analyzing keywords: ${completed}/${total}`);
-      });
+      setIsAnalyzingManualKeywords(true);
+      setError(null);
 
-      if (result.successful.length > 0) {
-        // Merge new keywords with existing ones
-        const uniqueKeywords = new Map(
-          activeBrandState.keywordResults.map(kw => [kw.keyword.toLowerCase(), kw])
+      try {
+        const brandName = activeBrandState.advancedSearchSettings.brandName || '';
+
+        // Filter out keywords that already exist
+        const existingKeywordsLower = new Set(
+          activeBrandState.keywordResults.map((kw) => kw.keyword.toLowerCase())
         );
-        result.successful.forEach(kw => {
-          if (!uniqueKeywords.has(kw.keyword.toLowerCase())) {
-            uniqueKeywords.set(kw.keyword.toLowerCase(), kw);
-          }
+        const newKeywords = keywords.filter((kw) => !existingKeywordsLower.has(kw.toLowerCase()));
+
+        if (newKeywords.length === 0) {
+          alert('All keywords already exist in your keyword bank.');
+          return;
+        }
+
+        // Analyze keywords in batch with progress tracking
+        const result = await analyzeKeywordsBatch(newKeywords, brandName, (completed, total) => {
+          // Could update a progress state here if we want to show progress
+          console.log(`Analyzing keywords: ${completed}/${total}`);
         });
 
-        updateBrandState(activeBrand, {
-          keywordResults: Array.from(uniqueKeywords.values()),
-          keywordClusters: null, // Reset clusters when adding new keywords
-        });
+        if (result.successful.length > 0) {
+          // Merge new keywords with existing ones
+          const uniqueKeywords = new Map(
+            activeBrandState.keywordResults.map((kw) => [kw.keyword.toLowerCase(), kw])
+          );
+          result.successful.forEach((kw) => {
+            if (!uniqueKeywords.has(kw.keyword.toLowerCase())) {
+              uniqueKeywords.set(kw.keyword.toLowerCase(), kw);
+            }
+          });
 
-        // Show success message
-        const successMsg = `✅ Successfully added ${result.successful.length} keyword${result.successful.length > 1 ? 's' : ''}`;
-        const failedMsg = result.failed.length > 0 
-          ? `\n⚠️ ${result.failed.length} keyword${result.failed.length > 1 ? 's' : ''} failed to analyze` 
-          : '';
-        alert(successMsg + failedMsg);
+          updateBrandState(activeBrand, {
+            keywordResults: Array.from(uniqueKeywords.values()),
+            keywordClusters: null, // Reset clusters when adding new keywords
+          });
+
+          // Show success message
+          const successMsg = `✅ Successfully added ${result.successful.length} keyword${result.successful.length > 1 ? 's' : ''}`;
+          const failedMsg =
+            result.failed.length > 0
+              ? `\n⚠️ ${result.failed.length} keyword${result.failed.length > 1 ? 's' : ''} failed to analyze`
+              : '';
+          alert(successMsg + failedMsg);
+        }
+
+        if (result.failed.length > 0 && result.successful.length === 0) {
+          throw new Error(`Failed to analyze any keywords. Please check your input and try again.`);
+        }
+      } catch (err: any) {
+        setError(err.message || 'An error occurred while analyzing keywords.');
+      } finally {
+        setIsAnalyzingManualKeywords(false);
       }
-
-      if (result.failed.length > 0 && result.successful.length === 0) {
-        throw new Error(`Failed to analyze any keywords. Please check your input and try again.`);
-      }
-
-    } catch (err: any) {
-      setError(err.message || 'An error occurred while analyzing keywords.');
-    } finally {
-      setIsAnalyzingManualKeywords(false);
-    }
-  }, [activeBrand, activeBrandState, updateBrandState, apiSettings.geminiApiKey]);
+    },
+    [activeBrand, activeBrandState, updateBrandState, apiSettings.geminiApiKey]
+  );
 
   // --- Brand Management ---
-  const handleCreateBrand = async (brandName: string, budget?: number, asins?: string[]): Promise<boolean> => {
+  const handleCreateBrand = async (
+    brandName: string,
+    budget?: number,
+    asins?: string[]
+  ): Promise<boolean> => {
     if (brands.includes(brandName)) {
       alert(`Brand "${brandName}" already exists.`);
       return false;
     }
-    
+
     try {
       // Create brand via hybrid storage
       await brandStorage.create(brandName);
-      
+
       const newBrands = [...brands, brandName];
       setBrands(newBrands);
-      setBrandStates(prev => ({
+      setBrandStates((prev) => ({
         ...prev,
         [brandName]: {
           keywordResults: [],
           searchedKeywords: [],
-          advancedSearchSettings: { advancedKeywords: '', minVolume: '', maxVolume: '', isWebAnalysisEnabled: false, brandName: '', asin: '' },
+          advancedSearchSettings: {
+            advancedKeywords: '',
+            minVolume: '',
+            maxVolume: '',
+            isWebAnalysisEnabled: false,
+            brandName: '',
+            asin: '',
+          },
           keywordClusters: null,
           campaigns: [],
           metadata: {
             budget,
-            asins
-          }
-        }
+            asins,
+          },
+        },
       }));
       setActiveBrand(brandName);
       setIsBrandModalOpen(false);
@@ -499,21 +553,25 @@ const App: React.FC = () => {
       return false;
     }
   };
-  
+
   const handleSelectBrand = (brandName: string) => {
     setActiveBrand(brandName);
     setCurrentView('research');
     setIsSidebarOpen(false);
     setSelectedKeywords(new Set()); // Clear selection when changing brands
   };
-  
+
   const handleDeleteBrand = async (brandName: string) => {
-    if (window.confirm(`Are you sure you want to delete the brand "${brandName}" and all its data? This cannot be undone.`)) {
+    if (
+      window.confirm(
+        `Are you sure you want to delete the brand "${brandName}" and all its data? This cannot be undone.`
+      )
+    ) {
       try {
         // Delete brand via hybrid storage
         await brandStorage.delete(brandName);
-        
-        const newBrands = brands.filter(b => b !== brandName);
+
+        const newBrands = brands.filter((b) => b !== brandName);
         setBrands(newBrands);
         const newBrandStates = { ...brandStates };
         delete newBrandStates[brandName];
@@ -527,11 +585,15 @@ const App: React.FC = () => {
       }
     }
   };
-  
+
   // Keyword management for active brand
   const handleClearBrandKeywords = () => {
     if (!activeBrand) return;
-    if (window.confirm(`Are you sure you want to clear all keywords and search history for "${activeBrand}"?`)) {
+    if (
+      window.confirm(
+        `Are you sure you want to clear all keywords and search history for "${activeBrand}"?`
+      )
+    ) {
       updateBrandState(activeBrand, {
         keywordResults: [],
         searchedKeywords: [],
@@ -540,7 +602,7 @@ const App: React.FC = () => {
       setSelectedKeywords(new Set());
     }
   };
-  
+
   const handleClusterKeywords = async () => {
     if (!activeBrand || !activeBrandState || activeBrandState.keywordResults.length < 2) return;
     setIsClustering(true);
@@ -548,26 +610,37 @@ const App: React.FC = () => {
     try {
       const clusters = await fetchKeywordClusters(activeBrandState.keywordResults);
       updateBrandState(activeBrand, { keywordClusters: clusters });
-    } catch(err: any) {
+    } catch (err: any) {
       setError(err.message || 'Failed to cluster keywords.');
     } finally {
       setIsClustering(false);
     }
   };
 
-  const handleToggleDarkMode = () => setIsDarkMode(prev => !prev);
+  const handleToggleDarkMode = () => setIsDarkMode((prev) => !prev);
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
   const handleHistoryItemClick = (keyword: string) => {
     if (!activeBrand) return;
-    const currentSettings = activeBrandState?.advancedSearchSettings ?? { advancedKeywords: '', minVolume: '', maxVolume: '', isWebAnalysisEnabled: false, brandName: '', asin: '' };
-    handleAdvancedSettingsChange({ ...currentSettings, advancedKeywords: keyword, isWebAnalysisEnabled: false });
+    const currentSettings = activeBrandState?.advancedSearchSettings ?? {
+      advancedKeywords: '',
+      minVolume: '',
+      maxVolume: '',
+      isWebAnalysisEnabled: false,
+      brandName: '',
+      asin: '',
+    };
+    handleAdvancedSettingsChange({
+      ...currentSettings,
+      advancedKeywords: keyword,
+      isWebAnalysisEnabled: false,
+    });
     handleSearch(keyword);
     setIsSidebarOpen(false);
   };
 
   // API Settings handlers
   const handleApiSettingsChange = (settings: Partial<ApiSettings>) => {
-    setApiSettings(prev => ({ ...prev, ...settings }));
+    setApiSettings((prev) => ({ ...prev, ...settings }));
   };
 
   const handleSaveApiSettings = () => {
@@ -578,7 +651,7 @@ const App: React.FC = () => {
     reinitializeGeminiService();
     reinitializeSOPService();
     reinitializeSupabaseClient();
-    
+
     // Close API key prompt if it was open
     setIsApiKeyPromptOpen(false);
   };
@@ -598,7 +671,7 @@ const App: React.FC = () => {
     reinitializeSOPService();
     reinitializeSupabaseClient();
   };
-  
+
   const allBrandKeywords = activeBrandState?.keywordResults || [];
   const hasApiKey = !!apiSettings.geminiApiKey;
   const shouldShowQuickStart = !hasSeenQuickStart && (!hasApiKey || brands.length === 0);
@@ -628,11 +701,11 @@ const App: React.FC = () => {
           brandStorage.getActive(),
           brandStateStorage.getAll(),
         ]);
-        
+
         setBrands(loadedBrands);
         setActiveBrand(loadedActiveBrand);
         setBrandStates(loadedBrandStates);
-        
+
         // Reload SOPs if there's an active brand
         if (loadedActiveBrand) {
           const sops = await getSOPsForBrand(loadedActiveBrand);
@@ -650,11 +723,11 @@ const App: React.FC = () => {
           brandStorage.getActive(),
           brandStateStorage.getAll(),
         ]);
-        
+
         setBrands(loadedBrands);
         setActiveBrand(loadedActiveBrand);
         setBrandStates(loadedBrandStates);
-        
+
         // Reload SOPs if there's an active brand
         if (loadedActiveBrand) {
           const sops = await getSOPsForBrand(loadedActiveBrand);
@@ -671,13 +744,17 @@ const App: React.FC = () => {
     onCreateBrand: () => setIsBrandModalOpen(true),
     onSearch: () => {
       // Focus search input if available
-      const searchInput = document.querySelector('input[placeholder*="keyword"]') as HTMLInputElement;
+      const searchInput = document.querySelector(
+        'input[placeholder*="keyword"]'
+      ) as HTMLInputElement;
       if (searchInput) searchInput.focus();
     },
   });
 
   return (
-    <div className={`flex min-h-screen bg-gray-50 dark:bg-gray-900 font-sans transition-colors duration-300`}>
+    <div
+      className={`flex min-h-screen bg-gray-50 dark:bg-gray-900 font-sans transition-colors duration-300`}
+    >
       {/* Mobile Sidebar */}
       <Sidebar
         isOpen={isSidebarOpen}
@@ -753,21 +830,32 @@ const App: React.FC = () => {
               key={sopUpdateTrigger}
               sops={activeBrandSOPs}
               onAddSOP={async (sopData) => {
-                await addSOP(activeBrand, sopData);
-                // Force re-render by incrementing trigger
-                setSopUpdateTrigger(prev => prev + 1);
+                if (!activeBrand) {
+                  throw new Error('No active brand selected');
+                }
+
+                try {
+                  const createdSOP = await addSOP(activeBrand, sopData);
+                  setActiveBrandSOPs((prev) => [...prev, createdSOP]);
+
+                  // Force re-render by incrementing trigger so remote data stays in sync
+                  setSopUpdateTrigger((prev) => prev + 1);
+                } catch (error) {
+                  console.error('Error creating SOP:', error);
+                  throw error;
+                }
               }}
               onUpdateSOP={async (id, updates) => {
                 await updateSOP(activeBrand, id, updates);
-                setSopUpdateTrigger(prev => prev + 1);
+                setSopUpdateTrigger((prev) => prev + 1);
               }}
               onDeleteSOP={async (id) => {
                 await deleteSOP(activeBrand, id);
-                setSopUpdateTrigger(prev => prev + 1);
+                setSopUpdateTrigger((prev) => prev + 1);
               }}
               onToggleFavorite={async (id) => {
                 await toggleSOPFavorite(activeBrand, id);
-                setSopUpdateTrigger(prev => prev + 1);
+                setSopUpdateTrigger((prev) => prev + 1);
               }}
               onSOPView={async (id) => {
                 await trackSOPView(activeBrand, id);
@@ -814,169 +902,215 @@ const App: React.FC = () => {
 
               <KeywordInput
                 seedKeyword={activeBrandState?.advancedSearchSettings.advancedKeywords || ''}
-                setSeedKeyword={(value) => handleAdvancedSettingsChange({ advancedKeywords: value })}
+                setSeedKeyword={(value) =>
+                  handleAdvancedSettingsChange({ advancedKeywords: value })
+                }
                 onSearch={handleSearch}
                 isLoading={isLoading}
                 isBrandActive={!!activeBrand}
-                isAdvancedSearchOpen={activeBrandState?.advancedSearchSettings.isWebAnalysisEnabled ?? false}
-                onToggleAdvancedSearch={() => handleAdvancedSettingsChange({ isWebAnalysisEnabled: !(activeBrandState?.advancedSearchSettings.isWebAnalysisEnabled ?? false) })}
+                isAdvancedSearchOpen={
+                  activeBrandState?.advancedSearchSettings.isWebAnalysisEnabled ?? false
+                }
+                onToggleAdvancedSearch={() =>
+                  handleAdvancedSettingsChange({
+                    isWebAnalysisEnabled: !(
+                      activeBrandState?.advancedSearchSettings.isWebAnalysisEnabled ?? false
+                    ),
+                  })
+                }
                 advancedKeywords={activeBrandState?.advancedSearchSettings.advancedKeywords || ''}
-                setAdvancedKeywords={(value) => handleAdvancedSettingsChange({ advancedKeywords: value })}
+                setAdvancedKeywords={(value) =>
+                  handleAdvancedSettingsChange({ advancedKeywords: value })
+                }
                 minVolume={activeBrandState?.advancedSearchSettings.minVolume || ''}
                 setMinVolume={(value) => handleAdvancedSettingsChange({ minVolume: value })}
                 maxVolume={activeBrandState?.advancedSearchSettings.maxVolume || ''}
                 setMaxVolume={(value) => handleAdvancedSettingsChange({ maxVolume: value })}
-                isWebAnalysisEnabled={activeBrandState?.advancedSearchSettings.isWebAnalysisEnabled ?? false}
-                setIsWebAnalysisEnabled={(value) => handleAdvancedSettingsChange({ isWebAnalysisEnabled: value })}
+                isWebAnalysisEnabled={
+                  activeBrandState?.advancedSearchSettings.isWebAnalysisEnabled ?? false
+                }
+                setIsWebAnalysisEnabled={(value) =>
+                  handleAdvancedSettingsChange({ isWebAnalysisEnabled: value })
+                }
                 brandName={activeBrandState?.advancedSearchSettings.brandName || ''}
                 setBrandName={(value) => handleAdvancedSettingsChange({ brandName: value })}
                 asin={activeBrandState?.advancedSearchSettings.asin || ''}
                 setAsin={(value) => handleAdvancedSettingsChange({ asin: value })}
               />
-              
-              {error && <div className="mt-6"><ErrorMessage message={error} /></div>}
 
-              {isLoading && <div className="mt-6"><LoadingSpinner /></div>}
+              {error && (
+                <div className="mt-6">
+                  <ErrorMessage message={error} />
+                </div>
+              )}
+
+              {isLoading && (
+                <div className="mt-6">
+                  <LoadingSpinner />
+                </div>
+              )}
 
               {/* Show views even when no keywords to display empty states */}
-              {!isLoading && allBrandKeywords.length === 0 && activeBrand && currentView === 'bank' && (
-                <KeywordBank
-                  keywords={allBrandKeywords}
-                  searchedKeywords={activeBrandState?.searchedKeywords || []}
-                  campaigns={activeBrandState?.campaigns || []}
-                  onCampaignsChange={handleCampaignsChange}
-                  onAssignKeywords={handleAssignKeywords}
-                  onDeleteSelected={handleDeleteSelected}
-                  onUnassignSelected={handleUnassignSelected}
-                  activeBrandName={activeBrand}
-                  selectedKeywords={selectedKeywords}
-                  onToggleSelect={handleToggleSelect}
-                  onToggleSelectAll={handleToggleSelectAll}
-                  onDragStart={handleDragStart}
-                  onAddManualKeywords={handleAddManualKeywords}
-                  isAnalyzingManualKeywords={isAnalyzingManualKeywords}
-                  brandContextName={activeBrandState?.advancedSearchSettings.brandName || ''}
-                />
-              )}
+              {!isLoading &&
+                allBrandKeywords.length === 0 &&
+                activeBrand &&
+                currentView === 'bank' && (
+                  <KeywordBank
+                    keywords={allBrandKeywords}
+                    searchedKeywords={activeBrandState?.searchedKeywords || []}
+                    campaigns={activeBrandState?.campaigns || []}
+                    onCampaignsChange={handleCampaignsChange}
+                    onAssignKeywords={handleAssignKeywords}
+                    onDeleteSelected={handleDeleteSelected}
+                    onUnassignSelected={handleUnassignSelected}
+                    activeBrandName={activeBrand}
+                    selectedKeywords={selectedKeywords}
+                    onToggleSelect={handleToggleSelect}
+                    onToggleSelectAll={handleToggleSelectAll}
+                    onDragStart={handleDragStart}
+                    onAddManualKeywords={handleAddManualKeywords}
+                    isAnalyzingManualKeywords={isAnalyzingManualKeywords}
+                    brandContextName={activeBrandState?.advancedSearchSettings.brandName || ''}
+                  />
+                )}
 
-              {!isLoading && allBrandKeywords.length === 0 && activeBrand && currentView === 'planner' && (
-                <CampaignManager
-                  campaigns={activeBrandState?.campaigns || []}
-                  onCampaignsChange={handleCampaignsChange}
-                  onAssignKeywords={handleAssignKeywords}
-                  allKeywords={allBrandKeywords}
-                  activeBrandName={activeBrand}
-                />
-              )}
+              {!isLoading &&
+                allBrandKeywords.length === 0 &&
+                activeBrand &&
+                currentView === 'planner' && (
+                  <CampaignManager
+                    campaigns={activeBrandState?.campaigns || []}
+                    onCampaignsChange={handleCampaignsChange}
+                    onAssignKeywords={handleAssignKeywords}
+                    allKeywords={allBrandKeywords}
+                    activeBrandName={activeBrand}
+                  />
+                )}
 
               {!isLoading && allBrandKeywords.length > 0 && (
-            <>
-              {relatedKeywords.length > 0 && (
-                <RelatedKeywords keywords={relatedKeywords} onKeywordSelect={handleHistoryItemClick} />
-              )}
-              
-              <SessionManager
-                searchedKeywords={activeBrandState?.searchedKeywords || []}
-                onClearBrandKeywords={handleClearBrandKeywords}
-                onClusterKeywords={handleClusterKeywords}
-                isClustering={isClustering}
-                keywordCount={allBrandKeywords.length}
-              />
-              
-              {activeBrandState?.keywordClusters ? (
-                <KeywordClusters clusters={activeBrandState.keywordClusters} onClear={() => activeBrand && updateBrandState(activeBrand, { keywordClusters: null })} />
-              ) : (
                 <>
-                  {currentView === 'research' && (
-                     <Dashboard
-                        data={allBrandKeywords}
-                        parseVolume={parseSearchVolume}
-                        brands={brands}
-                        activeBrand={activeBrand}
-                        brandStates={brandStates}
-                        onSelectBrand={handleSelectBrand}
-                        onCreateBrand={() => setIsBrandModalOpen(true)}
-                        recentSearches={activeBrandState?.searchedKeywords || []}
-                        lastActiveBrand={lastActiveBrand}
-                      />
-                  )}
-                  
-                  {currentView === 'bank' && activeBrand && (
-                     <KeywordBank
-                        keywords={allBrandKeywords}
-                        searchedKeywords={activeBrandState?.searchedKeywords || []}
-                        campaigns={activeBrandState?.campaigns || []}
-                        onCampaignsChange={handleCampaignsChange}
-                        onAssignKeywords={handleAssignKeywords}
-                        onDeleteSelected={handleDeleteSelected}
-                        onUnassignSelected={handleUnassignSelected}
-                        activeBrandName={activeBrand}
-                        selectedKeywords={selectedKeywords}
-                        onToggleSelect={handleToggleSelect}
-                        onToggleSelectAll={handleToggleSelectAll}
-                        onDragStart={handleDragStart}
-                        onAddManualKeywords={handleAddManualKeywords}
-                        isAnalyzingManualKeywords={isAnalyzingManualKeywords}
-                        brandContextName={activeBrandState?.advancedSearchSettings.brandName || ''}
-                      />
+                  {relatedKeywords.length > 0 && (
+                    <RelatedKeywords
+                      keywords={relatedKeywords}
+                      onKeywordSelect={handleHistoryItemClick}
+                    />
                   )}
 
-                  {currentView === 'planner' && activeBrand && (
-                      <div className="flex flex-col lg:grid lg:grid-cols-3 gap-6">
-                        <div className="lg:col-span-1 order-2 lg:order-1">
-                           <CampaignManager
+                  <SessionManager
+                    searchedKeywords={activeBrandState?.searchedKeywords || []}
+                    onClearBrandKeywords={handleClearBrandKeywords}
+                    onClusterKeywords={handleClusterKeywords}
+                    isClustering={isClustering}
+                    keywordCount={allBrandKeywords.length}
+                  />
+
+                  {activeBrandState?.keywordClusters ? (
+                    <KeywordClusters
+                      clusters={activeBrandState.keywordClusters}
+                      onClear={() =>
+                        activeBrand && updateBrandState(activeBrand, { keywordClusters: null })
+                      }
+                    />
+                  ) : (
+                    <>
+                      {currentView === 'research' && (
+                        <Dashboard
+                          data={allBrandKeywords}
+                          parseVolume={parseSearchVolume}
+                          brands={brands}
+                          activeBrand={activeBrand}
+                          brandStates={brandStates}
+                          onSelectBrand={handleSelectBrand}
+                          onCreateBrand={() => setIsBrandModalOpen(true)}
+                          recentSearches={activeBrandState?.searchedKeywords || []}
+                          lastActiveBrand={lastActiveBrand}
+                        />
+                      )}
+
+                      {currentView === 'bank' && activeBrand && (
+                        <KeywordBank
+                          keywords={allBrandKeywords}
+                          searchedKeywords={activeBrandState?.searchedKeywords || []}
+                          campaigns={activeBrandState?.campaigns || []}
+                          onCampaignsChange={handleCampaignsChange}
+                          onAssignKeywords={handleAssignKeywords}
+                          onDeleteSelected={handleDeleteSelected}
+                          onUnassignSelected={handleUnassignSelected}
+                          activeBrandName={activeBrand}
+                          selectedKeywords={selectedKeywords}
+                          onToggleSelect={handleToggleSelect}
+                          onToggleSelectAll={handleToggleSelectAll}
+                          onDragStart={handleDragStart}
+                          onAddManualKeywords={handleAddManualKeywords}
+                          isAnalyzingManualKeywords={isAnalyzingManualKeywords}
+                          brandContextName={
+                            activeBrandState?.advancedSearchSettings.brandName || ''
+                          }
+                        />
+                      )}
+
+                      {currentView === 'planner' && activeBrand && (
+                        <div className="flex flex-col lg:grid lg:grid-cols-3 gap-6">
+                          <div className="lg:col-span-1 order-2 lg:order-1">
+                            <CampaignManager
                               campaigns={activeBrandState?.campaigns || []}
                               onCampaignsChange={handleCampaignsChange}
                               onAssignKeywords={handleAssignKeywords}
                               allKeywords={allBrandKeywords}
                               activeBrandName={activeBrand}
                             />
+                          </div>
+                          <div className="lg:col-span-2 order-1 lg:order-2">
+                            <KeywordBank
+                              keywords={allBrandKeywords}
+                              searchedKeywords={activeBrandState?.searchedKeywords || []}
+                              campaigns={activeBrandState?.campaigns || []}
+                              onCampaignsChange={handleCampaignsChange}
+                              onAssignKeywords={handleAssignKeywords}
+                              onDeleteSelected={handleDeleteSelected}
+                              onUnassignSelected={handleUnassignSelected}
+                              activeBrandName={activeBrand}
+                              selectedKeywords={selectedKeywords}
+                              onToggleSelect={handleToggleSelect}
+                              onToggleSelectAll={handleToggleSelectAll}
+                              onDragStart={handleDragStart}
+                              onAddManualKeywords={handleAddManualKeywords}
+                              isAnalyzingManualKeywords={isAnalyzingManualKeywords}
+                              brandContextName={
+                                activeBrandState?.advancedSearchSettings.brandName || ''
+                              }
+                            />
+                          </div>
                         </div>
-                        <div className="lg:col-span-2 order-1 lg:order-2">
-                          <KeywordBank
-                            keywords={allBrandKeywords}
-                            searchedKeywords={activeBrandState?.searchedKeywords || []}
-                            campaigns={activeBrandState?.campaigns || []}
-                            onCampaignsChange={handleCampaignsChange}
-                            onAssignKeywords={handleAssignKeywords}
-                            onDeleteSelected={handleDeleteSelected}
-                            onUnassignSelected={handleUnassignSelected}
-                            activeBrandName={activeBrand}
-                            selectedKeywords={selectedKeywords}
-                            onToggleSelect={handleToggleSelect}
-                            onToggleSelectAll={handleToggleSelectAll}
-                            onDragStart={handleDragStart}
-                            onAddManualKeywords={handleAddManualKeywords}
-                            isAnalyzingManualKeywords={isAnalyzingManualKeywords}
-                            brandContextName={activeBrandState?.advancedSearchSettings.brandName || ''}
-                          />
-                        </div>
-                      </div>
+                      )}
+                    </>
                   )}
                 </>
               )}
             </>
           )}
-        </>
-          )}
         </main>
         <Footer />
       </div>
       <ScrollToTopButton isVisible={isScrollButtonVisible} onClick={scrollToTop} />
-      <BrandCreationModal isOpen={isBrandModalOpen} onClose={() => setIsBrandModalOpen(false)} onCreate={handleCreateBrand} />
-      <ApiKeyPrompt 
-        isOpen={isApiKeyPromptOpen} 
+      <BrandCreationModal
+        isOpen={isBrandModalOpen}
+        onClose={() => setIsBrandModalOpen(false)}
+        onCreate={handleCreateBrand}
+      />
+      <ApiKeyPrompt
+        isOpen={isApiKeyPromptOpen}
         onClose={() => setIsApiKeyPromptOpen(false)}
         onSave={handleApiKeySave}
       />
-      
+
       {/* Search Feedback Modal */}
       <SearchFeedback
         isSearching={isLoading}
         searchKeyword={lastSearchKeyword}
         onCancel={() => setIsLoading(false)}
       />
-      
+
       {/* Success Toast */}
       {showSuccessToast && (
         <SearchSuccessToast
@@ -985,11 +1119,9 @@ const App: React.FC = () => {
           onDismiss={() => setShowSuccessToast(false)}
         />
       )}
-      
+
       {/* Bottom Navigation for Mobile */}
-      {activeBrand && (
-        <BottomNavigation currentView={currentView} onViewChange={setCurrentView} />
-      )}
+      {activeBrand && <BottomNavigation currentView={currentView} onViewChange={setCurrentView} />}
     </div>
   );
 };
