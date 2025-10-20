@@ -45,7 +45,6 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
               }`}
               aria-label={label}
               aria-current={isActive ? 'page' : undefined}
-              aria-disabled={!isEnabled}
               disabled={!isEnabled}
               title={tooltip}
             >
