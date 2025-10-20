@@ -16,6 +16,10 @@ import { api } from '../services/databaseService';
 import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
 import { loadFromLocalStorage, saveToLocalStorage } from './storage';
 import type { BrandState } from '../types';
+import type { ViewType } from '../components/ViewSwitcher';
+
+const DEFAULT_VIEW: ViewType = 'research';
+const VIEW_OPTIONS: ViewType[] = ['research', 'bank', 'planner', 'brand', 'sop', 'settings'];
 
 /**
  * Check if Supabase database is available (configured and user authenticated)
@@ -347,6 +351,25 @@ export const settingsStorage = {
   setQuickStartSeen(seen: boolean): void {
     saveToLocalStorage('ppcGeniusHasSeenQuickStart', seen);
   },
+
+  /**
+   * Get last active view
+   */
+  getLastView(): ViewType {
+    if (typeof window === 'undefined') {
+      return DEFAULT_VIEW;
+    }
+
+    const storedView = loadFromLocalStorage<string>('ppcGeniusLastView', DEFAULT_VIEW);
+    return VIEW_OPTIONS.includes(storedView as ViewType) ? (storedView as ViewType) : DEFAULT_VIEW;
+  },
+
+  /**
+   * Persist last active view
+   */
+  setLastView(view: ViewType): void {
+    saveToLocalStorage('ppcGeniusLastView', VIEW_OPTIONS.includes(view) ? view : DEFAULT_VIEW);
+  },
 };
 
 /**
@@ -381,6 +404,8 @@ export async function getConnectionStatus(): Promise<{
       usingDatabase: isAuthenticated,
       usingLocalStorage: true, // Always used as cache/fallback
     };
+  } catch (error) {
+    console.error('Error checking database availability for status:', error);
   } catch {
     return {
       isConnected: false,

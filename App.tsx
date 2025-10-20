@@ -83,7 +83,12 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [relatedKeywords, setRelatedKeywords] = useState<string[]>([]);
 
-  const [currentView, setCurrentView] = useState<ViewType>('research');
+  const [currentView, setCurrentView] = useState<ViewType>(() => {
+    if (typeof window !== 'undefined') {
+      return settingsStorage.getLastView();
+    }
+    return 'research';
+  });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isBrandModalOpen, setIsBrandModalOpen] = useState(false);
   const [isScrollButtonVisible, setIsScrollButtonVisible] = useState(false);
@@ -114,6 +119,39 @@ const App: React.FC = () => {
     supabaseAnonKey: loadFromLocalStorage<string>('ppcGeniusApiSettings.supabaseAnonKey', ''),
   }));
 
+  const applyLoadedData = useCallback(
+    (
+      loadedBrands: string[],
+      loadedActiveBrand: string | null,
+      loadedBrandStates: Record<string, BrandState>
+    ): string | null => {
+      setBrands(loadedBrands);
+      setBrandStates(loadedBrandStates);
+
+      const resolvedActiveBrand = (() => {
+        if (loadedActiveBrand && loadedBrands.includes(loadedActiveBrand)) {
+          return loadedActiveBrand;
+        }
+
+        if (typeof window !== 'undefined') {
+          const lastActive = loadFromLocalStorage<string | null>('ppcGeniusLastActiveBrand', null);
+          if (lastActive && loadedBrands.includes(lastActive)) {
+            return lastActive;
+          }
+        }
+
+        return loadedBrands.length > 0 ? loadedBrands[0] : null;
+      })();
+
+      setActiveBrand(resolvedActiveBrand);
+
+      const storedView = settingsStorage.getLastView();
+      setCurrentView(storedView);
+
+      return resolvedActiveBrand;
+    },
+    []
+  );
   const hasApiKey = Boolean(apiSettings.geminiApiKey?.trim());
 
   // Load from hybrid storage on initial render
@@ -126,6 +164,20 @@ const App: React.FC = () => {
           brandStateStorage.getAll(),
         ]);
 
+        applyLoadedData(loadedBrands, loadedActiveBrand, loadedBrandStates);
+      } catch (error) {
+        console.error('Error loading data:', error);
+        // Fall back to localStorage directly if hybrid storage fails
+        const fallbackBrands = loadFromLocalStorage<string[]>('ppcGeniusBrands', []);
+        const fallbackActiveBrand = loadFromLocalStorage<string | null>(
+          'ppcGeniusActiveBrand',
+          null
+        );
+        const fallbackBrandStates = loadFromLocalStorage<Record<string, BrandState>>(
+          'ppcGeniusBrandStates',
+          {}
+        );
+        applyLoadedData(fallbackBrands, fallbackActiveBrand, fallbackBrandStates);
         setBrands(loadedBrands);
         setActiveBrand(loadedActiveBrand);
         setBrandStates(loadedBrandStates);
@@ -140,7 +192,7 @@ const App: React.FC = () => {
       }
     };
     loadData();
-  }, []);
+  }, [applyLoadedData]);
 
   // Save to hybrid storage whenever state changes
   useEffect(() => {
@@ -164,11 +216,15 @@ const App: React.FC = () => {
         // Save settings
         settingsStorage.setDarkMode(isDarkMode);
         settingsStorage.setQuickStartSeen(hasSeenQuickStart);
+
+        // Persist current view preference
+        settingsStorage.setLastView(currentView);
       } catch (error) {
         console.error('Error saving data:', error);
       }
     };
     saveData();
+  }, [brands, activeBrand, brandStates, currentView, isDarkMode, hasSeenQuickStart]);
   }, [brands, activeBrand, brandStates, isDarkMode, hasSeenQuickStart]);
 
   // Handle dark mode class on html element
@@ -770,6 +826,10 @@ const App: React.FC = () => {
 
   // Keyboard shortcuts
   // Handle auth state changes - reload data when user signs in/out
+  const handleAuthChange = useCallback(
+    async (user: any) => {
+      const context = user ? 'sign in' : 'sign out';
+
   const handleAuthChange = useCallback(async (user: any) => {
     if (user) {
       // User signed in - reload all data from database
@@ -802,6 +862,14 @@ const App: React.FC = () => {
           brandStateStorage.getAll(),
         ]);
 
+        const resolvedActiveBrand = applyLoadedData(
+          loadedBrands,
+          loadedActiveBrand,
+          loadedBrandStates
+        );
+
+        if (resolvedActiveBrand) {
+          const sops = await getSOPsForBrand(resolvedActiveBrand);
         setBrands(loadedBrands);
         setActiveBrand(loadedActiveBrand);
         setBrandStates(loadedBrandStates);
@@ -810,12 +878,15 @@ const App: React.FC = () => {
         if (loadedActiveBrand) {
           const sops = await getSOPsForBrand(loadedActiveBrand);
           setActiveBrandSOPs(sops);
+        } else {
+          setActiveBrandSOPs([]);
         }
       } catch (error) {
-        console.error('Error reloading data after sign out:', error);
+        console.error(`Error reloading data after ${context}:`, error);
       }
-    }
-  }, []);
+    },
+    [applyLoadedData]
+  );
 
   useKeyboardShortcuts({
     onViewChange: setCurrentView,
