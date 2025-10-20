@@ -584,7 +584,7 @@ const App: React.FC = () => {
   };
   
   const allBrandKeywords = activeBrandState?.keywordResults || [];
-  const hasApiKey = !!(apiSettings.geminiApiKey || import.meta.env.VITE_GEMINI_API_KEY);
+  const hasApiKey = !!apiSettings.geminiApiKey;
   const shouldShowQuickStart = !hasSeenQuickStart && (!hasApiKey || brands.length === 0);
 
   const handleDismissQuickStart = () => {
