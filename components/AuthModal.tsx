@@ -56,7 +56,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           setIsLoading(false);
           return;
         }
-        await signUp(email, password, displayName);
+        // Validate displayName: required, 3-30 chars, alphanumeric and spaces only
+        const trimmedDisplayName = displayName.trim();
+        if (trimmedDisplayName.length < 3 || trimmedDisplayName.length > 30) {
+          setError('Display name must be between 3 and 30 characters');
+          setIsLoading(false);
+          return;
+        }
+        if (!/^[\w\s]+$/.test(trimmedDisplayName)) {
+          setError('Display name can only contain letters, numbers, and spaces');
+          setIsLoading(false);
+          return;
+        }
+        await signUp(email, password, trimmedDisplayName);
         setSuccessMessage('Account created! Please check your email to verify your account.');
         setTimeout(() => {
           onSuccess();
