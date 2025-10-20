@@ -1,4 +1,4 @@
-import { expect, afterEach, vi } from 'vitest';
+import { afterEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 
@@ -25,12 +25,13 @@ const localStorageMock = (() => {
   };
 })();
 
-global.localStorage = localStorageMock as Storage;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(global as any).localStorage = localStorageMock;
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  value: vi.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
@@ -47,8 +48,8 @@ vi.stubGlobal('import', {
   meta: {
     env: {
       VITE_GEMINI_API_KEY: 'test-api-key',
-      VITE_SUPABASE_URL: '',
-      VITE_SUPABASE_ANON_KEY: '',
+      VITE_SUPABASE_URL: 'https://test-project.supabase.co',
+      VITE_SUPABASE_ANON_KEY: 'test-supabase-anon-key',
     },
   },
 });
