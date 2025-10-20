@@ -17,7 +17,7 @@ This document outlines the comprehensive improvements made to the Dashboard tab 
 - Interactive lists with hover effects and actions
 
 ### ✅ 2. Better Views, Tables, and Lists
-- **Landing Page View**: Displays when no brand selected or no keywords
+- **Landing Page View**: Displays when no brand is selected
 - **Keyword View**: Enhanced table with filters and sorting
 - **Brand Cards**: Interactive cards showing status and statistics
 - **Activity Feed**: Recent actions across all brands
