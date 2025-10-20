@@ -15,7 +15,9 @@
 - 📊 **Data-Rich Analytics** - Comprehensive metrics including volume, competition, and relevance scores
 - 🤖 **AI Strategic Insights** - Keyword clustering, deep-dive analysis, and related ideas
 - 📋 **Campaign Planning** - Expert-level campaign templates based on Amazon PPC taxonomy
-- 💾 **Persistent Storage** - All data saved locally via browser localStorage
+- 💾 **Flexible Storage** - Work locally or sync to cloud with Supabase
+- 🔒 **User Authentication** - Optional account creation for cloud data sync
+- 🔄 **Multi-Device Sync** - Access your data from anywhere when signed in
 - 📤 **Export Capabilities** - CSV exports for keywords and campaign structures
 
 ---
@@ -275,29 +277,43 @@ Generate Amazon-compatible CSV files for bulk upload:
 
 ### Data Persistence
 
-The application supports two storage modes:
+The application supports two storage modes with seamless switching:
 
-**1. Local Storage (Default)**
+**1. Local Storage (Default - No Sign In)**
 - Data stored in browser `localStorage`
 - No authentication required
+- Works offline
 - Data isolated to single browser
+- Fast and private
 
-**2. Cloud Database (Optional - Supabase)**
+**2. Cloud Database (Sign In with Supabase)**
 - Persistent cloud storage with PostgreSQL
 - Multi-device synchronization
 - User authentication and authorization
-- Data backup and recovery
-- Secure with row-level security
-- See [Database Setup Guide](supabase/README.md) for configuration
+- Automatic backups and recovery
+- Secure with row-level security (RLS)
+- See [Supabase Migration Guide](docs/SUPABASE_MIGRATION_GUIDE.md) for details
+
+**Hybrid Storage Pattern:**
+- When signed in: Database-first with localStorage cache
+- When not signed in: localStorage only
+- Automatic fallback if connection lost
+- No data loss when switching modes
 
 Both modes store:
 - Brand configurations
-- Keyword banks
-- Campaign structures
-- Search history
-- Keyword banks
-- Campaign structures
-- Search history
+- Keyword banks and search history
+- Campaign structures and ad groups
+- Standard Operating Procedures (SOPs)
+- Keyword clusters and analytics
+
+**Getting Started with Cloud Sync:**
+1. Click "Sign In" button in the header
+2. Create a free account or sign in
+3. Your data automatically syncs to the cloud
+4. Access from any device with your account
+
+For existing users: Your localStorage data is preserved! See the [Supabase Migration Guide](docs/SUPABASE_MIGRATION_GUIDE.md) for details on migrating to cloud storage.
 
 ---
 

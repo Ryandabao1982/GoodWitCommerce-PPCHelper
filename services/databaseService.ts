@@ -4,7 +4,7 @@
  */
 
 import { supabase } from './supabaseClient';
-import type { KeywordData, Campaign, AdGroup, BrandState } from '../types';
+import type { KeywordData, Campaign, AdGroup, BrandState, SOP, SOPCategory } from '../types';
 
 /**
  * Brand API Operations
@@ -585,6 +585,222 @@ export class KeywordClusterAPI {
 }
 
 /**
+ * SOP API Operations
+ */
+export class SOPAPI {
+  /**
+   * Get all SOPs for a brand
+   */
+  static async list(brandId: string) {
+    const { data, error } = await supabase
+      .from('sops')
+      .select('*')
+      .eq('brand_id', brandId)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data;
+  }
+
+  /**
+   * Get a specific SOP by ID
+   */
+  static async get(sopId: string) {
+    const { data, error } = await supabase
+      .from('sops')
+      .select('*')
+      .eq('id', sopId)
+      .single();
+    
+    if (error) throw error;
+    return data;
+  }
+
+  /**
+   * Create a new SOP
+   */
+  static async create(brandId: string, sop: Omit<SOP, 'id' | 'createdAt' | 'updatedAt'>) {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    const { data, error } = await supabase
+      .from('sops')
+      .insert({
+        brand_id: brandId,
+        title: sop.title,
+        content: sop.content,
+        category: sop.category,
+        tags: sop.tags || [],
+        is_favorite: sop.isFavorite || false,
+        view_count: sop.viewCount || 0,
+        created_by: user?.id || null,
+      })
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  }
+
+  /**
+   * Update an existing SOP
+   */
+  static async update(sopId: string, updates: Partial<SOP>) {
+    const updateData: any = {};
+    
+    if (updates.title !== undefined) updateData.title = updates.title;
+    if (updates.content !== undefined) updateData.content = updates.content;
+    if (updates.category !== undefined) updateData.category = updates.category;
+    if (updates.tags !== undefined) updateData.tags = updates.tags;
+    if (updates.isFavorite !== undefined) updateData.is_favorite = updates.isFavorite;
+
+    const { data, error } = await supabase
+      .from('sops')
+      .update(updateData)
+      .eq('id', sopId)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  }
+
+  /**
+   * Delete a SOP
+   */
+  static async delete(sopId: string) {
+    const { error } = await supabase
+      .from('sops')
+      .delete()
+      .eq('id', sopId);
+    
+    if (error) throw error;
+  }
+
+  /**
+   * Toggle favorite status
+   */
+  static async toggleFavorite(sopId: string) {
+    // First get the current state
+    const { data: sop, error: fetchError } = await supabase
+      .from('sops')
+      .select('is_favorite')
+      .eq('id', sopId)
+      .single();
+    
+    if (fetchError) throw fetchError;
+
+    // Toggle the favorite status
+    const { data, error } = await supabase
+      .from('sops')
+      .update({ is_favorite: !sop.is_favorite })
+      .eq('id', sopId)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  }
+
+  /**
+   * Record a view (this will auto-increment view_count via trigger)
+   */
+  static async recordView(sopId: string) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return; // Don't record views for anonymous users
+
+    const { error } = await supabase
+      .from('sop_view_history')
+      .insert({
+        sop_id: sopId,
+        user_id: user.id,
+      });
+    
+    if (error) throw error;
+  }
+
+  /**
+   * Search SOPs by text
+   */
+  static async search(brandId: string, searchText: string) {
+    const { data, error } = await supabase
+      .from('sops')
+      .select('*')
+      .eq('brand_id', brandId)
+      .or(`title.ilike.%${searchText}%,content.ilike.%${searchText}%`);
+    
+    if (error) throw error;
+    return data;
+  }
+
+  /**
+   * Get SOPs by category
+   */
+  static async getByCategory(brandId: string, category: SOPCategory) {
+    const { data, error } = await supabase
+      .from('sops')
+      .select('*')
+      .eq('brand_id', brandId)
+      .eq('category', category)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data;
+  }
+
+  /**
+   * Get favorite SOPs
+   */
+  static async getFavorites(brandId: string) {
+    const { data, error } = await supabase
+      .from('sops')
+      .select('*')
+      .eq('brand_id', brandId)
+      .eq('is_favorite', true)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data;
+  }
+
+  /**
+   * Get most viewed SOPs
+   */
+  static async getMostViewed(brandId: string, limit: number = 10) {
+    const { data, error } = await supabase
+      .from('sops')
+      .select('*')
+      .eq('brand_id', brandId)
+      .order('view_count', { ascending: false })
+      .limit(limit);
+    
+    if (error) throw error;
+    return data;
+  }
+
+  /**
+   * Get recently viewed SOPs for current user
+   */
+  static async getRecentlyViewed(brandId: string, limit: number = 10) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+
+    const { data, error } = await supabase
+      .from('sop_view_history')
+      .select(`
+        viewed_at,
+        sop:sops (*)
+      `)
+      .eq('user_id', user.id)
+      .eq('sops.brand_id', brandId)
+      .order('viewed_at', { ascending: false })
+      .limit(limit);
+    
+    if (error) throw error;
+    return data?.map(item => item.sop).filter(Boolean) || [];
+  }
+}
+
+/**
  * Export all API classes
  */
 export const api = {
@@ -594,6 +810,7 @@ export const api = {
   adGroups: AdGroupAPI,
   searchHistory: SearchHistoryAPI,
   clusters: KeywordClusterAPI,
+  sops: SOPAPI,
 };
 
 export default api;

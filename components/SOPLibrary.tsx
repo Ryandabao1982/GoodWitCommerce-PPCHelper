@@ -5,11 +5,11 @@ import { aiAssistSOPCreation, generateCompleteSOP, suggestSOPCategory, generateS
 
 interface SOPLibraryProps {
   sops: SOP[];
-  onAddSOP: (sop: Omit<SOP, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  onUpdateSOP: (id: string, sop: Partial<SOP>) => void;
-  onDeleteSOP: (id: string) => void;
-  onToggleFavorite: (id: string) => void;
-  onSOPView: (id: string) => void;
+  onAddSOP: (sop: Omit<SOP, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void> | void;
+  onUpdateSOP: (id: string, sop: Partial<SOP>) => Promise<void> | void;
+  onDeleteSOP: (id: string) => Promise<void> | void;
+  onToggleFavorite: (id: string) => Promise<void> | void;
+  onSOPView: (id: string) => Promise<void> | void;
   onAISearch?: (query: string) => Promise<string>;
   onAIRecommend?: () => Promise<SOP[]>;
 }
