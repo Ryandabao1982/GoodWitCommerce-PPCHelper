@@ -1,7 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { SOP, SOPCategory } from '../types';
 import { LoadingSpinner } from './LoadingSpinner';
-import { aiAssistSOPCreation, generateCompleteSOP, suggestSOPCategory, generateSOPTags } from '../services/sopService';
+import {
+  aiAssistSOPCreation,
+  generateCompleteSOP,
+  suggestSOPCategory,
+  generateSOPTags,
+} from '../services/sopService';
 
 interface SOPLibraryProps {
   sops: SOP[];
@@ -45,7 +50,8 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
   const [showAIResult, setShowAIResult] = useState(false);
   const [aiRecommendations, setAiRecommendations] = useState<SOP[]>([]);
   const [showRecommendations, setShowRecommendations] = useState(false);
-  
+  const [isSavingSOP, setIsSavingSOP] = useState(false);
+
   // AI Assistant state
   const [showAIAssistant, setShowAIAssistant] = useState(false);
   const [aiAssistantPrompt, setAiAssistantPrompt] = useState('');
@@ -62,14 +68,14 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
 
   // Filter and search SOPs
   const filteredSOPs = useMemo(() => {
-    return sops.filter(sop => {
-      const matchesSearch = 
+    return sops.filter((sop) => {
+      const matchesSearch =
         sop.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         sop.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        sop.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-      
+        sop.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+
       const matchesCategory = selectedCategory === 'All' || sop.category === selectedCategory;
-      
+
       return matchesSearch && matchesCategory;
     });
   }, [sops, searchQuery, selectedCategory]);
@@ -85,36 +91,45 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
 
   // Category counts
   const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = { 'All': sops.length };
-    categories.forEach(cat => {
-      counts[cat] = sops.filter(sop => sop.category === cat).length;
+    const counts: Record<string, number> = { All: sops.length };
+    categories.forEach((cat) => {
+      counts[cat] = sops.filter((sop) => sop.category === cat).length;
     });
     return counts;
   }, [sops]);
 
-  const handleCreateSOP = () => {
+  const handleCreateSOP = async () => {
     if (!formData.title.trim() || !formData.content.trim()) {
       alert('Please provide both title and content');
       return;
     }
 
-    onAddSOP({
-      title: formData.title,
-      content: formData.content,
-      category: formData.category,
-      tags: formData.tags,
-      isFavorite: false,
-      viewCount: 0,
-    });
+    setIsSavingSOP(true);
 
-    setFormData({
-      title: '',
-      content: '',
-      category: 'General',
-      tags: [],
-      tagInput: '',
-    });
-    setShowCreateModal(false);
+    try {
+      await onAddSOP({
+        title: formData.title,
+        content: formData.content,
+        category: formData.category,
+        tags: formData.tags,
+        isFavorite: false,
+        viewCount: 0,
+      });
+
+      setFormData({
+        title: '',
+        content: '',
+        category: 'General',
+        tags: [],
+        tagInput: '',
+      });
+      setShowCreateModal(false);
+    } catch (error) {
+      console.error('Failed to create SOP:', error);
+      alert('Failed to create SOP. Please try again.');
+    } finally {
+      setIsSavingSOP(false);
+    }
   };
 
   const handleUpdateSOP = () => {
@@ -175,30 +190,28 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
   const handleRemoveTag = (tagToRemove: string) => {
     setFormData({
       ...formData,
-      tags: formData.tags.filter(tag => tag !== tagToRemove),
+      tags: formData.tags.filter((tag) => tag !== tagToRemove),
     });
   };
 
   const handleAICreateFromPrompt = async () => {
     if (!aiAssistantPrompt.trim()) return;
-    
+
     setIsAIAssisting(true);
     try {
-      const result = await generateCompleteSOP(
-        formData.title || 'Untitled SOP',
-        aiAssistantPrompt
-      );
-      
+      const result = await generateCompleteSOP(formData.title || 'Untitled SOP', aiAssistantPrompt);
+
       setFormData({
         ...formData,
         content: result.content,
         category: result.category as SOPCategory,
         tags: result.tags,
       });
-      
+
       setAiAssistantPrompt('');
       setShowAIAssistant(false);
     } catch (error) {
+      console.error('Failed to generate SOP content with AI:', error);
       alert('Failed to generate SOP. Please check your API key configuration.');
     } finally {
       setIsAIAssisting(false);
@@ -210,19 +223,20 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
       alert('Please add some content first');
       return;
     }
-    
+
     setIsAIAssisting(true);
     try {
       const improved = await aiAssistSOPCreation({
         existingContent: formData.content,
         action: 'improve',
       });
-      
+
       setFormData({
         ...formData,
         content: improved,
       });
     } catch (error) {
+      console.error('Failed to improve SOP content with AI:', error);
       alert('Failed to improve content. Please check your API key configuration.');
     } finally {
       setIsAIAssisting(false);
@@ -234,19 +248,20 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
       alert('Please add some content first');
       return;
     }
-    
+
     setIsAIAssisting(true);
     try {
       const formatted = await aiAssistSOPCreation({
         existingContent: formData.content,
         action: 'format',
       });
-      
+
       setFormData({
         ...formData,
         content: formatted,
       });
     } catch (error) {
+      console.error('Failed to format SOP content with AI:', error);
       alert('Failed to format content. Please check your API key configuration.');
     } finally {
       setIsAIAssisting(false);
@@ -258,7 +273,7 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
       alert('Please add some content first');
       return;
     }
-    
+
     setIsAIAssisting(true);
     try {
       const expanded = await aiAssistSOPCreation({
@@ -266,14 +281,15 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
         context: aiAssistantPrompt,
         action: 'expand',
       });
-      
+
       setFormData({
         ...formData,
         content: expanded,
       });
-      
+
       setAiAssistantPrompt('');
     } catch (error) {
+      console.error('Failed to expand SOP content with AI:', error);
       alert('Failed to expand content. Please check your API key configuration.');
     } finally {
       setIsAIAssisting(false);
@@ -285,20 +301,21 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
       alert('Please enter a title first');
       return;
     }
-    
+
     setIsAIAssisting(true);
     try {
       const [category, tags] = await Promise.all([
         suggestSOPCategory(formData.title, formData.content),
         generateSOPTags(formData.title, formData.content || formData.title),
       ]);
-      
+
       setFormData({
         ...formData,
         category: category as SOPCategory,
         tags: [...new Set([...formData.tags, ...tags])], // Merge with existing tags
       });
     } catch (error) {
+      console.error('Failed to generate SOP suggestions with AI:', error);
       alert('Failed to generate suggestions. Please check your API key configuration.');
     } finally {
       setIsAIAssisting(false);
@@ -307,13 +324,14 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
 
   const handleAISearchClick = async () => {
     if (!onAISearch || !searchQuery.trim()) return;
-    
+
     setIsAISearching(true);
     setShowAIResult(true);
     try {
       const result = await onAISearch(searchQuery);
       setAiSearchResult(result);
     } catch (error) {
+      console.error('AI search failed:', error);
       setAiSearchResult('AI search failed. Please try again.');
     } finally {
       setIsAISearching(false);
@@ -322,13 +340,14 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
 
   const handleAIRecommendClick = async () => {
     if (!onAIRecommend) return;
-    
+
     setIsAISearching(true);
     setShowRecommendations(true);
     try {
       const recommendations = await onAIRecommend();
       setAiRecommendations(recommendations);
     } catch (error) {
+      console.error('AI recommendations failed:', error);
       setAiRecommendations([]);
     } finally {
       setIsAISearching(false);
@@ -350,12 +369,17 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
+    if (typeof window === 'undefined' || typeof window.FileReader === 'undefined') {
+      alert('File import is not supported in this environment.');
+      return;
+    }
+
+    const reader = new window.FileReader();
     reader.onload = (e) => {
       try {
         const importedSOPs = JSON.parse(e.target?.result as string);
         if (Array.isArray(importedSOPs)) {
-          importedSOPs.forEach(sop => {
+          importedSOPs.forEach((sop) => {
             onAddSOP({
               title: sop.title,
               content: sop.content,
@@ -368,6 +392,7 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
           alert(`Successfully imported ${importedSOPs.length} SOPs`);
         }
       } catch (error) {
+        console.error('Failed to import SOPs:', error);
         alert('Failed to import SOPs. Please check the file format.');
       }
     };
@@ -380,11 +405,10 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
       <div className="flex items-center justify-center min-h-[400px] px-4">
         <div className="max-w-md w-full text-center">
           <div className="text-6xl mb-4">📚</div>
-          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-            No SOPs Yet
-          </h3>
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">No SOPs Yet</h3>
           <p className="text-base text-gray-600 dark:text-gray-400 mb-6">
-            Create your first Standard Operating Procedure to get started. Build a comprehensive knowledge base for your team.
+            Create your first Standard Operating Procedure to get started. Build a comprehensive
+            knowledge base for your team.
           </p>
           <button
             onClick={() => setShowCreateModal(true)}
@@ -429,12 +453,7 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
             </button>
             <label className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors cursor-pointer">
               📤 Import
-              <input
-                type="file"
-                accept=".json"
-                onChange={handleImportSOPs}
-                className="hidden"
-              />
+              <input type="file" accept=".json" onChange={handleImportSOPs} className="hidden" />
             </label>
           </div>
         </div>
@@ -489,7 +508,9 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
               {isAISearching ? (
                 <LoadingSpinner size="small" />
               ) : (
-                <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{aiSearchResult}</p>
+                <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                  {aiSearchResult}
+                </p>
               )}
             </div>
           )}
@@ -498,7 +519,9 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
           {showRecommendations && (
             <div className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
               <div className="flex justify-between items-start mb-3">
-                <h3 className="font-semibold text-blue-900 dark:text-blue-200">🤖 Recommended SOPs</h3>
+                <h3 className="font-semibold text-blue-900 dark:text-blue-200">
+                  🤖 Recommended SOPs
+                </h3>
                 <button
                   onClick={() => setShowRecommendations(false)}
                   className="text-gray-500 hover:text-gray-700 dark:text-gray-400"
@@ -510,7 +533,7 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
                 <LoadingSpinner size="small" />
               ) : aiRecommendations.length > 0 ? (
                 <div className="grid gap-2">
-                  {aiRecommendations.map(sop => (
+                  {aiRecommendations.map((sop) => (
                     <button
                       key={sop.id}
                       onClick={() => handleViewSOP(sop)}
@@ -522,7 +545,9 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-600 dark:text-gray-400">No recommendations available at this time.</p>
+                <p className="text-gray-600 dark:text-gray-400">
+                  No recommendations available at this time.
+                </p>
               )}
             </div>
           )}
@@ -531,7 +556,7 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
 
       {/* Category Filter */}
       <div className="flex flex-wrap gap-2">
-        {['All', ...categories].map(cat => (
+        {['All', ...categories].map((cat) => (
           <button
             key={cat}
             onClick={() => setSelectedCategory(cat as SOPCategory | 'All')}
@@ -564,7 +589,7 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {sortedSOPs.map(sop => (
+          {sortedSOPs.map((sop) => (
             <div
               key={sop.id}
               className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-purple-400 dark:hover:border-purple-600 transition-all hover:shadow-lg cursor-pointer group"
@@ -596,7 +621,7 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
 
                 {sop.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1 mb-3">
-                    {sop.tags.slice(0, 3).map(tag => (
+                    {sop.tags.slice(0, 3).map((tag) => (
                       <span
                         key={tag}
                         className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs rounded"
@@ -676,13 +701,14 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
                     {showAIAssistant ? '▼ Hide' : '▶ Show'}
                   </button>
                 </div>
-                
+
                 {showAIAssistant && (
                   <div className="space-y-3">
                     <p className="text-sm text-gray-700 dark:text-gray-300">
-                      Let AI help you create, improve, or format your SOP with professional structure and formatting.
+                      Let AI help you create, improve, or format your SOP with professional
+                      structure and formatting.
                     </p>
-                    
+
                     {/* Quick Actions */}
                     <div className="grid grid-cols-2 gap-2">
                       <button
@@ -772,11 +798,15 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
                 </label>
                 <select
                   value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value as SOPCategory })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, category: e.target.value as SOPCategory })
+                  }
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
                 >
-                  {categories.map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -820,7 +850,7 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
                   </button>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {formData.tags.map(tag => (
+                  {formData.tags.map((tag) => (
                     <span
                       key={tag}
                       className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-sm flex items-center gap-1"
@@ -845,6 +875,7 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
                   setShowViewModal(false);
                   setIsEditing(false);
                   setSelectedSOP(null);
+                  setIsSavingSOP(false);
                   setFormData({
                     title: '',
                     content: '',
@@ -859,9 +890,10 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
               </button>
               <button
                 onClick={isEditing ? handleUpdateSOP : handleCreateSOP}
-                className="px-4 sm:px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
+                disabled={isSavingSOP}
+                className="px-4 sm:px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isEditing ? 'Update' : 'Create'} SOP
+                {isEditing ? 'Update' : isSavingSOP ? 'Creating...' : 'Create'} SOP
               </button>
             </div>
           </div>
@@ -884,7 +916,9 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
                       {selectedSOP.category}
                     </span>
                     <span>👁️ {selectedSOP.viewCount || 0} views</span>
-                    <span className="hidden sm:inline">Updated {new Date(selectedSOP.updatedAt).toLocaleDateString()}</span>
+                    <span className="hidden sm:inline">
+                      Updated {new Date(selectedSOP.updatedAt).toLocaleDateString()}
+                    </span>
                   </div>
                 </div>
                 <button
@@ -910,7 +944,7 @@ export const SOPLibrary: React.FC<SOPLibraryProps> = ({
                 <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
                   <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Tags</h4>
                   <div className="flex flex-wrap gap-2">
-                    {selectedSOP.tags.map(tag => (
+                    {selectedSOP.tags.map((tag) => (
                       <span
                         key={tag}
                         className="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded text-sm"

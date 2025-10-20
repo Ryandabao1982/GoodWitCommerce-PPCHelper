@@ -32,3 +32,10 @@ coverage/
 .cache/
 temp/
 tmp/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python

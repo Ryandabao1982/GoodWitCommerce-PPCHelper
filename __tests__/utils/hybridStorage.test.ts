@@ -2,8 +2,8 @@
  * Tests for Hybrid Storage Service
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { brandStorage, brandStateStorage, settingsStorage, getConnectionStatus } from '../../utils/hybridStorage';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { brandStorage, settingsStorage, getConnectionStatus } from '../../utils/hybridStorage';
 import * as supabaseClient from '../../services/supabaseClient';
 import * as databaseService from '../../services/databaseService';
 import * as storage from '../../utils/storage';
@@ -108,7 +108,10 @@ describe('hybridStorage', () => {
         const brands = await brandStorage.list();
 
         expect(brands).toEqual(['Brand A', 'Brand B']);
-        expect(storage.saveToLocalStorage).toHaveBeenCalledWith('ppcGeniusBrands', ['Brand A', 'Brand B']);
+        expect(storage.saveToLocalStorage).toHaveBeenCalledWith('ppcGeniusBrands', [
+          'Brand A',
+          'Brand B',
+        ]);
       });
 
       it('should fall back to localStorage when database fails', async () => {
@@ -151,10 +154,10 @@ describe('hybridStorage', () => {
 
         await brandStorage.create('New Brand');
 
-        expect(storage.saveToLocalStorage).toHaveBeenCalledWith(
-          'ppcGeniusBrands',
-          ['Existing Brand', 'New Brand']
-        );
+        expect(storage.saveToLocalStorage).toHaveBeenCalledWith('ppcGeniusBrands', [
+          'Existing Brand',
+          'New Brand',
+        ]);
         expect(databaseService.api.brands.create).toHaveBeenCalledWith('New Brand');
       });
 
@@ -190,7 +193,9 @@ describe('hybridStorage', () => {
         await brandStorage.delete('Brand A');
 
         expect(storage.saveToLocalStorage).toHaveBeenCalledWith('ppcGeniusBrands', ['Brand B']);
-        expect(storage.saveToLocalStorage).toHaveBeenCalledWith('ppcGeniusBrandStates', { 'Brand B': {} });
+        expect(storage.saveToLocalStorage).toHaveBeenCalledWith('ppcGeniusBrandStates', {
+          'Brand B': {},
+        });
         expect(databaseService.api.brands.delete).toHaveBeenCalledWith('1');
       });
     });
@@ -218,13 +223,39 @@ describe('hybridStorage', () => {
       const hasSeenQuickStart = settingsStorage.getQuickStartSeen();
 
       expect(hasSeenQuickStart).toBe(true);
-      expect(storage.loadFromLocalStorage).toHaveBeenCalledWith('ppcGeniusHasSeenQuickStart', false);
+      expect(storage.loadFromLocalStorage).toHaveBeenCalledWith(
+        'ppcGeniusHasSeenQuickStart',
+        false
+      );
     });
 
     it('should set quick start seen status', () => {
       settingsStorage.setQuickStartSeen(true);
 
       expect(storage.saveToLocalStorage).toHaveBeenCalledWith('ppcGeniusHasSeenQuickStart', true);
+    });
+
+    it('should get last view from storage', () => {
+      vi.mocked(storage.loadFromLocalStorage).mockReturnValue('planner');
+
+      const lastView = settingsStorage.getLastView();
+
+      expect(lastView).toBe('planner');
+      expect(storage.loadFromLocalStorage).toHaveBeenCalledWith('ppcGeniusLastView', 'research');
+    });
+
+    it('should fall back to default view when stored value is invalid', () => {
+      vi.mocked(storage.loadFromLocalStorage).mockReturnValue('invalid-view');
+
+      const lastView = settingsStorage.getLastView();
+
+      expect(lastView).toBe('research');
+    });
+
+    it('should set last view', () => {
+      settingsStorage.setLastView('sop');
+
+      expect(storage.saveToLocalStorage).toHaveBeenCalledWith('ppcGeniusLastView', 'sop');
     });
   });
 });
