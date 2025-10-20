@@ -507,6 +507,11 @@ export const CampaignManager: React.FC<CampaignManagerProps> = ({
                           ${campaign.dailyBudget.toFixed(2)}/day
                         </span>
                       )}
+                      {campaign.asin && (
+                        <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded text-xs font-mono">
+                          {campaign.asin}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </button>
@@ -592,6 +597,11 @@ export const CampaignManager: React.FC<CampaignManagerProps> = ({
                             <span className="font-medium text-gray-900 dark:text-white">
                               {adGroup.name} ({adGroup.keywords.length})
                             </span>
+                            {adGroup.asin && (
+                              <span className="px-2 py-0.5 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded text-xs font-mono">
+                                {adGroup.asin}
+                              </span>
+                            )}
                             <button
                               onClick={() => setEditingAdGroup(
                                 editingAdGroup?.adGroupId === adGroup.id ? null : { campaignId: campaign.id, adGroupId: adGroup.id }
