@@ -81,15 +81,6 @@ export const MainAppPage: React.FC<MainAppPageProps> = ({
 
   const allBrandKeywords = activeBrandState?.keywordResults || [];
 
-  const { isTourOpen, steps, handleCompleteTour, handleCloseTour } = useTour(
-    () => setIsBrandModalOpen(true),
-    handleGoToSettings,
-    (view: string) => setCurrentView(view as ViewType),
-    hasApiKey,
-    brands.length > 0,
-    allBrandKeywords.length > 0
-  );
-
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
@@ -514,6 +505,15 @@ export const MainAppPage: React.FC<MainAppPageProps> = ({
     setCurrentView('settings');
     setHasSeenQuickStart(true);
   };
+
+  const { isTourOpen, steps, handleCompleteTour, handleCloseTour } = useTour(
+    () => setIsBrandModalOpen(true),
+    handleGoToSettings,
+    (view: string) => setCurrentView(view as ViewType),
+    hasApiKey,
+    brands.length > 0,
+    allBrandKeywords.length > 0
+  );
 
   const handleApiKeySave = (apiKey: string) => {
     saveApiSettings({ geminiApiKey: apiKey });
