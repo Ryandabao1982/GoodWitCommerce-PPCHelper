@@ -2,7 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useApiSettings } from '../../src/hooks/useApiSettings';
 
-const mockLoad = vi.fn((_: string, defaultValue: any) => defaultValue);
+// Hoisted mock functions
+const mockLoad = vi.fn();
 const mockSave = vi.fn();
 const mockReinitGemini = vi.fn();
 const mockReinitSop = vi.fn();

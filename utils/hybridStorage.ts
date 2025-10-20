@@ -406,7 +406,6 @@ export async function getConnectionStatus(): Promise<{
     };
   } catch (error) {
     console.error('Error checking database availability for status:', error);
-  } catch {
     return {
       isConnected: false,
       isAuthenticated: false,

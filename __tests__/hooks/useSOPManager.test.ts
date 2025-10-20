@@ -13,7 +13,8 @@ const sampleSop: SOP = {
   updatedAt: '2024-01-01',
 };
 
-const mockGetSOPsForBrand = vi.fn<[], Promise<SOP[]>>();
+// Hoisted mock functions
+const mockGetSOPsForBrand = vi.fn();
 const mockAddSOP = vi.fn();
 const mockUpdateSOP = vi.fn();
 const mockDeleteSOP = vi.fn();
@@ -53,9 +54,7 @@ describe('useSOPManager', () => {
   });
 
   it('loads SOPs when active brand changes', async () => {
-    mockGetSOPsForBrand
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([sampleSop]);
+    mockGetSOPsForBrand.mockResolvedValueOnce([]).mockResolvedValueOnce([sampleSop]);
 
     const { result, rerender } = renderHook(({ brand }) => useSOPManager(brand), {
       initialProps: { brand: null as string | null },
@@ -72,9 +71,7 @@ describe('useSOPManager', () => {
   });
 
   it('refreshes SOPs after mutations', async () => {
-    mockGetSOPsForBrand
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([sampleSop]);
+    mockGetSOPsForBrand.mockResolvedValueOnce([]).mockResolvedValueOnce([sampleSop]);
 
     const { result, rerender } = renderHook(({ brand }) => useSOPManager(brand), {
       initialProps: { brand: null as string | null },
