@@ -255,8 +255,8 @@ export interface KeywordImport {
   totalRows: number;
   successfulImports: number;
   failedImports: number;
-  rawData?: any;
-  errors?: any;
+  rawData?: Record<string, unknown>;
+  errors?: Array<{ row: number; message: string; data?: Record<string, unknown> }>;
   status: 'processing' | 'completed' | 'failed';
   importedAt: string;
   completedAt?: string;
