@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Screenshots</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .screenshot-container {
+            width: 1280px;
+            margin: 20px auto;
+            border: 2px solid #ccc;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="p-8">
+        <h1 class="text-3xl font-bold mb-8 text-center">Dashboard Feature Screenshots</h1>
+        
+        <!-- Screenshot 1: Landing Page with Brand Overview -->
+        <div class="screenshot-container bg-white" id="screenshot1">
+            <div class="flex h-screen">
+                <!-- Sidebar -->
+                <aside class="w-64 bg-gray-800 text-white p-4">
+                    <h2 class="text-xl font-bold mb-6">Navigation</h2>
+                    <nav>
+                        <div class="mb-2 bg-blue-600 p-3 rounded">
+                            <span>📊 Dashboard</span>
+                        </div>
+                        <div class="mb-2 p-3">🏦 Keyword Bank</div>
+                        <div class="mb-2 p-3">📋 Campaign Planner</div>
+                        <div class="mb-2 p-3">🎯 Brand Analytics</div>
+                    </nav>
+                    <hr class="my-4 border-gray-600">
+                    <div class="text-sm">
+                        <h3 class="font-semibold mb-2">Brands</h3>
+                        <div class="mb-1 p-2 hover:bg-gray-700 rounded cursor-pointer">Test Brand</div>
+                        <div class="mb-1 p-2 hover:bg-gray-700 rounded cursor-pointer">Amazon Brand 2</div>
+                        <div class="mb-1 p-2 hover:bg-gray-700 rounded cursor-pointer">Product Line 3</div>
+                    </div>
+                </aside>
+                
+                <!-- Main Content -->
+                <main class="flex-1 p-8 overflow-auto">
+                    <!-- Welcome Section -->
+                    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-8 mb-6">
+                        <h1 class="text-4xl font-bold text-gray-900 mb-3">Welcome back to Amazon Brand 2! 👋</h1>
+                        <p class="text-lg text-gray-700">You were last working on Amazon Brand 2. Select a brand to continue or create a new one.</p>
+                    </div>
+                    
+                    <!-- Global Statistics -->
+                    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                        <h2 class="text-2xl font-bold mb-4">📊 Overview</h2>
+                        <div class="grid grid-cols-4 gap-4">
+                            <div class="text-center p-4 bg-blue-50 rounded-lg">
+                                <div class="text-3xl font-bold text-blue-600">3</div>
+                                <div class="text-sm text-gray-600 mt-1">Total Brands</div>
+                            </div>
+                            <div class="text-center p-4 bg-green-50 rounded-lg">
+                                <div class="text-3xl font-bold text-green-600">45</div>
+                                <div class="text-sm text-gray-600 mt-1">Keywords</div>
+                            </div>
+                            <div class="text-center p-4 bg-purple-50 rounded-lg">
+                                <div class="text-3xl font-bold text-purple-600">5</div>
+                                <div class="text-sm text-gray-600 mt-1">Campaigns</div>
+                            </div>
+                            <div class="text-center p-4 bg-orange-50 rounded-lg">
+                                <div class="text-3xl font-bold text-orange-600">12</div>
+                                <div class="text-sm text-gray-600 mt-1">Searches</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Brand Cards -->
+                    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-2xl font-bold">🏢 Your Brands</h2>
+                            <button class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm">+ New Brand</button>
+                        </div>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div class="p-4 rounded-lg border-2 border-blue-500 bg-blue-50 cursor-pointer">
+                                <div class="flex justify-between mb-3">
+                                    <h3 class="text-lg font-semibold">Test Brand</h3>
+                                    <span class="px-2 py-1 bg-blue-600 text-white text-xs rounded-full">Active</span>
+                                </div>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Keywords:</span>
+                                        <span class="font-medium">25</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Campaigns:</span>
+                                        <span class="font-medium">3</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Searches:</span>
+                                        <span class="font-medium">8</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-4 rounded-lg border-2 border-gray-200 hover:border-blue-300 bg-gray-50 cursor-pointer">
+                                <h3 class="text-lg font-semibold mb-3">Amazon Brand 2</h3>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Keywords:</span>
+                                        <span class="font-medium">20</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Campaigns:</span>
+                                        <span class="font-medium">2</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Searches:</span>
+                                        <span class="font-medium">4</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-4 rounded-lg border-2 border-gray-200 hover:border-blue-300 bg-gray-50 cursor-pointer">
+                                <h3 class="text-lg font-semibold mb-3">Product Line 3</h3>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Keywords:</span>
+                                        <span class="font-medium">0</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Campaigns:</span>
+                                        <span class="font-medium">0</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Searches:</span>
+                                        <span class="font-medium">0</span>
+                                    </div>
+                                </div>
+                                <div class="mt-3 pt-3 border-t border-gray-200">
+                                    <p class="text-xs text-gray-500 italic">No activity yet - start searching!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Activity & Quick Actions -->
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="bg-white rounded-lg shadow-md p-6">
+                            <h2 class="text-xl font-bold mb-4">🕒 Recent Activity</h2>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <div class="flex items-center space-x-3 flex-1">
+                                        <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                        <div class="flex-1">
+                                            <div class="flex items-center space-x-2">
+                                                <span class="font-medium">Test Brand</span>
+                                                <span class="text-gray-500">·</span>
+                                                <span class="text-sm text-gray-600">Searched</span>
+                                            </div>
+                                            <div class="text-sm text-gray-700 mt-0.5">wireless headphones</div>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs text-gray-500">Recent</span>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <div class="flex items-center space-x-3 flex-1">
+                                        <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                        <div class="flex-1">
+                                            <div class="flex items-center space-x-2">
+                                                <span class="font-medium">Amazon Brand 2</span>
+                                                <span class="text-gray-500">·</span>
+                                                <span class="text-sm text-gray-600">Created Campaign</span>
+                                            </div>
+                                            <div class="text-sm text-gray-700 mt-0.5">Brand Campaign</div>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs text-gray-500">Recent</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg shadow-md p-6 border border-blue-200">
+                            <h2 class="text-xl font-bold mb-4">💡 Tips & Suggestions</h2>
+                            <div class="space-y-3">
+                                <div class="flex items-start space-x-2">
+                                    <span class="text-blue-600 mt-0.5">✓</span>
+                                    <p class="text-sm text-gray-700">Start with broad seed keywords to discover more opportunities</p>
+                                </div>
+                                <div class="flex items-start space-x-2">
+                                    <span class="text-blue-600 mt-0.5">✓</span>
+                                    <p class="text-sm text-gray-700">Focus on keywords with relevance scores of 7+ for best results</p>
+                                </div>
+                                <div class="flex items-start space-x-2">
+                                    <span class="text-blue-600 mt-0.5">✓</span>
+                                    <p class="text-sm text-gray-700">Use the clustering feature to organize keywords by theme</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Add any interactive behavior if needed
+        console.log('Dashboard screenshots ready');
+    </script>
+</body>
+</html>
