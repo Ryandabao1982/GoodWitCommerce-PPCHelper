@@ -11,6 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Supabase Cloud Synchronization**: Complete migration to hybrid storage with optional cloud sync
+  - Sign up/sign in authentication UI with AuthModal component
+  - UserProfile component showing user info and cloud sync status
+  - Automatic data synchronization when authenticated
+  - Database-first storage with localStorage fallback
+  - Row-level security (RLS) for all user data
+  - SOPs now sync to cloud via new sops and sop_view_history tables
+  - Multi-device access with user accounts
+  - See [Supabase Migration Guide](docs/SUPABASE_MIGRATION_GUIDE.md) for details
+
 - **Enhanced Dashboard Tab**: Comprehensive improvements transforming Dashboard into an interactive landing page:
   - Landing page mode showing brand overview when no brand selected
   - Last active brand tracking and personalized welcome messages
