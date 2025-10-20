@@ -503,6 +503,11 @@ Comprehensive technical documentation has been organized in the `/docs` director
 - [BUILD_LOG.md](./docs/BUILD_LOG.md) - Technical build log
 - [METRICS.md](./docs/METRICS.md) - Project health metrics
 
+**AI Agent Specifications:**
+
+- [Agent Specifications](./docs/agents/README.md) - Standardized specifications for AI agents
+- Includes: Frontend Assistant, Backend Decision Agent, UI/UX Content Agent, Systems Manager, Operations Manager, QA Agent, Security Guard
+
 📖 **For complete documentation index, see [docs/README.md](./docs/README.md)**
 
 ---

@@ -1,0 +1,40 @@
+name: Validate Agent Specifications
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'docs/agents/**'
+      - 'scripts/validate_agent_specs.py'
+      - '.github/workflows/validate-agent-specs.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'docs/agents/**'
+      - 'scripts/validate_agent_specs.py'
+      - '.github/workflows/validate-agent-specs.yml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    name: Validate Agent Specs
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run validation script
+        run: |
+          echo "Running agent specification validation..."
+          python3 scripts/validate_agent_specs.py
+
+      - name: Validation summary
+        if: always()
+        run: |
+          echo "Validation complete!"
+          echo "Check the logs above for any validation errors."
