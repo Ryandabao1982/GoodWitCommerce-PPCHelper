@@ -71,7 +71,11 @@ describe('rulesService', () => {
         cvr: 12.0,
         lifecycleStage: 'Discovery',
       });
-      const settings = createSettings({ clicksToPromote: 25, targetAcos: 30.0, cvrFactorMedian: 0.5 });
+      const settings = createSettings({
+        clicksToPromote: 25,
+        targetAcos: 30.0,
+        cvrFactorMedian: 0.5,
+      });
 
       const decision = evaluateLifecycleStage(performance, settings);
 
@@ -193,7 +197,7 @@ describe('rulesService', () => {
       });
       const settings = createSettings({ targetAcos: 30.0 });
 
-      const { status, drivers } = calculateRAGStatus(performance, settings);
+      const { status } = calculateRAGStatus(performance, settings);
 
       expect(status).toBe('Green'); // Amber drivers but not enough to change status
     });
@@ -380,7 +384,13 @@ describe('rulesService', () => {
   describe('getPromotionCandidates', () => {
     it('should return keywords ready for promotion', () => {
       const performances = [
-        createPerformance({ keywordId: 'kw-1', clicks: 30, acos: 20.0, cvr: 12.0, lifecycleStage: 'Discovery' }),
+        createPerformance({
+          keywordId: 'kw-1',
+          clicks: 30,
+          acos: 20.0,
+          cvr: 12.0,
+          lifecycleStage: 'Discovery',
+        }),
         createPerformance({ keywordId: 'kw-2', clicks: 5, acos: 30.0, cvr: 10.0 }),
       ];
       const settings = createSettings();

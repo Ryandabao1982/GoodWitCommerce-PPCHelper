@@ -1,15 +1,11 @@
 /**
  * Bid Advisor Service
- * 
+ *
  * Provides intelligent bid recommendations based on performance data,
  * target ACoS, product price, and market conditions.
  */
 
-import type {
-  KeywordPerformance,
-  BrandSettings,
-  BidAdvisory,
-} from '../types';
+import type { KeywordPerformance, BrandSettings, BidAdvisory } from '../types';
 
 /**
  * Calculate maximum CPC based on target ACoS and product price
@@ -36,13 +32,11 @@ export function getBidRecommendation(
   performance: KeywordPerformance,
   settings: BrandSettings
 ): BidAdvisory {
-  const { clicks, acos, cpc, cvr, sales, spend } = performance;
+  const { clicks, acos, cpc, cvr } = performance;
   const { targetAcos, productPrice, isCompetitiveCategory } = settings;
 
   // Calculate CPC max
-  const cpcMax = productPrice
-    ? calculateCPCMax(productPrice, targetAcos, cvr || 10)
-    : 0;
+  const cpcMax = productPrice ? calculateCPCMax(productPrice, targetAcos, cvr || 10) : 0;
 
   // If no performance data, suggest starting bid
   if (clicks < 5) {
@@ -223,10 +217,10 @@ export function estimateBidChangeImpact(
   const clickMultiplier = bidChangePercent > 0 ? 0.4 : 0.4;
   const salesMultiplier = bidChangePercent > 0 ? 0.3 : 0.3;
 
-  const estimatedImpressionChange = (bidChangePercent * impressionMultiplier);
-  const estimatedClickChange = (bidChangePercent * clickMultiplier);
-  const estimatedSpendChange = (bidChangePercent * (1 + clickMultiplier));
-  const estimatedSalesChange = (bidChangePercent * salesMultiplier);
+  const estimatedImpressionChange = bidChangePercent * impressionMultiplier;
+  const estimatedClickChange = bidChangePercent * clickMultiplier;
+  const estimatedSpendChange = bidChangePercent * (1 + clickMultiplier);
+  const estimatedSalesChange = bidChangePercent * salesMultiplier;
 
   // Calculate new ACoS
   const newSpend = currentMetrics.clicks * suggestedBid;
@@ -263,9 +257,8 @@ export function getBidOptimizationOpportunities(
 
     const advisory = getBidRecommendation(performance, settings);
     const currentBid = performance.currentBid || 0;
-    const bidChangePercent = currentBid > 0
-      ? Math.abs((advisory.suggestedBid - currentBid) / currentBid) * 100
-      : 100;
+    const bidChangePercent =
+      currentBid > 0 ? Math.abs((advisory.suggestedBid - currentBid) / currentBid) * 100 : 100;
 
     // Only include if bid change is significant (>10%)
     if (bidChangePercent > 10) {

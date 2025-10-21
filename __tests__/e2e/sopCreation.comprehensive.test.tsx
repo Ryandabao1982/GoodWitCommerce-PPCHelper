@@ -1,8 +1,13 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { SOPLibrary } from '../../components/SOPLibrary';
-import { generateCompleteSOP, aiAssistSOPCreation, suggestSOPCategory, generateSOPTags } from '../../services/sopService';
+import {
+  generateCompleteSOP,
+  aiAssistSOPCreation,
+  suggestSOPCategory,
+  generateSOPTags,
+} from '../../services/sopService';
 import type { SOP } from '../../types';
 
 // Mock the Gemini API and services
@@ -53,7 +58,7 @@ describe('SOP Creation - Comprehensive End-to-End Tests', () => {
   beforeEach(() => {
     localStorageMock.clear();
     localStorageMock.setItem('ppcGeniusApiSettings.geminiApiKey', 'test-api-key-12345');
-    
+
     mockOnAddSOP = vi.fn((sop) => {
       const newSOP: SOP = {
         id: `sop-${Date.now()}-${Math.random()}`,
@@ -64,32 +69,32 @@ describe('SOP Creation - Comprehensive End-to-End Tests', () => {
       testSOPs.push(newSOP);
       return newSOP;
     });
-    
+
     mockOnUpdateSOP = vi.fn((id, updates) => {
-      const index = testSOPs.findIndex(s => s.id === id);
+      const index = testSOPs.findIndex((s) => s.id === id);
       if (index !== -1) {
         testSOPs[index] = { ...testSOPs[index], ...updates, updatedAt: new Date().toISOString() };
       }
     });
-    
+
     mockOnDeleteSOP = vi.fn((id) => {
-      const index = testSOPs.findIndex(s => s.id === id);
+      const index = testSOPs.findIndex((s) => s.id === id);
       if (index !== -1) {
         testSOPs.splice(index, 1);
       }
     });
-    
+
     mockOnToggleFavorite = vi.fn((id) => {
-      const index = testSOPs.findIndex(s => s.id === id);
+      const index = testSOPs.findIndex((s) => s.id === id);
       if (index !== -1) {
         testSOPs[index].isFavorite = !testSOPs[index].isFavorite;
       }
     });
-    
+
     mockOnSOPView = vi.fn();
-    
+
     mockOnAISearch = vi.fn().mockResolvedValue('AI-powered search result with helpful information');
-    
+
     mockOnAIRecommend = vi.fn().mockResolvedValue([]);
 
     vi.clearAllMocks();
@@ -102,7 +107,7 @@ describe('SOP Creation - Comprehensive End-to-End Tests', () => {
   describe('Test Suite 1: SOP Creation Workflow', () => {
     it('📝 TEST 1.1: Should create SOP #1 - Campaign Management Guide', async () => {
       console.log('🔍 STEP 1: Rendering SOPLibrary component...');
-      
+
       const { container } = render(
         <SOPLibrary
           sops={testSOPs}
@@ -126,7 +131,7 @@ describe('SOP Creation - Comprehensive End-to-End Tests', () => {
 
     it('📝 TEST 1.2: Should verify SOP creation data structure', async () => {
       console.log('🔍 Testing SOP data structure...');
-      
+
       const sop1Data = {
         title: 'Campaign Setup Best Practices',
         content: '# Campaign Setup Best Practices\n\nComprehensive guide...',
@@ -141,13 +146,13 @@ describe('SOP Creation - Comprehensive End-to-End Tests', () => {
       expect(testSOPs[0].category).toBe(sop1Data.category);
       expect(testSOPs[0].id).toBeTruthy();
       expect(testSOPs[0].createdAt).toBeTruthy();
-      
+
       console.log('✅ TEST 1.2 PASSED: SOP created with correct structure');
     });
 
     it('📝 TEST 1.3: Should create multiple SOPs', async () => {
       console.log('🔍 Creating multiple SOPs...');
-      
+
       const sops = [
         {
           title: 'Campaign Setup Best Practices',
@@ -169,13 +174,13 @@ describe('SOP Creation - Comprehensive End-to-End Tests', () => {
         },
       ];
 
-      sops.forEach(sop => mockOnAddSOP(sop));
+      sops.forEach((sop) => mockOnAddSOP(sop));
 
       expect(testSOPs.length).toBe(3);
       expect(testSOPs[0].title).toContain('Campaign');
       expect(testSOPs[1].title).toContain('Keyword');
       expect(testSOPs[2].title).toContain('Optimization');
-      
+
       console.log('✅ TEST 1.3 PASSED: 3 SOPs created successfully');
       console.log('📊 SOP 1:', testSOPs[0].title);
       console.log('📊 SOP 2:', testSOPs[1].title);
@@ -222,7 +227,7 @@ describe('SOP Creation - Comprehensive End-to-End Tests', () => {
 
     it('🔍 TEST 2.1: Should display all 3 SOPs in library', () => {
       console.log('🔍 Testing: Display all SOPs...');
-      
+
       render(
         <SOPLibrary
           sops={mockSOPs}
@@ -247,11 +252,11 @@ describe('SOP Creation - Comprehensive End-to-End Tests', () => {
 
     it('⭐ TEST 2.2: Should toggle favorite status', async () => {
       console.log('🔍 Testing: Toggle favorite functionality...');
-      
+
       expect(mockSOPs[0].isFavorite).toBe(false);
-      
+
       mockOnToggleFavorite(mockSOPs[0].id);
-      
+
       expect(mockOnToggleFavorite).toHaveBeenCalledWith(mockSOPs[0].id);
 
       console.log('✅ TEST 2.2 PASSED: Favorite toggle called');
@@ -259,7 +264,7 @@ describe('SOP Creation - Comprehensive End-to-End Tests', () => {
 
     it('👁️ TEST 2.3: Should track SOP views', async () => {
       console.log('🔍 Testing: SOP view tracking...');
-      
+
       mockOnSOPView(mockSOPs[0].id);
 
       expect(mockOnSOPView).toHaveBeenCalledWith(mockSOPs[0].id);
@@ -269,7 +274,7 @@ describe('SOP Creation - Comprehensive End-to-End Tests', () => {
 
     it('✏️ TEST 2.4: Should update existing SOP', async () => {
       console.log('🔍 Testing: SOP updating...');
-      
+
       const updates = {
         title: 'Updated Campaign Setup Guide',
         content: 'Updated content with more details',
@@ -284,7 +289,7 @@ describe('SOP Creation - Comprehensive End-to-End Tests', () => {
 
     it('🗑️ TEST 2.5: Should delete SOP', async () => {
       console.log('🔍 Testing: SOP deletion...');
-      
+
       mockOnDeleteSOP(mockSOPs[0].id);
 
       expect(mockOnDeleteSOP).toHaveBeenCalledWith(mockSOPs[0].id);
@@ -296,7 +301,7 @@ describe('SOP Creation - Comprehensive End-to-End Tests', () => {
   describe('Test Suite 3: AI Service Integration Tests', () => {
     it('🤖 TEST 3.1: Should generate complete SOP using AI', async () => {
       console.log('🔍 Testing: AI SOP generation...');
-      
+
       const result = await generateCompleteSOP(
         'New Campaign Launch Checklist',
         'A comprehensive checklist for launching new Amazon PPC campaigns'
@@ -315,14 +320,14 @@ describe('SOP Creation - Comprehensive End-to-End Tests', () => {
 
     it('🏷️ TEST 3.2: Should suggest appropriate category', async () => {
       console.log('🔍 Testing: AI category suggestion...');
-      
+
       const category = await suggestSOPCategory(
         'Keyword Bid Optimization',
         'Guidelines for adjusting keyword bids based on performance data'
       );
 
       expect(category).toBeTruthy();
-      
+
       const validCategories = [
         'Campaign Management',
         'Keyword Research',
@@ -340,7 +345,7 @@ describe('SOP Creation - Comprehensive End-to-End Tests', () => {
 
     it('🏷️ TEST 3.3: Should generate relevant tags', async () => {
       console.log('🔍 Testing: AI tag generation...');
-      
+
       const tags = await generateSOPTags(
         'Campaign Performance Monitoring',
         'Daily and weekly tasks for monitoring campaign performance metrics'
@@ -356,7 +361,7 @@ describe('SOP Creation - Comprehensive End-to-End Tests', () => {
 
     it('✨ TEST 3.4: Should improve existing SOP content', async () => {
       console.log('🔍 Testing: AI content improvement...');
-      
+
       const improvedContent = await aiAssistSOPCreation({
         existingContent: 'Set campaign budget. Choose keywords. Launch campaign.',
         action: 'improve',
@@ -372,7 +377,7 @@ describe('SOP Creation - Comprehensive End-to-End Tests', () => {
 
     it('📝 TEST 3.5: Should create new SOP content from topic', async () => {
       console.log('🔍 Testing: AI content creation...');
-      
+
       const newContent = await aiAssistSOPCreation({
         topic: 'Negative Keyword Management',
         context: 'Best practices for managing negative keywords in PPC campaigns',

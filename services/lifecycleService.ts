@@ -1,22 +1,12 @@
 /**
  * Lifecycle Service - Database API for Lifecycle Management
- * 
+ *
  * Provides database operations for keyword performance, lifecycle events,
  * negative keywords, cannibalization alerts, and more.
  */
 
 import { supabase } from './supabaseClient';
-import type {
-  KeywordPerformance,
-  LifecycleEvent,
-  NegativeKeyword,
-  CannibalizationAlert,
-  KeywordImport,
-  BrandSettings,
-  KeywordCampaignAssignment,
-  LifecycleEventType,
-  ImportSource,
-} from '../types';
+import type { KeywordPerformance, BrandSettings, LifecycleEventType, ImportSource } from '../types';
 
 /**
  * Keyword Performance API
@@ -54,31 +44,36 @@ export class KeywordPerformanceAPI {
   /**
    * Create or update performance data
    */
-  static async upsert(performance: Partial<KeywordPerformance> & { keywordId: string; brandId: string }) {
+  static async upsert(
+    performance: Partial<KeywordPerformance> & { keywordId: string; brandId: string }
+  ) {
     const { data, error } = await supabase
       .from('keyword_performance')
-      .upsert({
-        keyword_id: performance.keywordId,
-        brand_id: performance.brandId,
-        impressions: performance.impressions || 0,
-        clicks: performance.clicks || 0,
-        spend: performance.spend || 0,
-        sales: performance.sales || 0,
-        orders: performance.orders || 0,
-        ctr: performance.ctr || 0,
-        cvr: performance.cvr || 0,
-        cpc: performance.cpc || 0,
-        acos: performance.acos || 0,
-        roas: performance.roas || 0,
-        lifecycle_stage: performance.lifecycleStage || 'Discovery',
-        rag_status: performance.ragStatus || 'Green',
-        rag_drivers: performance.ragDrivers || [],
-        opportunity_score: performance.opportunityScore || 0,
-        intent: performance.intent,
-        current_bid: performance.currentBid,
-        suggested_bid: performance.suggestedBid,
-        cpc_max: performance.cpcMax,
-      }, { onConflict: 'keyword_id,brand_id' })
+      .upsert(
+        {
+          keyword_id: performance.keywordId,
+          brand_id: performance.brandId,
+          impressions: performance.impressions || 0,
+          clicks: performance.clicks || 0,
+          spend: performance.spend || 0,
+          sales: performance.sales || 0,
+          orders: performance.orders || 0,
+          ctr: performance.ctr || 0,
+          cvr: performance.cvr || 0,
+          cpc: performance.cpc || 0,
+          acos: performance.acos || 0,
+          roas: performance.roas || 0,
+          lifecycle_stage: performance.lifecycleStage || 'Discovery',
+          rag_status: performance.ragStatus || 'Green',
+          rag_drivers: performance.ragDrivers || [],
+          opportunity_score: performance.opportunityScore || 0,
+          intent: performance.intent,
+          current_bid: performance.currentBid,
+          suggested_bid: performance.suggestedBid,
+          cpc_max: performance.cpcMax,
+        },
+        { onConflict: 'keyword_id,brand_id' }
+      )
       .select()
       .single();
 
@@ -314,10 +309,7 @@ export class NegativeKeywordsAPI {
    * Delete a negative keyword permanently
    */
   static async delete(id: string) {
-    const { error } = await supabase
-      .from('negative_keywords')
-      .delete()
-      .eq('id', id);
+    const { error } = await supabase.from('negative_keywords').delete().eq('id', id);
 
     if (error) throw error;
   }
@@ -413,10 +405,7 @@ export class CannibalizationAlertsAPI {
    * Delete an alert
    */
   static async delete(id: string) {
-    const { error } = await supabase
-      .from('cannibalization_alerts')
-      .delete()
-      .eq('id', id);
+    const { error } = await supabase.from('cannibalization_alerts').delete().eq('id', id);
 
     if (error) throw error;
   }
@@ -472,9 +461,10 @@ export class KeywordImportsAPI {
         failed_imports: updates.failedImports,
         status: updates.status,
         errors: updates.errors,
-        completed_at: updates.status === 'completed' || updates.status === 'failed'
-          ? new Date().toISOString()
-          : undefined,
+        completed_at:
+          updates.status === 'completed' || updates.status === 'failed'
+            ? new Date().toISOString()
+            : undefined,
       })
       .eq('id', id)
       .select()
@@ -573,10 +563,7 @@ export class BrandSettingsAPI {
    * Delete settings
    */
   static async delete(brandId: string) {
-    const { error } = await supabase
-      .from('brand_settings')
-      .delete()
-      .eq('brand_id', brandId);
+    const { error } = await supabase.from('brand_settings').delete().eq('brand_id', brandId);
 
     if (error) throw error;
   }
@@ -669,10 +656,7 @@ export class KeywordAssignmentsAPI {
    * Delete an assignment
    */
   static async delete(id: string) {
-    const { error } = await supabase
-      .from('keyword_campaign_assignments')
-      .delete()
-      .eq('id', id);
+    const { error } = await supabase.from('keyword_campaign_assignments').delete().eq('id', id);
 
     if (error) throw error;
   }

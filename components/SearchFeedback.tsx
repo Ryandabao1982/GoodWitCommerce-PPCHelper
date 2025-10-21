@@ -26,7 +26,7 @@ export const SearchFeedback: React.FC<SearchFeedbackProps> = ({
       return;
     }
 
-    const intervals: NodeJS.Timeout[] = [];
+    const intervals: ReturnType<typeof setTimeout>[] = [];
     let cumulativeTime = 0;
 
     steps.forEach((step, index) => {
@@ -52,15 +52,17 @@ export const SearchFeedback: React.FC<SearchFeedbackProps> = ({
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-8 max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-6">
-          <div className="text-5xl mb-4 animate-bounce">
-            {currentStepData.icon}
-          </div>
+          <div className="text-5xl mb-4 animate-bounce">{currentStepData.icon}</div>
           <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
             Researching Keywords...
           </h3>
           {searchKeyword && (
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Analyzing "<span className="font-semibold text-blue-600 dark:text-blue-400">{searchKeyword}</span>"
+              Analyzing "
+              <span className="font-semibold text-blue-600 dark:text-blue-400">
+                {searchKeyword}
+              </span>
+              "
             </p>
           )}
         </div>
@@ -99,9 +101,7 @@ export const SearchFeedback: React.FC<SearchFeedbackProps> = ({
                   <span className="text-gray-400">○</span>
                 )}
               </div>
-              <span className={index === currentStep ? 'font-medium' : ''}>
-                {step.label}
-              </span>
+              <span className={index === currentStep ? 'font-medium' : ''}>{step.label}</span>
             </div>
           ))}
         </div>
@@ -164,7 +164,12 @@ export const SearchSuccessToast: React.FC<SearchSuccessToastProps> = ({
           className="text-green-700 dark:text-green-300 hover:text-green-900 dark:hover:text-green-100 transition-colors"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
       </div>

@@ -24,7 +24,7 @@ export const getSOPsForBrand = async (brandName: string): Promise<SOP[]> => {
 /**
  * Save SOPs for a brand (deprecated - use individual operations instead)
  */
-export const saveSOPsForBrand = async (brandName: string, sops: SOP[]): Promise<void> => {
+export const saveSOPsForBrand = async (_brandName: string, _sops: SOP[]): Promise<void> => {
   // This function is kept for compatibility but shouldn't be used
   // Individual create/update/delete operations are preferred
   console.warn('saveSOPsForBrand is deprecated. Use create/update/delete operations instead.');
@@ -77,24 +77,24 @@ export const incrementSOPViewCount = async (brandName: string, sopId: string): P
  */
 export const getSOPStats = async (brandName: string): Promise<SOPStats> => {
   const sops = await sopHybridStorage.list(brandName);
-  
+
   const categoryCounts: Record<SOPCategory, number> = {
     'Campaign Management': 0,
     'Keyword Research': 0,
     'Brand Setup': 0,
     'Performance Analysis': 0,
-    'Optimization': 0,
-    'Reporting': 0,
-    'General': 0,
+    Optimization: 0,
+    Reporting: 0,
+    General: 0,
   };
 
-  sops.forEach(sop => {
+  sops.forEach((sop) => {
     categoryCounts[sop.category] = (categoryCounts[sop.category] || 0) + 1;
   });
 
   // Get most viewed SOPs
   const mostViewedSOPs = await sopHybridStorage.getMostViewed(brandName, 5);
-  const mostViewed = mostViewedSOPs.map(sop => sop.id);
+  const mostViewed = mostViewedSOPs.map((sop) => sop.id);
 
   // Get recently viewed from localStorage (session-specific)
   const { loadFromLocalStorage } = await import('./storage');
@@ -117,18 +117,18 @@ export const trackSOPView = async (brandName: string, sopId: string): Promise<vo
   const { loadFromLocalStorage, saveToLocalStorage } = await import('./storage');
   const recentlyViewedKey = `ppcGeniusSOP_${brandName}_recentlyViewed`;
   const recentlyViewed = loadFromLocalStorage<string[]>(recentlyViewedKey, []);
-  
+
   // Remove if already exists
-  const filtered = recentlyViewed.filter(id => id !== sopId);
-  
+  const filtered = recentlyViewed.filter((id) => id !== sopId);
+
   // Add to front
   filtered.unshift(sopId);
-  
+
   // Keep only last 10
   const updated = filtered.slice(0, 10);
-  
+
   saveToLocalStorage(recentlyViewedKey, updated);
-  
+
   // Also increment view count (which syncs to database if available)
   await sopHybridStorage.incrementViewCount(brandName, sopId);
 };
@@ -144,13 +144,13 @@ export const searchSOPs = async (
   const sops = await sopHybridStorage.list(brandName);
   const lowerQuery = query.toLowerCase();
 
-  return sops.filter(sop => {
-    const matchesQuery = 
+  return sops.filter((sop) => {
+    const matchesQuery =
       sop.title.toLowerCase().includes(lowerQuery) ||
       sop.content.toLowerCase().includes(lowerQuery) ||
-      sop.tags.some(tag => tag.toLowerCase().includes(lowerQuery));
+      sop.tags.some((tag) => tag.toLowerCase().includes(lowerQuery));
 
-    const matchesCategory = !category || category === 'All' as any || sop.category === category;
+    const matchesCategory = !category || category === ('All' as any) || sop.category === category;
 
     return matchesQuery && matchesCategory;
   });

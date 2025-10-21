@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { useSOPManager } from '../../src/hooks/useSOPManager';
 import type { SOP } from '../../types';
 
 const sampleSop: SOP = {
@@ -13,48 +12,33 @@ const sampleSop: SOP = {
   updatedAt: '2024-01-01',
 };
 
-// Hoisted mock functions
-const mockGetSOPsForBrand = vi.fn();
-const mockAddSOP = vi.fn();
-const mockUpdateSOP = vi.fn();
-const mockDeleteSOP = vi.fn();
-const mockToggleFavorite = vi.fn();
-const mockIncrementView = vi.fn();
-const mockTrackView = vi.fn();
-const mockAiSearch = vi.fn();
-const mockAiRecommend = vi.fn();
+// Mock the modules
+vi.mock('../../utils/sopStorage');
+vi.mock('../../services/sopService');
 
-vi.mock('../../utils/sopStorage', () => ({
-  getSOPsForBrand: mockGetSOPsForBrand,
-  addSOP: mockAddSOP,
-  updateSOP: mockUpdateSOP,
-  deleteSOP: mockDeleteSOP,
-  toggleSOPFavorite: mockToggleFavorite,
-  incrementSOPViewCount: mockIncrementView,
-  trackSOPView: mockTrackView,
-}));
-
-vi.mock('../../services/sopService', () => ({
-  aiSearchSOPs: mockAiSearch,
-  getAIRecommendedSOPs: mockAiRecommend,
-}));
+// Import after mocking
+import { useSOPManager } from '../../src/hooks/useSOPManager';
+import * as sopStorage from '../../utils/sopStorage';
+import * as sopService from '../../services/sopService';
 
 describe('useSOPManager', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetSOPsForBrand.mockResolvedValue([]);
-    mockAddSOP.mockResolvedValue(sampleSop);
-    mockUpdateSOP.mockResolvedValue(sampleSop);
-    mockDeleteSOP.mockResolvedValue(true);
-    mockToggleFavorite.mockResolvedValue(true);
-    mockIncrementView.mockResolvedValue();
-    mockTrackView.mockResolvedValue();
-    mockAiSearch.mockResolvedValue([sampleSop]);
-    mockAiRecommend.mockResolvedValue([sampleSop]);
+    vi.mocked(sopStorage.getSOPsForBrand).mockResolvedValue([]);
+    vi.mocked(sopStorage.addSOP).mockResolvedValue(sampleSop);
+    vi.mocked(sopStorage.updateSOP).mockResolvedValue(sampleSop);
+    vi.mocked(sopStorage.deleteSOP).mockResolvedValue(true);
+    vi.mocked(sopStorage.toggleSOPFavorite).mockResolvedValue(true);
+    vi.mocked(sopStorage.incrementSOPViewCount).mockResolvedValue(undefined);
+    vi.mocked(sopStorage.trackSOPView).mockResolvedValue(undefined);
+    vi.mocked(sopService.aiSearchSOPs).mockResolvedValue([sampleSop]);
+    vi.mocked(sopService.getAIRecommendedSOPs).mockResolvedValue([sampleSop]);
   });
 
   it('loads SOPs when active brand changes', async () => {
-    mockGetSOPsForBrand.mockResolvedValueOnce([]).mockResolvedValueOnce([sampleSop]);
+    vi.mocked(sopStorage.getSOPsForBrand)
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([sampleSop]);
 
     const { result, rerender } = renderHook(({ brand }) => useSOPManager(brand), {
       initialProps: { brand: null as string | null },
@@ -65,13 +49,16 @@ describe('useSOPManager', () => {
     rerender({ brand: 'Brand One' });
 
     await waitFor(() => {
-      expect(mockGetSOPsForBrand).toHaveBeenCalledWith('Brand One');
+      expect(sopStorage.getSOPsForBrand).toHaveBeenCalledWith('Brand One');
       expect(result.current.sops).toEqual([sampleSop]);
     });
   });
 
   it('refreshes SOPs after mutations', async () => {
-    mockGetSOPsForBrand.mockResolvedValueOnce([]).mockResolvedValueOnce([sampleSop]);
+    vi.mocked(sopStorage.getSOPsForBrand)
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([sampleSop])
+      .mockResolvedValueOnce([sampleSop, { ...sampleSop, id: 's2' }]);
 
     const { result, rerender } = renderHook(({ brand }) => useSOPManager(brand), {
       initialProps: { brand: null as string | null },
@@ -79,8 +66,6 @@ describe('useSOPManager', () => {
 
     rerender({ brand: 'Brand One' });
     await waitFor(() => expect(result.current.sops).toEqual([sampleSop]));
-
-    mockGetSOPsForBrand.mockResolvedValueOnce([sampleSop, { ...sampleSop, id: 's2' }]);
 
     await act(async () => {
       await result.current.addSOP('Brand One', {
@@ -92,7 +77,7 @@ describe('useSOPManager', () => {
     });
 
     await waitFor(() => {
-      expect(mockAddSOP).toHaveBeenCalledWith('Brand One', expect.any(Object));
+      expect(sopStorage.addSOP).toHaveBeenCalledWith('Brand One', expect.any(Object));
       expect(result.current.sops).toHaveLength(2);
     });
   });

@@ -55,6 +55,7 @@ export default [
         MouseEvent: 'readonly',
         KeyboardEvent: 'readonly',
         CustomEvent: 'readonly',
+        AbortController: 'readonly',
       },
     },
     plugins: {
