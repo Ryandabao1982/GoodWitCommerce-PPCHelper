@@ -1,6 +1,6 @@
 /**
  * Lifecycle Timeline Component
- * 
+ *
  * Visualizes the lifecycle journey of a keyword with events and milestones.
  */
 
@@ -73,19 +73,21 @@ export const LifecycleTimeline: React.FC<LifecycleTimelineProps> = ({
     }
   };
 
-  const stageProgression: LifecycleStage[] = ['Discovery', 'Test', 'Performance', 'SKAG', 'Archived'];
+  const stageProgression: LifecycleStage[] = [
+    'Discovery',
+    'Test',
+    'Performance',
+    'SKAG',
+    'Archived',
+  ];
   const currentStageIndex = stageProgression.indexOf(currentStage);
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
       {/* Header */}
       <div className="mb-6">
-        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
-          Lifecycle Timeline
-        </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          {keywordName}
-        </p>
+        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">Lifecycle Timeline</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400">{keywordName}</p>
       </div>
 
       {/* Stage Progress Bar */}
@@ -139,7 +141,7 @@ export const LifecycleTimeline: React.FC<LifecycleTimelineProps> = ({
             {/* Timeline line */}
             <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-700" />
 
-            {events.map((event, index) => (
+            {events.map((event) => (
               <div key={event.id} className="relative flex items-start mb-6 last:mb-0">
                 {/* Event Icon */}
                 <div
@@ -175,9 +177,7 @@ export const LifecycleTimeline: React.FC<LifecycleTimelineProps> = ({
                         )}
                       </div>
                     </div>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">
-                      {event.reason}
-                    </p>
+                    <p className="text-sm text-gray-700 dark:text-gray-300">{event.reason}</p>
                     {event.metadata && Object.keys(event.metadata).length > 0 && (
                       <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
                         <details>

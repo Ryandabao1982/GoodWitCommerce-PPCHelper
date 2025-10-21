@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { Settings } from '../../components/Settings';
 import type { ApiSettings } from '../../types';
@@ -35,7 +35,7 @@ describe('Settings', () => {
           onResetSettings={mockOnResetSettings}
         />
       );
-      
+
       expect(screen.getByText(/API Settings/i)).toBeInTheDocument();
     });
 
@@ -48,7 +48,7 @@ describe('Settings', () => {
           onResetSettings={mockOnResetSettings}
         />
       );
-      
+
       expect(screen.getByText(/Google Gemini API Configuration/i)).toBeInTheDocument();
     });
 
@@ -61,7 +61,7 @@ describe('Settings', () => {
           onResetSettings={mockOnResetSettings}
         />
       );
-      
+
       expect(screen.getByText(/Supabase Configuration/i)).toBeInTheDocument();
     });
 
@@ -74,7 +74,7 @@ describe('Settings', () => {
           onResetSettings={mockOnResetSettings}
         />
       );
-      
+
       expect(screen.getByLabelText(/Gemini API Key/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/Supabase URL/i)).toBeInTheDocument();
     });
@@ -90,7 +90,7 @@ describe('Settings', () => {
           onResetSettings={mockOnResetSettings}
         />
       );
-      
+
       const input = screen.getByLabelText(/Gemini API Key/i);
       expect(input).toHaveAttribute('type', 'password');
     });
@@ -104,16 +104,16 @@ describe('Settings', () => {
           onResetSettings={mockOnResetSettings}
         />
       );
-      
+
       const input = screen.getByLabelText(/Gemini API Key/i);
       const toggleButtons = screen.getAllByLabelText(/key visibility/i);
       const geminiToggle = toggleButtons[0];
-      
+
       expect(input).toHaveAttribute('type', 'password');
-      
+
       fireEvent.click(geminiToggle);
       expect(input).toHaveAttribute('type', 'text');
-      
+
       fireEvent.click(geminiToggle);
       expect(input).toHaveAttribute('type', 'password');
     });
@@ -127,10 +127,10 @@ describe('Settings', () => {
           onResetSettings={mockOnResetSettings}
         />
       );
-      
+
       const input = screen.getByLabelText(/Gemini API Key/i);
       fireEvent.change(input, { target: { value: 'new-api-key' } });
-      
+
       expect(mockOnApiSettingsChange).toHaveBeenCalledWith({ geminiApiKey: 'new-api-key' });
     });
 
@@ -143,7 +143,7 @@ describe('Settings', () => {
           onResetSettings={mockOnResetSettings}
         />
       );
-      
+
       const link = screen.getByRole('link', { name: /Google AI Studio/i });
       expect(link).toHaveAttribute('href', 'https://aistudio.google.com/app/apikey');
       expect(link).toHaveAttribute('target', '_blank');
@@ -160,11 +160,13 @@ describe('Settings', () => {
           onResetSettings={mockOnResetSettings}
         />
       );
-      
+
       const input = screen.getByLabelText(/Supabase URL/i);
       fireEvent.change(input, { target: { value: 'https://new.supabase.co' } });
-      
-      expect(mockOnApiSettingsChange).toHaveBeenCalledWith({ supabaseUrl: 'https://new.supabase.co' });
+
+      expect(mockOnApiSettingsChange).toHaveBeenCalledWith({
+        supabaseUrl: 'https://new.supabase.co',
+      });
     });
   });
 
@@ -217,7 +219,7 @@ describe('Settings', () => {
           onResetSettings={mockOnResetSettings}
         />
       );
-      
+
       const input = screen.getByLabelText(/Gemini API Key/i) as HTMLInputElement;
       expect(input.value).toBe(populatedApiSettings.geminiApiKey);
     });
@@ -231,7 +233,7 @@ describe('Settings', () => {
           onResetSettings={mockOnResetSettings}
         />
       );
-      
+
       const input = screen.getByLabelText(/Supabase URL/i) as HTMLInputElement;
       expect(input.value).toBe(populatedApiSettings.supabaseUrl);
     });
@@ -245,10 +247,10 @@ describe('Settings', () => {
           onResetSettings={mockOnResetSettings}
         />
       );
-      
+
       const geminiInput = screen.getByLabelText(/Gemini API Key/i) as HTMLInputElement;
       const supabaseInput = screen.getByLabelText(/Supabase URL/i) as HTMLInputElement;
-      
+
       expect(geminiInput.value).toBe('');
       expect(supabaseInput.value).toBe('');
     });
@@ -264,7 +266,7 @@ describe('Settings', () => {
           onResetSettings={mockOnResetSettings}
         />
       );
-      
+
       expect(screen.getByLabelText(/Gemini API Key/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/Supabase URL/i)).toBeInTheDocument();
     });
@@ -278,7 +280,7 @@ describe('Settings', () => {
           onResetSettings={mockOnResetSettings}
         />
       );
-      
+
       expect(screen.getByText(/Configure your API keys/i)).toBeInTheDocument();
     });
   });

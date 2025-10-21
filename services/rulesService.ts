@@ -1,6 +1,6 @@
 /**
  * Rules Service - Lifecycle Management Decision Engine
- * 
+ *
  * This service implements the automated decision logic for keyword lifecycle management,
  * including promotion, negation, pause decisions, and RAG status calculation.
  */
@@ -20,14 +20,9 @@ export function evaluateLifecycleStage(
   performance: KeywordPerformance,
   settings: BrandSettings
 ): LifecycleDecision {
-  const { clicks, spend, acos, ctr, cvr, lifecycleStage } = performance;
-  const {
-    clicksToPromote,
-    clicksToNegate,
-    ctrPauseThreshold,
-    targetAcos,
-    cvrFactorMedian,
-  } = settings;
+  const { clicks, acos, ctr, cvr, lifecycleStage } = performance;
+  const { clicksToPromote, clicksToNegate, ctrPauseThreshold, targetAcos, cvrFactorMedian } =
+    settings;
 
   // Rule 1: Promotion (Discovery -> Test -> Performance -> SKAG)
   if (clicks >= clicksToPromote) {
@@ -190,10 +185,7 @@ export function shouldAutoNegate(
 /**
  * Check if a keyword should be automatically paused
  */
-export function shouldAutoPause(
-  performance: KeywordPerformance,
-  settings: BrandSettings
-): boolean {
+export function shouldAutoPause(performance: KeywordPerformance, settings: BrandSettings): boolean {
   if (!settings.enableAutoPause) {
     return false;
   }
@@ -237,10 +229,10 @@ export function getKeywordsNeedingAttention(
  */
 function calculateMedian(values: number[]): number {
   if (values.length === 0) return 0;
-  
+
   const sorted = [...values].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
-  
+
   if (sorted.length % 2 === 0) {
     return (sorted[mid - 1] + sorted[mid]) / 2;
   }
@@ -250,13 +242,9 @@ function calculateMedian(values: number[]): number {
 /**
  * Calculate portfolio-level CVR median for comparison
  */
-export function calculatePortfolioCVRMedian(
-  performances: KeywordPerformance[]
-): number {
-  const cvrs = performances
-    .filter((p) => p.clicks > 10 && p.cvr > 0)
-    .map((p) => p.cvr);
-  
+export function calculatePortfolioCVRMedian(performances: KeywordPerformance[]): number {
+  const cvrs = performances.filter((p) => p.clicks > 10 && p.cvr > 0).map((p) => p.cvr);
+
   return calculateMedian(cvrs);
 }
 

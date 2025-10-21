@@ -1,6 +1,6 @@
 /**
  * Keyword Health Board Component
- * 
+ *
  * Displays keyword health metrics with RAG status, lifecycle stages,
  * and actionable insights.
  */
@@ -118,7 +118,9 @@ export const KeywordHealthBoard: React.FC<KeywordHealthBoardProps> = ({
         </div>
         <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4">
           <div className="text-sm text-yellow-600 dark:text-yellow-400">Amber Status</div>
-          <div className="text-2xl font-bold text-yellow-700 dark:text-yellow-300">{stats.amber}</div>
+          <div className="text-2xl font-bold text-yellow-700 dark:text-yellow-300">
+            {stats.amber}
+          </div>
         </div>
         <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
           <div className="text-sm text-green-600 dark:text-green-400">Green Status</div>
@@ -230,12 +232,16 @@ export const KeywordHealthBoard: React.FC<KeywordHealthBoardProps> = ({
                     {kw.keywordId}
                   </td>
                   <td className="py-3 px-4 text-center">
-                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${getRAGColor(kw.ragStatus)}`}>
+                    <span
+                      className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${getRAGColor(kw.ragStatus)}`}
+                    >
                       {kw.ragStatus}
                     </span>
                   </td>
                   <td className="py-3 px-4 text-center">
-                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${getStageColor(kw.lifecycleStage)}`}>
+                    <span
+                      className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${getStageColor(kw.lifecycleStage)}`}
+                    >
                       {kw.lifecycleStage}
                     </span>
                   </td>
@@ -255,7 +261,9 @@ export const KeywordHealthBoard: React.FC<KeywordHealthBoardProps> = ({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        onTakeAction && onTakeAction(kw.keywordId, 'view_details');
+                        if (onTakeAction) {
+                          onTakeAction(kw.keywordId, 'view_details');
+                        }
                       }}
                       className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium"
                     >

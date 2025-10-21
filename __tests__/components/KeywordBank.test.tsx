@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { KeywordBank } from '../../components/KeywordBank';
 import type { KeywordData, Campaign } from '../../types';
@@ -37,9 +37,33 @@ describe('KeywordBank', () => {
   const mockOnDragStart = vi.fn();
 
   const keywords: KeywordData[] = [
-    { keyword: 'wireless headphones', type: 'Broad', category: 'Core', searchVolume: '10,000', competition: 'High', relevance: 9, source: 'AI' },
-    { keyword: 'gaming mouse', type: 'Exact', category: 'Opportunity', searchVolume: '2,000', competition: 'Low', relevance: 7, source: 'Web' },
-    { keyword: 'bluetooth speaker', type: 'Phrase', category: 'Core', searchVolume: '5,000', competition: 'Medium', relevance: 8, source: 'AI' },
+    {
+      keyword: 'wireless headphones',
+      type: 'Broad',
+      category: 'Core',
+      searchVolume: '10,000',
+      competition: 'High',
+      relevance: 9,
+      source: 'AI',
+    },
+    {
+      keyword: 'gaming mouse',
+      type: 'Exact',
+      category: 'Opportunity',
+      searchVolume: '2,000',
+      competition: 'Low',
+      relevance: 7,
+      source: 'Web',
+    },
+    {
+      keyword: 'bluetooth speaker',
+      type: 'Phrase',
+      category: 'Core',
+      searchVolume: '5,000',
+      competition: 'Medium',
+      relevance: 8,
+      source: 'AI',
+    },
   ];
 
   const campaigns: Campaign[] = [
@@ -47,12 +71,19 @@ describe('KeywordBank', () => {
       id: 'c1',
       name: 'Campaign 1',
       adGroups: [
-        { id: 'ag1', name: 'Ad Group 1', keywords: [], defaultBid: 1, defaultMatchType: 'Broad', bidModifiers: { topOfSearch: 0, productPages: 0 } },
+        {
+          id: 'ag1',
+          name: 'Ad Group 1',
+          keywords: [],
+          defaultBid: 1,
+          defaultMatchType: 'Broad',
+          bidModifiers: { topOfSearch: 0, productPages: 0 },
+        },
       ],
     },
   ];
 
-  const renderKB = (props?: Partial<React.ComponentProps<typeof KeywordBank>>) =>
+  const renderKB = (props?: Partial<Parameters<typeof KeywordBank>[0]>) =>
     render(
       <KeywordBank
         keywords={props?.keywords ?? keywords}
@@ -165,7 +196,11 @@ describe('KeywordBank', () => {
       const confirmBtn = screen.getByRole('button', { name: /^Assign$/i });
       fireEvent.click(confirmBtn);
 
-      expect(mockOnAssignKeywords).toHaveBeenCalledWith('c1', 'ag1', expect.arrayContaining(['wireless headphones', 'gaming mouse']));
+      expect(mockOnAssignKeywords).toHaveBeenCalledWith(
+        'c1',
+        'ag1',
+        expect.arrayContaining(['wireless headphones', 'gaming mouse'])
+      );
     });
   });
 
@@ -174,7 +209,7 @@ describe('KeywordBank', () => {
       renderKB();
       // Find all elements with this text, then get the one that's in a table row
       const elements = screen.getAllByText(/wireless headphones/i);
-      const row = elements.find(el => el.closest('tr'))?.closest('tr');
+      const row = elements.find((el) => el.closest('tr'))?.closest('tr');
       expect(row).toBeDefined();
       expect(row).toHaveAttribute('draggable', 'true');
 
@@ -189,7 +224,7 @@ describe('KeywordBank', () => {
     it('exports keyword CSV when export button is clicked', () => {
       const urlSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:fake');
       const revokeSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
-      
+
       // Mock the anchor click
       let downloadedFile = '';
       const originalCreateElement = document.createElement.bind(document);
@@ -202,8 +237,13 @@ describe('KeywordBank', () => {
           } as any;
           // Capture the download filename
           Object.defineProperty(mockAnchor, 'download', {
-            get() { return this._download; },
-            set(v) { downloadedFile = v; this._download = v; }
+            get() {
+              return this._download;
+            },
+            set(v) {
+              downloadedFile = v;
+              this._download = v;
+            },
           });
           return mockAnchor;
         }

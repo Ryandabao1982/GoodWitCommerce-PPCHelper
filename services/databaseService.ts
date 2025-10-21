@@ -4,7 +4,7 @@
  */
 
 import { supabase } from './supabaseClient';
-import type { KeywordData, Campaign, AdGroup, BrandState, SOP, SOPCategory } from '../types';
+import type { KeywordData, Campaign, AdGroup, SOP, SOPCategory } from '../types';
 
 /**
  * Brand API Operations
@@ -19,7 +19,7 @@ export class BrandAPI {
       .select('*')
       .eq('is_active', true)
       .order('created_at', { ascending: false });
-    
+
     if (error) throw error;
     return data;
   }
@@ -28,12 +28,8 @@ export class BrandAPI {
    * Get a specific brand by ID
    */
   static async get(brandId: string) {
-    const { data, error } = await supabase
-      .from('brands')
-      .select('*')
-      .eq('id', brandId)
-      .single();
-    
+    const { data, error } = await supabase.from('brands').select('*').eq('id', brandId).single();
+
     if (error) throw error;
     return data;
   }
@@ -42,7 +38,9 @@ export class BrandAPI {
    * Create a new brand
    */
   static async create(name: string, description?: string) {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
     const { data, error } = await supabase
@@ -54,7 +52,7 @@ export class BrandAPI {
       })
       .select()
       .single();
-    
+
     if (error) throw error;
     return data;
   }
@@ -69,7 +67,7 @@ export class BrandAPI {
       .eq('id', brandId)
       .select()
       .single();
-    
+
     if (error) throw error;
     return data;
   }
@@ -78,11 +76,8 @@ export class BrandAPI {
    * Delete a brand (soft delete by setting is_active to false)
    */
   static async delete(brandId: string) {
-    const { error } = await supabase
-      .from('brands')
-      .update({ is_active: false })
-      .eq('id', brandId);
-    
+    const { error } = await supabase.from('brands').update({ is_active: false }).eq('id', brandId);
+
     if (error) throw error;
   }
 
@@ -90,11 +85,8 @@ export class BrandAPI {
    * Permanently delete a brand
    */
   static async hardDelete(brandId: string) {
-    const { error } = await supabase
-      .from('brands')
-      .delete()
-      .eq('id', brandId);
-    
+    const { error } = await supabase.from('brands').delete().eq('id', brandId);
+
     if (error) throw error;
   }
 }
@@ -112,7 +104,7 @@ export class KeywordAPI {
       .select('*')
       .eq('brand_id', brandId)
       .order('created_at', { ascending: false });
-    
+
     if (error) throw error;
     return data;
   }
@@ -126,7 +118,7 @@ export class KeywordAPI {
       .select('*')
       .eq('id', keywordId)
       .single();
-    
+
     if (error) throw error;
     return data;
   }
@@ -149,7 +141,7 @@ export class KeywordAPI {
       })
       .select()
       .single();
-    
+
     if (error) throw error;
     return data;
   }
@@ -158,7 +150,7 @@ export class KeywordAPI {
    * Create multiple keywords in bulk
    */
   static async createBulk(brandId: string, keywords: Omit<KeywordData, 'id'>[]) {
-    const keywordsToInsert = keywords.map(kw => ({
+    const keywordsToInsert = keywords.map((kw) => ({
       brand_id: brandId,
       keyword: kw.keyword,
       type: kw.type,
@@ -169,11 +161,8 @@ export class KeywordAPI {
       source: kw.source,
     }));
 
-    const { data, error } = await supabase
-      .from('keywords')
-      .insert(keywordsToInsert)
-      .select();
-    
+    const { data, error } = await supabase.from('keywords').insert(keywordsToInsert).select();
+
     if (error) throw error;
     return data;
   }
@@ -183,7 +172,7 @@ export class KeywordAPI {
    */
   static async update(keywordId: string, updates: Partial<KeywordData>) {
     const updateData: any = {};
-    
+
     if (updates.keyword !== undefined) updateData.keyword = updates.keyword;
     if (updates.type !== undefined) updateData.type = updates.type;
     if (updates.category !== undefined) updateData.category = updates.category;
@@ -198,7 +187,7 @@ export class KeywordAPI {
       .eq('id', keywordId)
       .select()
       .single();
-    
+
     if (error) throw error;
     return data;
   }
@@ -207,11 +196,8 @@ export class KeywordAPI {
    * Delete a keyword
    */
   static async delete(keywordId: string) {
-    const { error } = await supabase
-      .from('keywords')
-      .delete()
-      .eq('id', keywordId);
-    
+    const { error } = await supabase.from('keywords').delete().eq('id', keywordId);
+
     if (error) throw error;
   }
 
@@ -219,11 +205,8 @@ export class KeywordAPI {
    * Delete multiple keywords
    */
   static async deleteBulk(keywordIds: string[]) {
-    const { error } = await supabase
-      .from('keywords')
-      .delete()
-      .in('id', keywordIds);
-    
+    const { error } = await supabase.from('keywords').delete().in('id', keywordIds);
+
     if (error) throw error;
   }
 
@@ -236,7 +219,7 @@ export class KeywordAPI {
       .select('*')
       .eq('brand_id', brandId)
       .ilike('keyword', `%${searchText}%`);
-    
+
     if (error) throw error;
     return data;
   }
@@ -252,7 +235,8 @@ export class CampaignAPI {
   static async list(brandId: string) {
     const { data, error } = await supabase
       .from('campaigns')
-      .select(`
+      .select(
+        `
         *,
         ad_groups (
           *,
@@ -261,11 +245,12 @@ export class CampaignAPI {
             keyword:keywords (*)
           )
         )
-      `)
+      `
+      )
       .eq('brand_id', brandId)
       .eq('status', 'active')
       .order('created_at', { ascending: false });
-    
+
     if (error) throw error;
     return data;
   }
@@ -276,7 +261,8 @@ export class CampaignAPI {
   static async get(campaignId: string) {
     const { data, error } = await supabase
       .from('campaigns')
-      .select(`
+      .select(
+        `
         *,
         ad_groups (
           *,
@@ -285,10 +271,11 @@ export class CampaignAPI {
             keyword:keywords (*)
           )
         )
-      `)
+      `
+      )
       .eq('id', campaignId)
       .single();
-    
+
     if (error) throw error;
     return data;
   }
@@ -307,7 +294,7 @@ export class CampaignAPI {
       })
       .select()
       .single();
-    
+
     if (error) throw error;
     return data;
   }
@@ -317,7 +304,7 @@ export class CampaignAPI {
    */
   static async update(campaignId: string, updates: Partial<Campaign>) {
     const updateData: any = {};
-    
+
     if (updates.name !== undefined) updateData.name = updates.name;
     if (updates.totalBudget !== undefined) updateData.total_budget = updates.totalBudget;
     if (updates.projections !== undefined) updateData.projections = updates.projections;
@@ -328,7 +315,7 @@ export class CampaignAPI {
       .eq('id', campaignId)
       .select()
       .single();
-    
+
     if (error) throw error;
     return data;
   }
@@ -341,7 +328,7 @@ export class CampaignAPI {
       .from('campaigns')
       .update({ status: 'archived' })
       .eq('id', campaignId);
-    
+
     if (error) throw error;
   }
 
@@ -349,11 +336,8 @@ export class CampaignAPI {
    * Permanently delete a campaign
    */
   static async hardDelete(campaignId: string) {
-    const { error } = await supabase
-      .from('campaigns')
-      .delete()
-      .eq('id', campaignId);
-    
+    const { error } = await supabase.from('campaigns').delete().eq('id', campaignId);
+
     if (error) throw error;
   }
 }
@@ -368,17 +352,19 @@ export class AdGroupAPI {
   static async list(campaignId: string) {
     const { data, error } = await supabase
       .from('ad_groups')
-      .select(`
+      .select(
+        `
         *,
         ad_group_keywords (
           *,
           keyword:keywords (*)
         )
-      `)
+      `
+      )
       .eq('campaign_id', campaignId)
       .eq('status', 'active')
       .order('created_at', { ascending: false });
-    
+
     if (error) throw error;
     return data;
   }
@@ -395,7 +381,7 @@ export class AdGroupAPI {
       })
       .select()
       .single();
-    
+
     if (error) throw error;
     return data;
   }
@@ -410,7 +396,7 @@ export class AdGroupAPI {
       .eq('id', adGroupId)
       .select()
       .single();
-    
+
     if (error) throw error;
     return data;
   }
@@ -423,7 +409,7 @@ export class AdGroupAPI {
       .from('ad_groups')
       .update({ status: 'archived' })
       .eq('id', adGroupId);
-    
+
     if (error) throw error;
   }
 
@@ -431,16 +417,13 @@ export class AdGroupAPI {
    * Assign keywords to an ad group
    */
   static async assignKeywords(adGroupId: string, keywordIds: string[]) {
-    const assignments = keywordIds.map(keywordId => ({
+    const assignments = keywordIds.map((keywordId) => ({
       ad_group_id: adGroupId,
       keyword_id: keywordId,
     }));
 
-    const { data, error } = await supabase
-      .from('ad_group_keywords')
-      .insert(assignments)
-      .select();
-    
+    const { data, error } = await supabase.from('ad_group_keywords').insert(assignments).select();
+
     if (error) throw error;
     return data;
   }
@@ -454,7 +437,7 @@ export class AdGroupAPI {
       .delete()
       .eq('ad_group_id', adGroupId)
       .in('keyword_id', keywordIds);
-    
+
     if (error) throw error;
   }
 }
@@ -473,7 +456,7 @@ export class SearchHistoryAPI {
       .eq('brand_id', brandId)
       .order('searched_at', { ascending: false })
       .limit(limit);
-    
+
     if (error) throw error;
     return data;
   }
@@ -499,7 +482,7 @@ export class SearchHistoryAPI {
       })
       .select()
       .single();
-    
+
     if (error) throw error;
     return data;
   }
@@ -508,11 +491,8 @@ export class SearchHistoryAPI {
    * Delete a search history entry
    */
   static async delete(historyId: string) {
-    const { error } = await supabase
-      .from('search_history')
-      .delete()
-      .eq('id', historyId);
-    
+    const { error } = await supabase.from('search_history').delete().eq('id', historyId);
+
     if (error) throw error;
   }
 
@@ -520,11 +500,8 @@ export class SearchHistoryAPI {
    * Clear all search history for a brand
    */
   static async clear(brandId: string) {
-    const { error } = await supabase
-      .from('search_history')
-      .delete()
-      .eq('brand_id', brandId);
-    
+    const { error } = await supabase.from('search_history').delete().eq('brand_id', brandId);
+
     if (error) throw error;
   }
 }
@@ -542,7 +519,7 @@ export class KeywordClusterAPI {
       .select('*')
       .eq('brand_id', brandId)
       .order('created_at', { ascending: false });
-    
+
     if (error) throw error;
     return data;
   }
@@ -550,12 +527,7 @@ export class KeywordClusterAPI {
   /**
    * Save a keyword cluster
    */
-  static async create(
-    brandId: string,
-    clusterName: string,
-    keywordIds: string[],
-    intent?: string
-  ) {
+  static async create(brandId: string, clusterName: string, keywordIds: string[], intent?: string) {
     const { data, error } = await supabase
       .from('keyword_clusters')
       .insert({
@@ -566,7 +538,7 @@ export class KeywordClusterAPI {
       })
       .select()
       .single();
-    
+
     if (error) throw error;
     return data;
   }
@@ -575,11 +547,8 @@ export class KeywordClusterAPI {
    * Delete a keyword cluster
    */
   static async delete(clusterId: string) {
-    const { error } = await supabase
-      .from('keyword_clusters')
-      .delete()
-      .eq('id', clusterId);
-    
+    const { error } = await supabase.from('keyword_clusters').delete().eq('id', clusterId);
+
     if (error) throw error;
   }
 }
@@ -597,7 +566,7 @@ export class SOPAPI {
       .select('*')
       .eq('brand_id', brandId)
       .order('created_at', { ascending: false });
-    
+
     if (error) throw error;
     return data;
   }
@@ -606,12 +575,8 @@ export class SOPAPI {
    * Get a specific SOP by ID
    */
   static async get(sopId: string) {
-    const { data, error } = await supabase
-      .from('sops')
-      .select('*')
-      .eq('id', sopId)
-      .single();
-    
+    const { data, error } = await supabase.from('sops').select('*').eq('id', sopId).single();
+
     if (error) throw error;
     return data;
   }
@@ -620,8 +585,10 @@ export class SOPAPI {
    * Create a new SOP
    */
   static async create(brandId: string, sop: Omit<SOP, 'id' | 'createdAt' | 'updatedAt'>) {
-    const { data: { user } } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     const { data, error } = await supabase
       .from('sops')
       .insert({
@@ -636,7 +603,7 @@ export class SOPAPI {
       })
       .select()
       .single();
-    
+
     if (error) throw error;
     return data;
   }
@@ -646,7 +613,7 @@ export class SOPAPI {
    */
   static async update(sopId: string, updates: Partial<SOP>) {
     const updateData: any = {};
-    
+
     if (updates.title !== undefined) updateData.title = updates.title;
     if (updates.content !== undefined) updateData.content = updates.content;
     if (updates.category !== undefined) updateData.category = updates.category;
@@ -659,7 +626,7 @@ export class SOPAPI {
       .eq('id', sopId)
       .select()
       .single();
-    
+
     if (error) throw error;
     return data;
   }
@@ -668,11 +635,8 @@ export class SOPAPI {
    * Delete a SOP
    */
   static async delete(sopId: string) {
-    const { error } = await supabase
-      .from('sops')
-      .delete()
-      .eq('id', sopId);
-    
+    const { error } = await supabase.from('sops').delete().eq('id', sopId);
+
     if (error) throw error;
   }
 
@@ -686,7 +650,7 @@ export class SOPAPI {
       .select('is_favorite')
       .eq('id', sopId)
       .single();
-    
+
     if (fetchError) throw fetchError;
 
     // Toggle the favorite status
@@ -696,7 +660,7 @@ export class SOPAPI {
       .eq('id', sopId)
       .select()
       .single();
-    
+
     if (error) throw error;
     return data;
   }
@@ -705,16 +669,16 @@ export class SOPAPI {
    * Record a view (this will auto-increment view_count via trigger)
    */
   static async recordView(sopId: string) {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return; // Don't record views for anonymous users
 
-    const { error } = await supabase
-      .from('sop_view_history')
-      .insert({
-        sop_id: sopId,
-        user_id: user.id,
-      });
-    
+    const { error } = await supabase.from('sop_view_history').insert({
+      sop_id: sopId,
+      user_id: user.id,
+    });
+
     if (error) throw error;
   }
 
@@ -727,7 +691,7 @@ export class SOPAPI {
       .select('*')
       .eq('brand_id', brandId)
       .or(`title.ilike.%${searchText}%,content.ilike.%${searchText}%`);
-    
+
     if (error) throw error;
     return data;
   }
@@ -742,7 +706,7 @@ export class SOPAPI {
       .eq('brand_id', brandId)
       .eq('category', category)
       .order('created_at', { ascending: false });
-    
+
     if (error) throw error;
     return data;
   }
@@ -757,7 +721,7 @@ export class SOPAPI {
       .eq('brand_id', brandId)
       .eq('is_favorite', true)
       .order('created_at', { ascending: false });
-    
+
     if (error) throw error;
     return data;
   }
@@ -772,7 +736,7 @@ export class SOPAPI {
       .eq('brand_id', brandId)
       .order('view_count', { ascending: false })
       .limit(limit);
-    
+
     if (error) throw error;
     return data;
   }
@@ -781,22 +745,26 @@ export class SOPAPI {
    * Get recently viewed SOPs for current user
    */
   static async getRecentlyViewed(brandId: string, limit: number = 10) {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return [];
 
     const { data, error } = await supabase
       .from('sop_view_history')
-      .select(`
+      .select(
+        `
         viewed_at,
         sop:sops (*)
-      `)
+      `
+      )
       .eq('user_id', user.id)
       .eq('sops.brand_id', brandId)
       .order('viewed_at', { ascending: false })
       .limit(limit);
-    
+
     if (error) throw error;
-    return data?.map(item => item.sop).filter(Boolean) || [];
+    return data?.map((item) => item.sop).filter(Boolean) || [];
   }
 }
 

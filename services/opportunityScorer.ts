@@ -1,15 +1,11 @@
 /**
  * Opportunity Scorer Service
- * 
+ *
  * Calculates opportunity scores for keywords based on performance,
  * search volume, competition, and potential for growth.
  */
 
-import type {
-  KeywordPerformance,
-  KeywordData,
-  BrandSettings,
-} from '../types';
+import type { KeywordPerformance, KeywordData, BrandSettings } from '../types';
 
 /**
  * Calculate opportunity score for a keyword (0-100)
@@ -101,7 +97,7 @@ function calculateSearchVolumeScore(searchVolume: string): number {
     '5k-10k': 13,
     '1k-5k': 10,
     '<1k': 5,
-    'Unknown': 8,
+    Unknown: 8,
   };
 
   return volumeScores[searchVolume] || 8;
@@ -112,9 +108,9 @@ function calculateSearchVolumeScore(searchVolume: string): number {
  */
 function calculateCompetitionScore(competition: string): number {
   const competitionScores: Record<string, number> = {
-    'Low': 20,
-    'Medium': 12,
-    'High': 5,
+    Low: 20,
+    Medium: 12,
+    High: 5,
   };
 
   return competitionScores[competition] || 10;
@@ -184,9 +180,7 @@ export function findTopOpportunities(
   });
 
   // Sort by score and limit
-  return opportunities
-    .sort((a, b) => b.opportunityScore - a.opportunityScore)
-    .slice(0, limit);
+  return opportunities.sort((a, b) => b.opportunityScore - a.opportunityScore).slice(0, limit);
 }
 
 /**
@@ -195,15 +189,16 @@ export function findTopOpportunities(
 export function findUntappedOpportunities(
   keywords: KeywordData[],
   performances: Map<string, KeywordPerformance>,
-  settings: BrandSettings
+  _settings: BrandSettings
 ): KeywordData[] {
   return keywords.filter((keyword) => {
     const performance = performances.get(keyword.keyword);
-    
+
     // High volume keywords
-    const isHighVolume = keyword.searchVolume.includes('20k') || 
-                        keyword.searchVolume.includes('50k') || 
-                        keyword.searchVolume.includes('100k');
+    const isHighVolume =
+      keyword.searchVolume.includes('20k') ||
+      keyword.searchVolume.includes('50k') ||
+      keyword.searchVolume.includes('100k');
 
     // Little or no performance data
     const hasLowData = !performance || performance.clicks < 10;
@@ -350,7 +345,7 @@ export function getOpportunityInsights(
   averageOpportunityScore: number;
 } {
   const scores = calculateBatchOpportunityScores(keywords, performances, settings);
-  
+
   const topOpportunities = keywords
     .map((k) => ({ keyword: k, score: scores.get(k.keyword) || 0 }))
     .sort((a, b) => b.score - a.score)

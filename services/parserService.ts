@@ -1,19 +1,13 @@
 /**
  * Parser Service - CSV/XLSX Import for External Tools
- * 
+ *
  * Handles parsing and validation of keyword data from:
  * - Helium 10 Cerebro
  * - Helium 10 Magnet
  * - Amazon Search Term Report (STR)
  */
 
-import type {
-  CerebroRow,
-  MagnetRow,
-  AmazonSTRRow,
-  ParsedKeywordData,
-  ImportSource,
-} from '../types';
+import type { ParsedKeywordData, ImportSource } from '../types';
 
 /**
  * Parse result interface
@@ -100,7 +94,9 @@ export function parseCerebro(csvText: string): ParseResult {
     // Find column indices
     const keywordIdx = headers.findIndex((h) => h.includes('keyword') || h.includes('searchterm'));
     const volumeIdx = headers.findIndex((h) => h.includes('searchvolume') || h.includes('volume'));
-    const competingIdx = headers.findIndex((h) => h.includes('competingproducts') || h.includes('competing'));
+    const competingIdx = headers.findIndex(
+      (h) => h.includes('competingproducts') || h.includes('competing')
+    );
     const cprIdx = headers.findIndex((h) => h.includes('cerebroproductrank') || h.includes('cpr'));
 
     if (keywordIdx === -1) {
@@ -111,7 +107,7 @@ export function parseCerebro(csvText: string): ParseResult {
     // Parse data rows
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
-      
+
       try {
         const keyword = row[keywordIdx]?.trim();
         if (!keyword) {
@@ -195,7 +191,9 @@ export function parseMagnet(csvText: string): ParseResult {
     // Find column indices
     const keywordIdx = headers.findIndex((h) => h.includes('keyword') || h.includes('phrase'));
     const volumeIdx = headers.findIndex((h) => h.includes('searchvolume') || h.includes('volume'));
-    const iqScoreIdx = headers.findIndex((h) => h.includes('magnetiqscore') || h.includes('iqscore'));
+    const iqScoreIdx = headers.findIndex(
+      (h) => h.includes('magnetiqscore') || h.includes('iqscore')
+    );
 
     if (keywordIdx === -1) {
       result.errors.push('Could not find keyword column in Magnet export');
@@ -205,7 +203,7 @@ export function parseMagnet(csvText: string): ParseResult {
     // Parse data rows
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
-      
+
       try {
         const keyword = row[keywordIdx]?.trim();
         if (!keyword) {
@@ -279,19 +277,19 @@ export function parseAmazonSTR(csvText: string): ParseResult {
     result.totalRows = rows.length - 1;
 
     // Find column indices (Amazon column names vary by region/date)
-    const keywordIdx = headers.findIndex((h) => 
-      h.includes('customersearchterm') || h.includes('searchterm') || h.includes('query')
+    const keywordIdx = headers.findIndex(
+      (h) => h.includes('customersearchterm') || h.includes('searchterm') || h.includes('query')
     );
     const impressionsIdx = headers.findIndex((h) => h.includes('impressions'));
     const clicksIdx = headers.findIndex((h) => h.includes('clicks'));
     const ctrIdx = headers.findIndex((h) => h.includes('clickthroughrate') || h.includes('ctr'));
     const spendIdx = headers.findIndex((h) => h.includes('spend') || h.includes('cost'));
-    const salesIdx = headers.findIndex((h) => 
-      h.includes('7daysales') || h.includes('sales') || h.includes('revenue')
+    const salesIdx = headers.findIndex(
+      (h) => h.includes('7daysales') || h.includes('sales') || h.includes('revenue')
     );
     const acosIdx = headers.findIndex((h) => h.includes('acos'));
-    const cvrIdx = headers.findIndex((h) => 
-      h.includes('conversionrate') || h.includes('cvr') || h.includes('cr')
+    const cvrIdx = headers.findIndex(
+      (h) => h.includes('conversionrate') || h.includes('cvr') || h.includes('cr')
     );
 
     if (keywordIdx === -1) {
@@ -302,7 +300,7 @@ export function parseAmazonSTR(csvText: string): ParseResult {
     // Parse data rows
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
-      
+
       try {
         const keyword = row[keywordIdx]?.trim();
         if (!keyword) {
@@ -409,7 +407,9 @@ export function detectImportSource(csvText: string): ImportSource | null {
   if (
     firstLine.includes('customer search term') ||
     firstLine.includes('7 day total sales') ||
-    (firstLine.includes('impressions') && firstLine.includes('clicks') && firstLine.includes('spend'))
+    (firstLine.includes('impressions') &&
+      firstLine.includes('clicks') &&
+      firstLine.includes('spend'))
   ) {
     return 'amazon_str';
   }
@@ -420,11 +420,13 @@ export function detectImportSource(csvText: string): ImportSource | null {
 /**
  * Parse CSV based on auto-detected source
  */
-export function parseCSVAuto(csvText: string): ParseResult & { detectedSource: ImportSource | null } {
+export function parseCSVAuto(
+  csvText: string
+): ParseResult & { detectedSource: ImportSource | null } {
   const detectedSource = detectImportSource(csvText);
 
   let result: ParseResult;
-  
+
   switch (detectedSource) {
     case 'cerebro':
       result = parseCerebro(csvText);
