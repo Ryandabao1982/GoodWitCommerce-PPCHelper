@@ -223,34 +223,6 @@ export interface NamingRule {
   updatedAt: string;
 }
 
-// Plan status
-export type PlanStatus = 'draft' | 'approved' | 'frozen' | 'exported';
-
-// Plan
-export interface Plan {
-  id: string;
-  brandId: string;
-  name: string;
-  status: PlanStatus;
-  notes?: string;
-  createdBy?: string;
-  approvedBy?: string;
-  createdAt: string;
-  approvedAt?: string;
-  frozenAt?: string;
-  exportedAt?: string;
-  items?: PlanItem[];
-}
-
-// Plan Item
-export interface PlanItem {
-  id: string;
-  planId: string;
-  campaignId?: string;
-  mappingData: Record<string, any>;
-  createdAt: string;
-}
-
 // Audit
 export interface Audit {
   id: string;
